@@ -16,8 +16,6 @@ import org.zkoss.json.JavaScriptValue;
 import org.zkoss.util.Pair;
 import org.zkoss.util.resource.Labels;
 import org.zkoss.zk.au.out.AuInvoke;
-import org.zkoss.zk.ui.event.Event;
-import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.select.annotation.WireVariable;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Messagebox;
@@ -141,7 +139,7 @@ public class SampleVM {
 
 			// TODO:set the new name
 			// dev.setNickName(newName);
-			cancelUpdate(null); // This doesn't undo anything we already did (just controls UI aspects)
+			cancelUpdate(); // This doesn't undo anything we already did (just controls UI aspects)
 
 			try {
 				boolean result = SampleService.getInstance()
@@ -166,11 +164,8 @@ public class SampleVM {
 	}
 
 	@NotifyChange({ "editingId", "newDevice" })
-	public void cancelUpdate(Event event) {
+	public void cancelUpdate() {
 		editingId = null;
-        if (event != null && event.getName().equals(Events.ON_CLOSE)) {
-            event.stopPropagation();
-        }
 	}
 
 	public void showQR() {

@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * @author Sergey Manoylo
- * @author Yuriy Movchan
+ * @author Yuriy Movchan 
  * @version 06/30/2022
  */
 public enum SmtpConnectProtectionType implements AttributeEnum {
@@ -31,11 +31,6 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
         }
     }
 
-    @JsonCreator
-    public static SmtpConnectProtectionType forValues(String value) {
-        return getByValue(value);
-    }
-
     /**
      * 
      * @param value
@@ -44,6 +39,11 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
     private SmtpConnectProtectionType(String value, String displayName) {
         this.value = value;
         this.displayName = displayName;
+    }
+
+    @JsonCreator
+    public static SmtpConnectProtectionType forValues(String value) {
+        return getByValue(value);
     }
 
     @Override

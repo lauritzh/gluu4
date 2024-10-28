@@ -50,45 +50,22 @@ spec:
       topologySpreadConstraints:
         {{- include "opendj.topology-spread-constraints" . | indent 8 }}
       {{- end }}
-      {{- if .Values.nodeSelector }}
-      nodeSelector:
-{{- toYaml .Values.nodeSelector | nindent 8 }}
-      {{- end }}
-      {{- if .Values.affinity }}
-      affinity:
-{{- toYaml .Values.affinity | nindent 8 }}
-      {{- end }}
-      {{- if .Values.tolerations }}
-      tolerations:
-      {{- with .Values.tolerations }}
-{{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- end }}
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       containers:
       - name: {{ include "opendj.name" $ }}
-        {{- if .Values.customScripts }}
-        command:
-          - /bin/sh
-          - -c
-          - |
-              {{- with .Values.customScripts }}
-              {{- toYaml . | replace "- " "" | nindent 14}}
-              {{- end }}
-              /app/scripts/entrypoint.sh
-        {{- end}}
+        {{- with .Values.preStop }}
         lifecycle:
-{{- toYaml .Values.lifecycle | nindent 10 }}
-        securityContext:
-          runAsNonRoot: true
+          preStop:
+{{ toYaml . | indent 12 }}
+        {{- end }}
         imagePullPolicy: {{ $.Values.image.pullPolicy }}
         image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
         env:
           {{- include "opendj.usr-envs" $ | indent 12 }}
           {{- include "opendj.usr-secret-envs" $ | indent 12 }}
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "python3 /app/scripts/deregister_peer.py 1>&/proc/1/fd/1"]
         envFrom:
         - configMapRef:
             name: {{ $.Release.Name }}-config-cm
@@ -113,6 +90,11 @@ spec:
         {{- end }}
         {{- with $.Values.volumeMounts }}
 {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if $.Values.global.upgrade.enabled }}
+          - name: ox-ldif-cm
+            mountPath: /opt/opendj/config/schema/101-ox.ldif
+            subPath: 101-ox.ldif
         {{- end }}
         livenessProbe:
 {{- toYaml $.Values.livenessProbe | nindent 10 }}

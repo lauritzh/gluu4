@@ -234,12 +234,12 @@ Please calculate the minimum required resources as per services deployed. The fo
       ```yaml
       #global values to be used across charts
       global:
-        storageClass:
-          provisioner: kubernetes.io/aws-ebs #CHANGE-THIS
+        provisioner: kubernetes.io/aws-ebs #CHANGE-THIS
+        lbAddr: "" #CHANGE-THIS to the address received in the previous step axx-109xx52.us-west-2.elb.amazonaws.com
         domain: demoexample.gluu.org #CHANGE-THIS to the FQDN used for Gluu
         isDomainRegistered: "false" # CHANGE-THIS  "true" or "false" to specify if the domain above is registered or not.
     
-      nginx-ingress:
+      nginx:
         ingress:
           enabled: true
           path: /
@@ -249,10 +249,6 @@ Please calculate the minimum required resources as per services deployed. The fo
             - secretName: tls-certificate
               hosts:
                 - demoexample.gluu.org #CHANGE-THIS to the FQDN used for Gluu
-
-      config:
-        configmap:
-          lbAddr: "" #CHANGE-THIS to the address received in the previous step axx-109xx52.us-west-2.elb.amazonaws.com           
       ```    
     
       Tweak the optional [parameters](#configuration) in `values.yaml` to fit the setup needed.
@@ -266,13 +262,13 @@ Please calculate the minimum required resources as per services deployed. The fo
       ```yaml
       #global values to be used across charts
       global:
-        storageClass:
-          provisioner: kubernetes.io/gce-pd #CHANGE-THIS
+        provisioner: kubernetes.io/gce-pd #CHANGE-THIS
+        lbAddr: ""
         domain: demoexample.gluu.org #CHANGE-THIS to the FQDN used for Gluu
         # Networking configs
         lbIp: "" #CHANGE-THIS  to the IP received from the previous step
         isDomainRegistered: "false" # CHANGE-THIS  "true" or "false" to specify if the domain above is registered or not.
-      nginx-ingress:
+      nginx:
         ingress:
           enabled: true
           path: /
@@ -295,12 +291,12 @@ Please calculate the minimum required resources as per services deployed. The fo
       ```yaml
       #global values to be used across charts
       global:
-        storageClass:
-          provisioner: k8s.io/minikube-hostpath #CHANGE-THIS
+        provisioner: k8s.io/minikube-hostpath #CHANGE-THIS
+        lbAddr: ""
         domain: demoexample.gluu.org #CHANGE-THIS to the FQDN used for Gluu
         lbIp: "" #CHANGE-THIS  to the IP of minikube <minikube ip>
     
-      nginx-ingress:
+      nginx:
         ingress:
           enabled: true
           path: /
@@ -314,7 +310,7 @@ Please calculate the minimum required resources as per services deployed. The fo
     
       Tweak the optional [parameters](#configuration) in `values.yaml` to fit the setup needed.
     
-    - Map gluu's FQDN at `/etc/hosts` file  to the minikube IP as shown below.
+    - Map gluus FQDN at `/etc/hosts` file  to the minikube IP as shown below.
     
         ```bash
         ##
@@ -338,12 +334,12 @@ Please calculate the minimum required resources as per services deployed. The fo
       ```yaml
       #global values to be used across charts
       global:
-        storageClass:
-          provisioner: microk8s.io/hostpath #CHANGE-THIS
+        provisioner: microk8s.io/hostpath #CHANGE-THIS
+        lbAddr: ""
         domain: demoexample.gluu.org #CHANGE-THIS to the FQDN used for Gluu
         lbIp: "" #CHANGE-THIS  to the IP of the microk8s vm
     
-      nginx-ingress:
+      nginx:
         ingress:
           enabled: true
           path: /
@@ -357,7 +353,7 @@ Please calculate the minimum required resources as per services deployed. The fo
     
       Tweak the optional [parameteres](#configuration) in `values.yaml` to fit the setup needed.
     
-    - Map gluu's FQDN at `/etc/hosts` file  to the microk8s vm IP as shown below.
+    - Map gluus FQDN at `/etc/hosts` file  to the microk8s vm IP as shown below.
     
       ```bash
       ##
@@ -984,8 +980,8 @@ This is the main parameter file used with the [`pygluu-kubernetes.pyz`](https://
 | `CONFIG_IMAGE_TAG`                              | Config image tag                                                                 | i.e `"4.3.0_01"`                                                                            |
 | `CACHE_REFRESH_ROTATE_IMAGE_NAME`               | Cache refresh image repository name                                              | i.e `"gluufederation/cr-rotate"`                                                            |
 | `CACHE_REFRESH_ROTATE_IMAGE_TAG`                | Cache refresh  image tag                                                         | i.e `"4.3.0_01"`                                                                            |
-| `CERT_MANAGER_IMAGE_NAME`                       | Gluu's Certificate management image repository name                               | i.e `"gluufederation/certmanager"`                                                          |
-| `CERT_MANAGER_IMAGE_TAG`                        | Gluu's Certificate management image tag                                           | i.e `"4.3.0_01"`                                                                            |
+| `CERT_MANAGER_IMAGE_NAME`                       | Gluus Certificate management image repository name                               | i.e `"gluufederation/certmanager"`                                                          |
+| `CERT_MANAGER_IMAGE_TAG`                        | Gluus Certificate management image tag                                           | i.e `"4.3.0_01"`                                                                            |
 | `LDAP_IMAGE_NAME`                               | LDAP image repository name                                                       | i.e `"gluufederation/opendj"`                                                               |
 | `LDAP_IMAGE_TAG`                                | LDAP image tag                                                                   | i.e `"4.3.0_01"`                                                                            |
 | `OXAUTH_IMAGE_NAME`                             | oxAuth image repository name                                                     | i.e `"gluufederation/oxauth"`                                                               |

@@ -25,6 +25,5 @@ spec:
       consistentHash:
         httpCookie:
           name: shib-stateful-route
-          ttl: {{ .Values.istioDestinationRuleCookieTTL }}
-          path: /idp
+          ttl: 60s
 {{- end }}

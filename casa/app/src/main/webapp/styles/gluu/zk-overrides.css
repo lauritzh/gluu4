@@ -144,6 +144,10 @@
     justify-content: center; /* justify-center */
 }
 
+.z-messagebox-viewport {
+    margin-bottom: 1rem;
+}
+
 .z-messagebox-buttons .z-button {
     font-size: .75rem; /* f7 */
     border-width: 0; /* bw0 */
@@ -153,10 +157,6 @@
     color: #fff; /* white */
     cursor: pointer; /* pointer */
     background-color: #28a745;
-}
-
-.z-messagebox-viewport {
-    margin-bottom: 1rem;
 }
 
 .z-hlayout-inner {

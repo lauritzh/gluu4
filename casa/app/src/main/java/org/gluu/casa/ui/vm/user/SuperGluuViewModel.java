@@ -17,7 +17,6 @@ import org.zkoss.util.resource.Labels;
 import org.zkoss.zk.au.out.AuInvoke;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
-import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.select.Selectors;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.WireVariable;
@@ -211,7 +210,7 @@ public class SuperGluuViewModel extends UserViewModel {
             int i = Utils.firstTrue(devices, dev -> dev.getId().equals(editingId));
             SuperGluuDevice dev = devices.get(i);
             dev.setNickName(nick);
-            cancelUpdate(null);
+            cancelUpdate();
 
             try {
                 sgService.updateDevice(dev);
@@ -225,12 +224,9 @@ public class SuperGluuViewModel extends UserViewModel {
     }
 
     @NotifyChange({"editingId", "newDevice"})
-    public void cancelUpdate(Event event) {
+    public void cancelUpdate() {
         newDevice.setNickName(null);
         editingId = null;
-        if (event != null && event.getName().equals(Events.ON_CLOSE)) {
-            event.stopPropagation();
-        }
     }
 
     public void delete(SuperGluuDevice device){

@@ -29,7 +29,7 @@ image:
   # -- Image  to use for deploying.
   repository: gluufederation/casa
   # -- Image  tag to use for deploying.
-  tag: 4.5.5-1
+  tag: 4.4.2-1
   # -- Image Pull Secrets
   pullSecrets: [ ]
 # -- Service replica number.
@@ -61,19 +61,19 @@ service:
       timeoutSeconds: 10800
 # -- Configure the liveness healthcheck for casa if needed.
 livenessProbe:
-  exec:
-    command:
-      - python3
-      - /app/scripts/healthcheck.py
+  httpGet:
+    # -- http liveness probe endpoint
+    path: /casa/health-check
+    port: http-casa
   initialDelaySeconds: 25
   periodSeconds: 25
   timeoutSeconds: 5
 # -- Configure the readiness healthcheck for the casa if needed.
 readinessProbe:
-  exec:
-    command:
-      - python3
-      - /app/scripts/healthcheck.py
+  httpGet:
+    # -- http readiness probe endpoint
+    path: /casa/health-check
+    port: http-casa
   initialDelaySeconds: 30
   periodSeconds: 30
   timeoutSeconds: 5
@@ -81,14 +81,6 @@ readinessProbe:
 volumes: []
 # -- Configure any additional volumesMounts that need to be attached to the containers
 volumeMounts: []
-# Actions on lifecycle events such as postStart and preStop
-# Example postStop: https://github.com/GluuFederation/cloud-native-edition/discussions/516
-# Example postStart:
-# lifecycle:
-#   postStart:
-#     exec:
-#       command: ["sh", "-c", "mkdir /opt/jans/jetty/jans-auth/custom/static/stylesheet/"]
-lifecycle: {}
 
 nameOverride: ""
 fullnameOverride: ""
@@ -108,10 +100,3 @@ securityContext: {}
 additionalLabels: { }
 # -- Additional annotations that will be added across all resources  in the format of {cert-manager.io/issuer: "letsencrypt-prod"}. key app is taken
 additionalAnnotations: { }
-# -- https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
-tolerations: []
-# -- https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
-affinity: {}
-nodeSelector: {}
-# -- Add custom scripts that have been mounted to run before the entrypoint.
-customScripts: []

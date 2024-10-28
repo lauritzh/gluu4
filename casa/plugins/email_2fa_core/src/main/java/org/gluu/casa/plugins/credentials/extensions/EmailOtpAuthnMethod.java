@@ -9,6 +9,7 @@ import org.gluu.casa.credential.BasicCredential;
 import org.gluu.casa.extension.AuthnMethod;
 import org.gluu.casa.misc.Utils;
 import org.gluu.casa.plugins.emailotp.EmailOTPService;
+import org.gluu.casa.service.ISessionContext;
 import org.pf4j.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,13 @@ public class EmailOtpAuthnMethod implements AuthnMethod {
 
 	private static Logger logger = LoggerFactory.getLogger(EmailOtpAuthnMethod.class);
 
+	private ISessionContext sessionContext;
+
+	public EmailOtpAuthnMethod() {
+		sessionContext = Utils.managedBean(ISessionContext.class);
+		reloadConfiguration();
+	}
+
 	@Override
 	public String getPanelBottomTextKey() {
 		return "";
@@ -25,8 +33,9 @@ public class EmailOtpAuthnMethod implements AuthnMethod {
 
 	@Override
 	public boolean mayBe2faActivationRequisite() {
-		return Boolean.parseBoolean(Optional.ofNullable(
-		        EmailOTPService.getInstance().getScriptPropertyValue("2fa_requisite")).orElse("false"));
+		return Boolean.parseBoolean(Optional
+				.ofNullable(EmailOTPService.getInstance().getScriptPropertyValue("2fa_requisite")).orElse("false"));
+
 	}
 
 	@Override
@@ -35,9 +44,9 @@ public class EmailOtpAuthnMethod implements AuthnMethod {
 	}
 
 	@Override
-	public List<BasicCredential> getEnrolledCreds(String id) {
+	public List<BasicCredential> getEnrolledCreds(String arg0) {
 		try {
-			return EmailOTPService.getInstance().getCredentials(id)
+			return EmailOTPService.getInstance().getCredentials(sessionContext.getLoggedUser().getId())
 					.stream().map(dev -> new BasicCredential(dev.getNickName(), 0)).collect(Collectors.toList());
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -62,17 +71,17 @@ public class EmailOtpAuthnMethod implements AuthnMethod {
 
 	@Override
 	public String getPanelTitleKey() {
-		return "usr.email_title";
+		return "email.title";
 	}
 
 	@Override
-	public int getTotalUserCreds(String id) {
-		return EmailOTPService.getInstance().getCredentialsTotal(id);
+	public int getTotalUserCreds(String arg0) {
+		return EmailOTPService.getInstance().getCredentialsTotal( sessionContext.getLoggedUser().getId());
 	}
 
 	@Override
 	public String getUINameKey() {
-		return "usr.email_label";
+		return "email.title";
 	}
 
 	@Override
