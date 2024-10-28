@@ -22,9 +22,6 @@ class GluuInstaller(BaseInstaller, SetupUtils):
 
     install_var = 'installGluu'
 
-    def __init__(self):
-        setattr(base.current_app, self.__class__.__name__, self)
-
     def __repr__(self):
         txt = ''
         try:
@@ -80,10 +77,6 @@ class GluuInstaller(BaseInstaller, SetupUtils):
                 txt += 'Install Fido2 Server'.ljust(30) + repr(Config.installFido2).rjust(35) + (' *' if 'installFido2' in Config.addPostSetupService else '') + "\n"
                 txt += 'Install Gluu Radius '.ljust(30) + repr(Config.installGluuRadius).rjust(35) + (' *' if 'installGluuRadius' in Config.addPostSetupService else '') + "\n"
 
-
-            if Config.get('generate_passwurd_api_keystore') or base.argsp.gluu_passwurd_cert:
-                txt += 'Passwurd API keystore'.ljust(30) + 'True'.rjust(35) + (' *' if 'generate_passwurd_api_keystore' in Config.addPostSetupService else '') + "\n"
-
             txt += 'Load Test Data '.ljust(30) + repr( base.argsp.t).rjust(35) + "\n"
             return txt
 
@@ -101,7 +94,7 @@ class GluuInstaller(BaseInstaller, SetupUtils):
     def initialize(self):
         self.service_name = 'gluu'
         self.app_type = AppType.APPLICATION
-        self.install_type = InstallOption.MANDATORY
+        self.install_type = InstallOption.MONDATORY
         gluuProgress.register(self)
 
         Config.install_time_ldap = time.strftime('%Y%m%d%H%M%SZ', time.gmtime(time.time()))
@@ -461,9 +454,6 @@ class GluuInstaller(BaseInstaller, SetupUtils):
         if Config.profile == static.SetupProfiles.DISA_STIG:
             self.disa_stig_post_install_tasks()
 
-        if base.argsp.gluu_passwurd_cert or Config.get('generate_passwurd_api_keystore'):
-            self.generate_gluu_passwurd_api_keystore()
-
     def disa_stig_post_install_tasks(self):
 
         self.chown(Config.gluuOptFolder, Config.jetty_user, Config.gluu_group)
@@ -483,22 +473,6 @@ class GluuInstaller(BaseInstaller, SetupUtils):
             self.run([paths.cmd_chmod, 'g+rwX', '-R', sys_path])
 
         self.chown(jetty_absolute_dir.parent.as_posix(), Config.user_group, recursive=True)
-
-
-    def generate_gluu_passwurd_api_keystore(self):
-        suffix = 'passwurd_api'
-        Config.passwurd_api_keystore_pass = self.getPW()
-        Config.passwurd_api_keystore_pass_enc = self.obscure(Config.passwurd_api_keystore_pass)
-        key_fn, csr_fn, crt_fn = self.gen_cert(suffix, Config.passwurd_api_keystore_pass, user='jetty')
-        Config.passwurd_api_keystore_fn = os.path.join(Config.certFolder, 'passwurdAKeystore.pkcs12')
-        self.gen_keystore(suffix, Config.passwurd_api_keystore_fn, Config.passwurd_api_keystore_pass, key_fn, crt_fn, store_type='PKCS12')
-
-        tmp_dir = os.path.join(Config.templateFolder, 'scan')
-        scan_creds_fn = os.path.join(tmp_dir, 'scan_creds.json')
-        scan_creds_out_fn = os.path.join(Config.configFolder, os.path.basename(scan_creds_fn))
-        self.renderTemplateInOut(file_path=scan_creds_fn, template_folder=tmp_dir, out_file=scan_creds_out_fn)
-        self.chown(scan_creds_out_fn, Config.user_group)
-
 
     def enable_scripts(self, inums):
         if inums:

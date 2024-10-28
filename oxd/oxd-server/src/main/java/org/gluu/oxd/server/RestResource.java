@@ -1,6 +1,9 @@
 package org.gluu.oxd.server;
 
-import com.google.common.base.Strings;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
+import io.dropwizard.util.Strings;
 import io.opentracing.Scope;
 import org.gluu.oxd.common.Command;
 import org.gluu.oxd.common.CommandType;
@@ -23,7 +26,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Path("/")
 public class RestResource {

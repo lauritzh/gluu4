@@ -18,8 +18,7 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.ServerCryptoProvider;
 import org.gluu.service.cdi.util.CdiUtil;
-
-import com.google.common.base.Preconditions;
+import org.python.jline.internal.Preconditions;
 
 /**
  * @author Yuriy Zabrovarnyy

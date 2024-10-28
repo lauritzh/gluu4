@@ -33,8 +33,6 @@ import org.gluu.util.StringHelper;
 @ObjectClass("oxCustomScript")
 public class CustomScript extends BaseEntry {
 
-    private static final long serialVersionUID = -7507701887397812523L;
-
     public static final String LOCATION_TYPE_MODEL_PROPERTY = "location_type";
     public static final String LOCATION_PATH_MODEL_PROPERTY = "location_path";
 
@@ -63,15 +61,11 @@ public class CustomScript extends BaseEntry {
 
     @JsonObject
     @AttributeName(name = "oxModuleProperty")
-    private List<SimpleCustomProperty> moduleProperties = new ArrayList<>();
+    private List<SimpleCustomProperty> moduleProperties =new ArrayList<>();
 
     @JsonObject
     @AttributeName(name = "oxConfigurationProperty")
     private List<SimpleExtendedCustomProperty> configurationProperties;
-
-    @JsonObject
-    @AttributeName(name = "gluuPrivateProperty")
-    private List<SimpleExtendedCustomProperty> privateProperties;
 
     @AttributeName(name = "oxLevel")
     private int level;
@@ -111,7 +105,6 @@ public class CustomScript extends BaseEntry {
         this.programmingLanguage = customScript.programmingLanguage;
         this.moduleProperties = customScript.moduleProperties;
         this.configurationProperties = customScript.configurationProperties;
-        this.privateProperties = customScript.privateProperties;
         this.level = customScript.level;
         this.revision = customScript.revision;
         this.enabled = customScript.enabled;
@@ -200,14 +193,6 @@ public class CustomScript extends BaseEntry {
 
     public void setConfigurationProperties(List<SimpleExtendedCustomProperty> properties) {
         this.configurationProperties = properties;
-    }
-
-    public List<SimpleExtendedCustomProperty> getPrivateProperties() {
-        return privateProperties;
-    }
-
-    public void setPrivateProperties(List<SimpleExtendedCustomProperty> properties) {
-        this.privateProperties = properties;
     }
 
     public int getLevel() {

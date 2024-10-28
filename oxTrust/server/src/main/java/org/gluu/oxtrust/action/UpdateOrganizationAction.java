@@ -248,12 +248,12 @@ public class UpdateOrganizationAction implements Serializable {
 	}
 
 	public String verifySmtpConfiguration() {
-		if (StringUtils.isNotEmpty(smtpPasswordDecrypted)) {
+		if (StringUtils.isNotEmpty(smtpPasswordDecrypted)){
 			smtpConfiguration.setPasswordDecrypted(smtpPasswordDecrypted);
 		}
 		configurationService.encryptSmtpPassword(smtpConfiguration);
 
-		if (StringUtils.isNotEmpty(keyStorePasswordDecrypted)) {
+		if (StringUtils.isNotEmpty(keyStorePasswordDecrypted)){
 			smtpConfiguration.setKeyStorePasswordDecrypted(keyStorePasswordDecrypted);
 		}
 		configurationService.encryptKeyStorePassword(smtpConfiguration);

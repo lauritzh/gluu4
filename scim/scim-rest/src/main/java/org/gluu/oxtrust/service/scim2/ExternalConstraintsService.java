@@ -87,7 +87,7 @@ public class ExternalConstraintsService {
         ctx.setPath(uriInfo.getPath());
         ctx.setQueryParams(uriInfo.getQueryParameters());
         ctx.setRequestHeaders(httpHeaders.getRequestHeaders());
-        
+
         ScimMode mode = jsonConfigurationService.getOxTrustappConfiguration().getScimProperties()
                 .getProtectionMode();
 

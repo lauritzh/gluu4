@@ -7,7 +7,7 @@ info:
   license:
     name: Apache 2
     url: https://github.com/GluuFederation/scim/blob/master/LICENSE
-  version: 4.5.5
+  version: 4.4.2
 servers:
 - url: https://your.gluu.server.com/identity/restv1/scim/v2
 tags:
@@ -1824,7 +1824,7 @@ components:
         documentationUri:
           type: string
         primary:
-          type: boolean
+            type: boolean
       description: See section 5 of RFC 7643
     ServiceProviderConfigResponse:
       type: object

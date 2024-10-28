@@ -82,7 +82,7 @@ public class GluuReleaseAttributesPostProcessor extends AbstractProfileAction {
 			}
 		}
 
-		PostProcessAttributesContext context = buildContext(profileRequestContext, idpAttributeMap);
+		PostProcessAttributesContext context = buildContext(idpAttributeMap);
 
 		for (String attr : idpAttributeMap.keySet()) {
 			LOG.info("------------------------attr: {}", attr);
@@ -101,9 +101,10 @@ public class GluuReleaseAttributesPostProcessor extends AbstractProfileAction {
 		LOG.debug("Executed script method 'updateAttributes' with result {}", result);
 	}
 
-	private PostProcessAttributesContext buildContext(ProfileRequestContext profileRequestContext, final Map<String,IdPAttribute> idpAttributeMap) {
+	private PostProcessAttributesContext buildContext(final Map<String,IdPAttribute> idpAttributeMap) {
+
 		PostProcessAttributesContext context = new PostProcessAttributesContext();
-		context.setProfileRequestContext(profileRequestContext);
+
 		context.setAttributeReleaseAction(this);
 		context.setIdpAttributeMap(idpAttributeMap);
 

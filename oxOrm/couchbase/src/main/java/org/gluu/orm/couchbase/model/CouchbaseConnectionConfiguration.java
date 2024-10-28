@@ -6,9 +6,9 @@
 
 package org.gluu.orm.couchbase.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.util.List;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -19,24 +19,18 @@ public class CouchbaseConnectionConfiguration {
     private String configId;
     private String userName;
     private String userPassword;
-
     private List<String> servers;
     private String defaultBucket;
     private List<String> buckets;
-    
     private String passwordEncryptionMethod;
-    
-    private int connectTimeout;
-
+    private Boolean operationTracingEnabled;
     private Boolean mutationTokensEnabled;
-    private int kvTimeout;
-    private int queryTimeout;
-
+    private int connectTimeout;
+    private int computationPoolSize;
     private Boolean useSSL;
     private String sslTrustStoreFile;
     private String sslTrustStorePin;
-    private String sslTrustStoreType;
-    
+    private String sslTrustStoreFormat;
     private List<String> binaryAttributes;
     private List<String> certificateAttributes;
 
@@ -96,6 +90,14 @@ public class CouchbaseConnectionConfiguration {
         this.passwordEncryptionMethod = passwordEncryptionMethod;
     }
 
+    public Boolean getOperationTracingEnabled() {
+        return operationTracingEnabled;
+    }
+
+    public void setOperationTracingEnabled(Boolean operationTracingEnabled) {
+        this.operationTracingEnabled = operationTracingEnabled;
+    }
+
     public Boolean getMutationTokensEnabled() {
         return mutationTokensEnabled;
     }
@@ -112,23 +114,15 @@ public class CouchbaseConnectionConfiguration {
         this.connectTimeout = connectTimeout;
     }
 
-    public int getKvTimeout() {
-		return kvTimeout;
-	}
+    public int getComputationPoolSize() {
+        return computationPoolSize;
+    }
 
-	public void setKvTimeout(int kvTimeout) {
-		this.kvTimeout = kvTimeout;
-	}
+    public void setComputationPoolSize(int computationPoolSize) {
+        this.computationPoolSize = computationPoolSize;
+    }
 
-	public int getQueryTimeout() {
-		return queryTimeout;
-	}
-
-	public void setQueryTimeout(int queryTimeout) {
-		this.queryTimeout = queryTimeout;
-	}
-
-	public Boolean getUseSSL() {
+    public Boolean getUseSSL() {
         return useSSL;
     }
 
@@ -152,15 +146,15 @@ public class CouchbaseConnectionConfiguration {
         this.sslTrustStorePin = sslTrustStorePin;
     }
 
-    public String getSslTrustStoreType() {
-		return sslTrustStoreType;
-	}
+    public String getSslTrustStoreFormat() {
+        return sslTrustStoreFormat;
+    }
 
-	public void setSslTrustStoreType(String sslTrustStoreType) {
-		this.sslTrustStoreType = sslTrustStoreType;
-	}
+    public void setSslTrustStoreFormat(String sslTrustStoreFormat) {
+        this.sslTrustStoreFormat = sslTrustStoreFormat;
+    }
 
-	public List<String> getBinaryAttributes() {
+    public List<String> getBinaryAttributes() {
         return binaryAttributes;
     }
 

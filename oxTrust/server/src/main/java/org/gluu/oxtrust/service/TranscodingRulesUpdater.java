@@ -10,7 +10,6 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.oxtrust.service.cdi.event.TranscodingRulesUpdateEvent;
 import org.gluu.service.cdi.async.Asynchronous;
 import org.gluu.service.cdi.event.Scheduled;
@@ -30,9 +29,6 @@ public class TranscodingRulesUpdater implements Serializable {
 
     @Inject
     private Logger log;
-
-    @Inject
-    private AppConfiguration appConfiguration;
 
     @Inject
     private Event<TimerEvent> timerEvent;
@@ -77,11 +73,6 @@ public class TranscodingRulesUpdater implements Serializable {
 
     private void processTranscodingRulesUpdate() {
 
-        if(appConfiguration.isConfigGeneration() == false) {
-            log.debug("Shibboleth configuration generation is disabled");
-            return;
-        }
-        
         log.debug("Start shibboleth transcoding rules update");
         if(!shibbolethConfService.generateGluuAttributeRulesFile()) {
             log.error("Shibboleth transcoding rules update failed. (Please restart service manually)");

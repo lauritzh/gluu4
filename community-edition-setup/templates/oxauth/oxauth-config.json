@@ -191,9 +191,7 @@
         "bg",
         "de",
         "es",
-        "fr",
         "it",
-        "ru",
         "tr"
     ],
     "dynamicGrantTypeDefault":[
@@ -214,8 +212,8 @@
     ],
     "allowPostLogoutRedirectWithoutValidation":false,
     "introspectionAccessTokenMustHaveUmaProtectionScope":false,
-    "opPolicyUri":"",
-    "opTosUri":"",
+    "opPolicyUri":"http://ox.gluu.org/doku.php?id=oxauth:policy",
+    "opTosUri":"http://ox.gluu.org/doku.php?id=oxauth:tos",
     "authorizationCodeLifetime":60,
     "refreshTokenLifetime":14400,
     "idTokenLifetime":3600,
@@ -277,7 +275,7 @@
         }
     ],
     "sessionIdUnusedLifetime":86400,
-    "sessionIdUnauthenticatedUnusedLifetime":7200,
+    "sessionIdUnauthenticatedUnusedLifetime":120,
     "changeSessionIdOnAuthentication":true,
     "returnClientSecretOnRead": true,
     "sessionIdPersistOnPromptNone":true,
@@ -341,7 +339,7 @@
     },
     "loggingLevel": "INFO",
     "loggingLayout": "text",
-    "errorHandlingMethod":"remote",
+    "errorHandlingMethod":"internal",
     "useLocalCache":true,
     "backchannelTokenDeliveryModesSupported": [],
     "backchannelAuthenticationRequestSigningAlgValuesSupported": [],
@@ -371,7 +369,5 @@
     },
     "deviceAuthzRequestExpiresIn": 1800,
     "deviceAuthzTokenPollInterval": 5,
-    "deviceAuthzResponseTypeToProcessAuthz": "code",
-    "return200OnClientRegistration": true,
-    "dateFormatterPatterns": {}
+    "deviceAuthzResponseTypeToProcessAuthz": "code"
 }

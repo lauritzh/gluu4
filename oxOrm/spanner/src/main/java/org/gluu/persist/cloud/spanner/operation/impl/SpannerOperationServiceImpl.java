@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,6 +35,7 @@ import org.gluu.persist.cloud.spanner.model.ValueWithStructField;
 import org.gluu.persist.cloud.spanner.operation.SpannerOperationService;
 import org.gluu.persist.cloud.spanner.operation.watch.OperationDurationUtil;
 import org.gluu.persist.cloud.spanner.util.SpannerValueHelper;
+import org.gluu.persist.exception.extension.PersistenceExtension;
 import org.gluu.persist.exception.operation.DeleteException;
 import org.gluu.persist.exception.operation.DuplicateEntryException;
 import org.gluu.persist.exception.operation.EntryConvertationException;
@@ -43,7 +43,6 @@ import org.gluu.persist.exception.operation.EntryNotFoundException;
 import org.gluu.persist.exception.operation.IncompatibleTypeException;
 import org.gluu.persist.exception.operation.PersistenceException;
 import org.gluu.persist.exception.operation.SearchException;
-import org.gluu.persist.extension.PersistenceExtension;
 import org.gluu.persist.model.AttributeData;
 import org.gluu.persist.model.AttributeDataModification;
 import org.gluu.persist.model.AttributeDataModification.AttributeModificationType;
@@ -652,7 +651,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	
 	                    resultCount += lastCountRows;
 	
-	                    if ((count > 0) && (resultCount >= count) || (lastCountRows < currentLimit)) {
+	                    if ((count > 0) && (resultCount >= count)) {
 	                        break;
 	                    }
 	                } while (lastCountRows > 0);
@@ -705,7 +704,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
     		Function countFunction = new Function();
     		countFunction.setName("COUNT");
-    		countFunction.setParameters(new ExpressionList(Collections.<Expression>singletonList(new Column("*"))));
+    		countFunction.setAllColumns(true);
 
     		SelectExpressionItem selectCountItem = new SelectExpressionItem(countFunction);
     		selectCountItem.setAlias(new Alias("TOTAL", false));

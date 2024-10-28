@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>4.5.6-SNAPSHOT</version>
+		<version>4.4.2.sp1</version>
 	</parent>
 
 	<prerequisites>
@@ -233,11 +233,11 @@
 		<!-- Bouncycastle -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk18on</artifactId>
+			<artifactId>bcprov-jdk15on</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk18on</artifactId>
+			<artifactId>bcpkix-jdk15on</artifactId>
 		</dependency>
 
 		<!-- Logging -->
@@ -271,16 +271,30 @@
 			<artifactId>junit</artifactId>
             <scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>htmlunit3-driver</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-java</artifactId>
-			<scope>test</scope>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-remote-driver</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-support</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.htmlunit</groupId>
+            <artifactId>htmlunit-cssparser</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-htmlunit-driver</artifactId>
+            <scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -297,11 +311,11 @@
 			<dependencies>
 				<dependency>
 					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk18on</artifactId>
+					<artifactId>bcprov-jdk15on</artifactId>
 				</dependency>
 				<dependency>
 					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcpkix-jdk18on</artifactId>
+					<artifactId>bcpkix-jdk15on</artifactId>
 				</dependency>
 			</dependencies>
 		</profile>
@@ -339,6 +353,7 @@
 				<dependency>
 					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-model</artifactId>
+					<version>${project.version}</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>

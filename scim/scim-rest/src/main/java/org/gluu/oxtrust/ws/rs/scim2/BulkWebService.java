@@ -8,6 +8,8 @@ import static javax.ws.rs.core.Response.Status.Family.CLIENT_ERROR;
 import static javax.ws.rs.core.Response.Status.Family.SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.Family.familyOf;
+import static org.gluu.oxtrust.model.scim2.Constants.MAX_BULK_OPERATIONS;
+import static org.gluu.oxtrust.model.scim2.Constants.MAX_BULK_PAYLOAD_SIZE;
 import static org.gluu.oxtrust.model.scim2.Constants.MEDIA_TYPE_SCIM_JSON;
 import static org.gluu.oxtrust.model.scim2.Constants.UTF8_CHARSET_FRAGMENT;
 import static org.gluu.oxtrust.ws.rs.scim2.BulkWebService.Verb.DELETE;
@@ -85,7 +87,7 @@ public class BulkWebService extends BaseScimWebService {
     @Consumes({MEDIA_TYPE_SCIM_JSON, MediaType.APPLICATION_JSON})
     @Produces({MEDIA_TYPE_SCIM_JSON + UTF8_CHARSET_FRAGMENT, MediaType.APPLICATION_JSON + UTF8_CHARSET_FRAGMENT})
     @HeaderParam("Accept") @DefaultValue(MEDIA_TYPE_SCIM_JSON)
-    @ProtectedApi(scopes = { "https://gluu.org/scim/bulk" })
+    @ProtectedApi(oauthScopes = { "https://gluu.org/scim/bulk" })
     public Response processBulkOperations(BulkRequest request) {
 
         Response response=prepareRequest(request, getValueFromHeaders(httpHeaders, "Content-Length"));
@@ -176,7 +178,7 @@ public class BulkWebService extends BaseScimWebService {
         Response response=null;
 
         if (request.getFailOnErrors()==null)
-            request.setFailOnErrors(scimProperties.getBulkMaxOperations());
+            request.setFailOnErrors(MAX_BULK_OPERATIONS);
 
         List<BulkOperation> operations=request.getOperations();
 
@@ -184,25 +186,25 @@ public class BulkWebService extends BaseScimWebService {
             response=getErrorResponse(BAD_REQUEST, ErrorScimType.INVALID_VALUE, "No operations supplied");
         else {
 
-            long contentLen;
+            int contentLen;
             try{
 //log.debug("CONT LEN {}", contentLength);
-                contentLen=Long.valueOf(contentLength);
+                contentLen=Integer.valueOf(contentLength);
             }
             catch (Exception e){
-                contentLen=scimProperties.getBulkMaxPayloadSize();
+                contentLen=MAX_BULK_PAYLOAD_SIZE;
             }
 
-            boolean payloadExceeded=contentLen > scimProperties.getBulkMaxPayloadSize();
-            boolean operationsExceeded=operations.size() > scimProperties.getBulkMaxOperations();
+            boolean payloadExceeded=contentLen > MAX_BULK_PAYLOAD_SIZE;
+            boolean operationsExceeded=operations.size() > MAX_BULK_OPERATIONS;
             StringBuilder sb=new StringBuilder();
 
             if (payloadExceeded)
                 sb.append("The size of the bulk operation exceeds the maxPayloadSize (").
-                        append(scimProperties.getBulkMaxPayloadSize()).append(" bytes). ");
+                        append(MAX_BULK_PAYLOAD_SIZE).append(" bytes). ");
             if (operationsExceeded)
                 sb.append("The number of operations exceed the maxOperations value (").
-                        append(scimProperties.getBulkMaxOperations()).append("). ");
+                        append(MAX_BULK_OPERATIONS).append("). ");
 
             if (sb.length()>0)
                 response=getErrorResponse(REQUEST_ENTITY_TOO_LARGE, sb.toString());

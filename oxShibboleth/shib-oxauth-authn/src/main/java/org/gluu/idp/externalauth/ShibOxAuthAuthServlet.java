@@ -50,14 +50,6 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.webflow.context.ExternalContextHolder;
-import org.springframework.webflow.context.servlet.ServletExternalContext;
-import org.springframework.webflow.engine.impl.FlowExecutionImpl;
-import org.springframework.webflow.execution.FlowExecutionFactory;
-import org.springframework.webflow.execution.FlowExecutionKey;
-import org.springframework.webflow.execution.repository.FlowExecutionRepository;
-import org.springframework.webflow.executor.FlowExecutionResult;
-import org.springframework.webflow.executor.FlowExecutorImpl;
 
 import net.shibboleth.idp.attribute.IdPAttribute;
 import net.shibboleth.idp.authn.AuthnEventIds;
@@ -123,12 +115,7 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
 
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
-    	if (!checkRequest(request, response)) {
-    		return;
-    	}
-
-    	try {
-            ExternalContextHolder.setExternalContext(new ServletExternalContext(request.getServletContext(), request, response));
+        try {
 
             final String requestUrl = request.getRequestURL().toString();
             LOG.trace("Get request to: '{}'", requestUrl);
@@ -170,7 +157,7 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
             }
 
             // Get authentication key from request 
-            final String flowExecutionKey = ExternalAuthentication.startExternalAuthentication(externalRequest);
+            final String authenticationKey = ExternalAuthentication.startExternalAuthentication(externalRequest);
 
             // Get external authentication properties
             final boolean force = Boolean.parseBoolean(request.getAttribute(ExternalAuthentication.FORCE_AUTHN_PARAM).toString());
@@ -178,7 +165,7 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
             // It's an authentication
             if (!authorizationResponse) {
                 LOG.debug("Initiating oxAuth login redirect");
-                startLoginRequest(request, response, flowExecutionKey, force);
+                startLoginRequest(request, response, authenticationKey, force);
                 return;
             }
 
@@ -189,34 +176,21 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
                 LOG.error("The state in session and in request are not equals");
 
                 // Re-init login page
-                startLoginRequest(request, response, flowExecutionKey, force);
+                startLoginRequest(request, response, authenticationKey, force);
                 return;
             }
 
-            processAuthorizationResponse(request, response, flowExecutionKey);
+            processAuthorizationResponse(request, response, authenticationKey);
 
         } catch (final ExternalAuthenticationException ex) {
-            LOG.error("Error processing oxAuth authentication request", ex);
+            LOG.warn("Error processing oxAuth authentication request", ex);
             loadErrorPage(request, response);
+
         } catch (final Exception ex) {
             LOG.error("Something unexpected happened", ex);
             request.setAttribute(ExternalAuthentication.AUTHENTICATION_ERROR_KEY, AuthnEventIds.AUTHN_EXCEPTION);
-        } finally {
-            ExternalContextHolder.setExternalContext(null);
         }
     }
-
-    private final boolean checkRequest(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
-		// Check whether a session is required.
-		if (request.getSession(false) == null) {
-            LOG.error("Pre-existing session required but none found");
-            loadErrorPage(request, response);
-            
-            return false;
-		}
-		
-		return true;
-	}
 
     private void processAuthorizationResponse(final HttpServletRequest request, final HttpServletResponse response, final String authenticationKey)
             throws ExternalAuthenticationException, IOException {
@@ -229,7 +203,6 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
 
             final UserProfile userProfile = authClient.getUserProfile(openIdCredentials, context);
             LOG.debug("User profile : {}", userProfile);
-            
 
             if (userProfile == null) {
                 LOG.error("Token validation failed, returning InvalidToken");
@@ -269,14 +242,14 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
 	                if(!idpAttributes.isEmpty()) {
 	                    LOG.debug("Storing generated idp attributes");
 	                    ProfileRequestContext prContext = ExternalAuthentication.getProfileRequestContext(authenticationKey, request);
-	                    GluuScratchContext gluuScratchContext = prContext.getSubcontext(GluuScratchContext.class, true);
+	                    GluuScratchContext gluuScratchContext = prContext.getSubcontext(GluuScratchContext.class,true);
 	                    gluuScratchContext.setIdpAttributes(idpAttributes);
 	                }
 	
 	                LOG.debug("Created an IdP subject instance with principals for {} ", userProfile.getId());
 	                final Set<Principal> userPrincipals = new HashSet<Principal>();
 	                userPrincipals.add(new UsernamePrincipal(userProfile.getId()));
-	                request.setAttribute(ExternalAuthentication.SUBJECT_KEY, new Subject(false, userPrincipals, Collections.emptySet(),Collections.emptySet()));
+	                request.setAttribute(ExternalAuthentication.SUBJECT_KEY, new Subject(false, userPrincipals,Collections.emptySet(),Collections.emptySet()));
 	
 	                if (authenticationContext != null) {
 	                	String usedAcr = userProfile.getUsedAcr();
@@ -321,7 +294,7 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
                     }
                 }
             }catch(ExternalAuthenticationException e) {
-                LOG.info("Could not set extra parameters for the request. Extra request parameters will not be available to oxAuth",e);
+                LOG.debug("Could not set extra parameters for the request. Extra request parameters will not be available to oxAuth",e);
             }
 
             
@@ -339,7 +312,7 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
                         Function<ProfileRequestContext, RelyingPartyContext> authenticationContextLookupStrategy = new ChildContextLookup<>(RelyingPartyContext.class);
                         final RelyingPartyContext relyingPartyContext = authenticationContextLookupStrategy.apply(profileRequestContext);
                         if (relyingPartyContext != null) {
-                        	 ProfileConfiguration profileConfiguration = relyingPartyContext.getProfileConfig();
+                        	ProfileConfiguration profileConfiguration = relyingPartyContext.getProfileConfig();
                         	if (profileConfiguration instanceof BrowserSSOProfileConfiguration) {
                         		List<Principal> principals = ((BrowserSSOProfileConfiguration) profileConfiguration).getDefaultAuthenticationMethods(profileRequestContext);
                                 acrs = principals.stream()

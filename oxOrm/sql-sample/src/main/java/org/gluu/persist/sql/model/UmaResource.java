@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+
 import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.DN;
 import org.gluu.persist.annotation.DataEntry;
@@ -38,6 +40,7 @@ public class UmaResource implements Serializable {
     @AttributeName(name = "gluuId")
     private String id;
 
+    @NotNull(message = "Display name should be not empty")
     @AttributeName(name = "displayName")
     private String name;
 

@@ -79,9 +79,7 @@ async function setupStrategy (provider) {
   }
 
   const providerOptions = provider.options
-
-  // check saml strategy
-  const isSaml = strategyModule === '@node-saml/passport-saml'
+  const isSaml = strategyModule === 'passport-saml'
   const verify = getVerifyFunction(provider)
 
   // Create strategy
@@ -90,11 +88,11 @@ async function setupStrategy (provider) {
     // "an IDP would never do both IDP initiated and SP initiated..."
     if (global.iiconfig.authorizationParams.find(
       authorizationParam => authorizationParam.provider === id)) {
-      providerOptions.validateInResponseTo = 'never'
+      providerOptions.validateInResponseTo = false
     }
 
     // Instantiate custom cache provider if required
-    if (providerOptions.validateInResponseTo === 'always') {
+    if (providerOptions.validateInResponseTo) {
       const f = R.anyPass([R.isNil, R.isEmpty])
       const exp = providerOptions.requestIdExpirationPeriodMs / 1000
 
@@ -108,7 +106,7 @@ async function setupStrategy (provider) {
         )
       }
     }
-    providerOptions.idpCert = providerOptions.idpCert.replace(/[\n ]/g, '')
+
     const samlStrategy = new Strategy(providerOptions, verify)
     passport.use(id, samlStrategy)
     spMetadata.generate(provider, samlStrategy)
@@ -193,7 +191,7 @@ function fillMissingData (providers) {
   for (const provider of providers) {
     const options = provider.options
     const strategyId = provider.passportStrategyId
-    const isSaml = strategyId === '@node-saml/passport-saml'
+    const isSaml = strategyId === 'passport-saml'
     const callbackUrl = R.defaultTo(options.callbackUrl, options.callbackURL)
     const prefix = global.config.serverURI + '/passport/auth'
 
@@ -275,6 +273,6 @@ function setup (providers) {
 }
 
 module.exports = {
-  setup,
-  applyMapping
+  setup: setup,
+  applyMapping: applyMapping
 }

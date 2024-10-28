@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * PublicKeyCredentialDescriptor - https://www.w3.org/TR/webauthn-2/#enum-credentialType
  * @author Yuriy Movchan
  * @version May 08, 2020
  */

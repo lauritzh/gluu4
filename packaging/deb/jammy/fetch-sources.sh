@@ -73,7 +73,7 @@ if [ -n "${VER}" ]; then
     
   #  wget https://raw.githubusercontent.com/GluuFederation/community-edition-package/$INSTALL/package/systemd/oxd-server.service -O $DIRWEB/oxd-server/oxd-server.service
   #  pushd $DIRWEB/
-  #    tar -czf oxd-server.tgz oxd-server
+  #    tar -cvzf oxd-server.tgz oxd-server
   #    rm -rf oxd-server
   #  popd
     

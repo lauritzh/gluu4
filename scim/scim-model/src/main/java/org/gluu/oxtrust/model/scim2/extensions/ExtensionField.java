@@ -10,7 +10,6 @@ import org.gluu.oxtrust.model.scim2.AttributeDefinition.Type;
 import org.gluu.oxtrust.model.scim2.util.DateUtil;
 
 import java.util.regex.Pattern;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Represents the metadata of an attribute that belongs to a SCIM resource extension.
@@ -100,15 +99,8 @@ public class ExtensionField {
                 value = val;
                 break;
             case DATE:
+                //Dates are stored and read as strings indeed (no handling of Date or DateTime objects)
                 value=DateUtil.generalizedToISOStringDate(val);
-                if (value == null) {
-                    try {
-                        DateTimeFormatter.ISO_DATE_TIME.parse(val);
-                        value = val;
-                    } catch (Exception e) {
-                        //Let value be null
-                    }
-                }
                 break;
             case NUMERIC:
                 try{

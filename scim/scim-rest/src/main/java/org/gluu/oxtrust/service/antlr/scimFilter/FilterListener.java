@@ -44,7 +44,7 @@ public class FilterListener extends ScimFilterBaseListener {
     private ExtensionService extService;
     private Map<String, GluuAttribute> attributesMap;
     private boolean ldapBackend;
-	
+
     public FilterListener(Class<? extends BaseScimResource> resourceClass, Map<String, GluuAttribute> attributesMap, boolean ldapBackend) {
         filter = new ArrayDeque<>();
         extService = CdiUtil.bean(ExtensionService.class);
@@ -176,16 +176,16 @@ public class FilterListener extends ScimFilterBaseListener {
  	private Boolean computeMultivaluedForCoreAttribute(String path, Attribute attrAnnot, String dbAttribute) {
 		
  		Boolean multiValued;
- 		
+
  		// Determine attribute multivalued from ou=attributes 
  		String dbAttributeLower = StringHelper.toLowerCase(dbAttribute);
  		GluuAttribute gluuAttribute = attributesMap.get(dbAttributeLower);
  		if (gluuAttribute != null) {
  			multiValued = (gluuAttribute.getOxMultiValuedAttribute() != null) && gluuAttribute.getOxMultiValuedAttribute();
  			return multiValued;
- 			
+
  		}
- 		
+
  		if (!ldapBackend  && (dbAttribute.equals("mail") || dbAttribute.equals("oxPPID"))) {
  			multiValued = null;
  		} else {

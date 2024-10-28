@@ -118,11 +118,9 @@ public abstract class AbstractCorsFilter implements Filter {
         // Determines the CORS request type.
         AbstractCorsFilter.CORSRequestType requestType = checkRequestType(request);
 
-        dumpRequestDetails("before doFilter", request, requestType);
-
         // Adds CORS specific attributes to request.
         if (decorateRequest) {
-            decorateCORSProperties(request, requestType);
+            AbstractCorsFilter.decorateCORSProperties(request, requestType);
         }
         switch (requestType) {
             case SIMPLE:
@@ -146,8 +144,6 @@ public abstract class AbstractCorsFilter implements Filter {
                 this.handleInvalidCORS(request, response, filterChain);
                 break;
         }
-
-        dumpRequestDetails("after doFilter", request, requestType);
     }
 
     @Override
@@ -177,7 +173,6 @@ public abstract class AbstractCorsFilter implements Filter {
                             AbstractCorsFilter.CORSRequestType.SIMPLE,
                             AbstractCorsFilter.CORSRequestType.ACTUAL));
         }
-        dumpRequestDetails("before handleSimpleCORS", request, requestType);
 
         final String origin = request
                 .getHeader(AbstractCorsFilter.REQUEST_HEADER_ORIGIN);
@@ -185,13 +180,11 @@ public abstract class AbstractCorsFilter implements Filter {
 
         // Section 6.1.2
         if (!isOriginAllowed(request, origin)) {
-        	log.trace("handleSimpleCORS: handleInvalidCORS");
             handleInvalidCORS(request, response, filterChain);
             return;
         }
 
         if (!allowedHttpMethods.contains(method)) {
-        	log.trace("handleSimpleCORS: handleInvalidCORS");
             handleInvalidCORS(request, response, filterChain);
             return;
         }
@@ -235,8 +228,6 @@ public abstract class AbstractCorsFilter implements Filter {
                     exposedHeadersString);
         }
 
-        dumpRequestDetails("after handleSimpleCORS", request, requestType);
-
         // Forward the request down the filter chain.
         filterChain.doFilter(request, response);
     }
@@ -261,8 +252,6 @@ public abstract class AbstractCorsFilter implements Filter {
                     SM.getString("corsFilter.wrongType1",
                             CORSRequestType.PRE_FLIGHT.name().toLowerCase()));
         }
-
-        dumpRequestDetails("before handlePreflightCORS", request, requestType);
 
         final String origin = request
                 .getHeader(AbstractCorsFilter.REQUEST_HEADER_ORIGIN);
@@ -352,8 +341,6 @@ public abstract class AbstractCorsFilter implements Filter {
                     join(allowedHttpHeaders, ","));
         }
 
-        dumpRequestDetails("after handlePreflightCORS", request, requestType);
-
         // Do not forward the request down the filter chain.
     }
 
@@ -395,7 +382,7 @@ public abstract class AbstractCorsFilter implements Filter {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.resetBuffer();
 
-        if (log.isDebugEnabled() || log.isTraceEnabled()) {
+        if (log.isDebugEnabled()) {
             // Debug so no need for i18n
             StringBuilder message =
                     new StringBuilder("Invalid CORS request; Origin=");
@@ -406,7 +393,7 @@ public abstract class AbstractCorsFilter implements Filter {
                 message.append(";Access-Control-Request-Headers=");
                 message.append(accessControlRequestHeaders);
             }
-            log.debug(message.toString(), new Throwable());
+            log.debug(message.toString());
         }
     }
 
@@ -434,7 +421,7 @@ public abstract class AbstractCorsFilter implements Filter {
      * @param request         The {@link HttpServletRequest} object.
      * @param corsRequestType The {@link CORSRequestType} object.
      */
-    protected void decorateCORSProperties(
+    protected static void decorateCORSProperties(
             final HttpServletRequest request,
             final CORSRequestType corsRequestType) {
         if (request == null) {
@@ -446,8 +433,6 @@ public abstract class AbstractCorsFilter implements Filter {
             throw new IllegalArgumentException(
                     SM.getString("corsFilter.nullRequestType"));
         }
-
-        dumpRequestDetails("before decorateCORSProperties", request, corsRequestType);
 
         switch (corsRequestType) {
             case SIMPLE:
@@ -496,9 +481,8 @@ public abstract class AbstractCorsFilter implements Filter {
                 // Don't set any attributes
                 break;
         }
-
-        dumpRequestDetails("after decorateCORSProperties", request, corsRequestType);
     }
+
 
     /**
      * Joins elements of {@link Set} into a string, where each element is
@@ -774,9 +758,6 @@ public abstract class AbstractCorsFilter implements Filter {
 	}
 
     protected void setContextClientAllowedOrigins(ServletRequest servletRequest, Collection<String> clientAllowedOrigins) {
-    	if (log.isTraceEnabled()) {
-    		log.trace("setContextClientAllowedOrigins: {}", clientAllowedOrigins);
-    	}
     	servletRequest.setAttribute(PARAM_CLIENT_ALLOWED_ORIGINS, clientAllowedOrigins);
     }
 
@@ -796,33 +777,6 @@ public abstract class AbstractCorsFilter implements Filter {
 
     	return false;
     }
-
-	private void dumpRequestDetails(final String prefix, final HttpServletRequest request, final CORSRequestType corsRequestType) {
-		if (!log.isTraceEnabled()) {
-			return;
-        }
-    	StringBuilder allAttributes = new StringBuilder("[");
-    	for (Iterator<String> it = request.getAttributeNames().asIterator(); it.hasNext();) {
-    		if (allAttributes.length() > 1) {
-    			allAttributes.append(",");
-    		}
-			String attributeName = (String) it.next();
-			allAttributes.append(attributeName).append(" = ").append(request.getAttribute(attributeName));
-		}
-    	allAttributes.append("]");
-    	
-    	StringBuilder allHeaders = new StringBuilder("[");
-    	for (Iterator<String> it = request.getHeaderNames().asIterator(); it.hasNext();) {
-    		if (allHeaders.length() > 1) {
-    			allHeaders.append(",");
-    		}
-			String HeaderName = (String) it.next();
-			allHeaders.append(HeaderName).append(" = ").append(request.getHeader(HeaderName));
-		}
-    	allHeaders.append("]");
-    	
-    	log.trace("{}: request method {} to URI {}, corsType {}, attributes {}, headers {}", prefix, request.getMethod(), request.getRequestURI(), corsRequestType, allAttributes, allHeaders);
-	}
 
     /**
      * Returns a {@link Set} of headers that should be exposed by browser.

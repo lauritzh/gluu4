@@ -1,6 +1,7 @@
 package org.gluu.u2f.service.persist;
 
 import java.io.IOException;
+import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -9,10 +10,13 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.gluu.entry.DeviceRegistration;
-import org.gluu.entry.DeviceRegistrationStatus;
+import org.gluu.fido.model.entry.DeviceRegistration;
+import org.gluu.fido.model.entry.DeviceRegistrationStatus;
 import org.gluu.fido2.ctap.AttestationFormat;
 import org.gluu.fido2.ctap.CoseEC2Algorithm;
+import org.gluu.fido2.model.entry.Fido2RegistrationData;
+import org.gluu.fido2.model.entry.Fido2RegistrationEntry;
+import org.gluu.fido2.model.entry.Fido2RegistrationStatus;
 import org.gluu.fido2.service.Base64Service;
 import org.gluu.fido2.service.CoseService;
 import org.gluu.fido2.service.DataMapperService;
@@ -28,9 +32,6 @@ import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.service.common.UserService;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.model.base.SimpleBranch;
-import org.gluu.persist.model.fido2.Fido2RegistrationData;
-import org.gluu.persist.model.fido2.Fido2RegistrationEntry;
-import org.gluu.persist.model.fido2.Fido2RegistrationStatus;
 import org.gluu.search.filter.Filter;
 import org.gluu.service.net.NetworkService;
 import org.gluu.util.StringHelper;
@@ -117,7 +118,7 @@ public class DeviceRegistrationService {
 
 			// Save converted Fido2 entry
 			Date enrollmentDate = fidoRegistration.getCreationDate();
-			Fido2RegistrationEntry fido2RegistrationEntry = registrationPersistenceService.buildFido2RegistrationEntry(fido2RegistrationData, false);
+			Fido2RegistrationEntry fido2RegistrationEntry = registrationPersistenceService.buildFido2RegistrationEntry(fido2RegistrationData);
 			
 			// Restore dates modified by buildFido2RegistrationEntry
 			fido2RegistrationEntry.getRegistrationData().setCreatedDate(enrollmentDate);
@@ -181,12 +182,12 @@ public class DeviceRegistrationService {
 	/**
 	 * Build DN string for U2F user device
 	 */
-	public String getDnForU2fDevice(String userInum, String jsId) {
+	public String getDnForU2fDevice(String userInum, String oxId) {
 		String baseDnForU2fDevices = getBaseDnForU2fUserDevices(userInum);
-		if (StringHelper.isEmpty(jsId)) {
+		if (StringHelper.isEmpty(oxId)) {
 			return baseDnForU2fDevices;
 		}
-		return String.format("oxId=%s,%s", jsId, baseDnForU2fDevices);
+		return String.format("oxId=%s,%s", oxId, baseDnForU2fDevices);
 	}
 
 	public String getBaseDnForU2fUserDevices(String userInum) {

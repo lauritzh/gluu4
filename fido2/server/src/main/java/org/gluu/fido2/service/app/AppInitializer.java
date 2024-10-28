@@ -27,7 +27,6 @@ import org.gluu.exception.ConfigurationException;
 import org.gluu.fido2.service.shared.LoggerService;
 import org.gluu.fido2.service.shared.MetricService;
 import org.gluu.model.custom.script.CustomScriptType;
-import org.gluu.orm.util.properties.FileConfiguration;
 import org.gluu.oxauth.service.common.ApplicationFactory;
 import org.gluu.oxauth.service.common.EncryptionService;
 import org.gluu.persist.PersistenceEntryManager;
@@ -41,6 +40,7 @@ import org.gluu.service.custom.script.CustomScriptManager;
 import org.gluu.service.metric.inject.ReportMetric;
 import org.gluu.service.timer.QuartzSchedulerManager;
 import org.gluu.util.StringHelper;
+import org.gluu.orm.util.properties.FileConfiguration;
 import org.gluu.util.security.SecurityProviderUtility;
 import org.gluu.util.security.StringEncrypter;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
@@ -49,13 +49,10 @@ import org.slf4j.Logger;
 import com.google.common.collect.Lists;
 
 /**
- * 
- * FIDO2 server initializer
  * @author Yuriy MOvchan
  * @version May 12, 2020
  */
 @ApplicationScoped
-@Named
 public class AppInitializer {
 
 	@Inject
@@ -96,6 +93,9 @@ public class AppInitializer {
 
 	@Inject
 	private CleanerTimer cleanerTimer;
+	
+	@Inject
+	private MDS3UpdateTimer mds3UpdateTimer;
 
 	@Inject
 	private QuartzSchedulerManager quartzSchedulerManager;
@@ -103,16 +103,9 @@ public class AppInitializer {
 	@Inject
 	private LoggerService loggerService;
 
-	@Inject
-	private MDS3UpdateTimer mds3UpdateTimer;
-
 	@PostConstruct
 	public void createApplicationComponents() {
-		try {
-			SecurityProviderUtility.installBCProvider();
-		} catch (ClassCastException ex) {
-			log.error("Failed to install BC provider properly");
-		}
+		SecurityProviderUtility.installBCProvider();
 	}
 
 	public void applicationInitialized(@Observes @Initialized(ApplicationScoped.class) Object init) {
@@ -121,15 +114,16 @@ public class AppInitializer {
 		configurationFactory.create();
 
 		PersistenceEntryManager localPersistenceEntryManager = persistenceEntryManagerInstance.get();
-		log.trace("Attempting to use {}: {}", ApplicationFactory.PERSISTENCE_ENTRY_MANAGER_NAME,
-				localPersistenceEntryManager.getOperationService());
+		log.trace("Attempting to use {}: {}", ApplicationFactory.PERSISTENCE_ENTRY_MANAGER_NAME, localPersistenceEntryManager.getOperationService());
 
 		// Initialize python interpreter
-		pythonService
-				.initPythonInterpreter(configurationFactory.getBaseConfiguration().getString("pythonModulesDir", null));
+		pythonService.initPythonInterpreter(configurationFactory.getBaseConfiguration().getString("pythonModulesDir", null));
 
 		// Initialize script manager
-		List<CustomScriptType> supportedCustomScriptTypes = Lists.newArrayList(CustomScriptType.FIDO2_EXTENSION);
+		List<CustomScriptType> supportedCustomScriptTypes = Lists.newArrayList(CustomScriptType.values());
+
+		// There is no Fido2 scripts yet
+		supportedCustomScriptTypes.clear();
 
 		// Start timer
 		initSchedulerService();
@@ -137,7 +131,7 @@ public class AppInitializer {
 		// Schedule timer tasks
 		metricService.initTimer();
 		configurationFactory.initTimer();
-		loggerService.initTimer(true);
+		loggerService.initTimer();
 		cleanerTimer.initTimer();
 		mds3UpdateTimer.initTimer();
 		customScriptManager.initTimer(supportedCustomScriptTypes);
@@ -278,7 +272,7 @@ public class AppInitializer {
 
 	public void destroy(@Observes @BeforeDestroyed(ApplicationScoped.class) ServletContext init) {
 		log.info("Stopping services and closing DB connections at server shutdown...");
-		log.debug("Checking who intiated destroy", new Throwable());
+		log.debug("Checking who intiated destory", new Throwable());
 
 		metricService.close();
 

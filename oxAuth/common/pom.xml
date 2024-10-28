@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>oxauth</artifactId>
-		<version>4.5.6-SNAPSHOT</version>
+		<version>4.4.2.sp1</version>
 	</parent>
 
 	<prerequisites>
@@ -194,12 +194,12 @@
 		<!-- Bouncycastle -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk18on</artifactId>
+			<artifactId>bcprov-jdk15on</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk18on</artifactId>
+			<artifactId>bcpkix-jdk15on</artifactId>
 			<scope>provided</scope>
 		</dependency>
 

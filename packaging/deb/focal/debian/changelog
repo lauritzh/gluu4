@@ -1,6 +1,6 @@
 gluu-server %VERSION% %DIST%; urgency=medium
 
-  * New version 4.5.5
+  * New version 4.4.2
 
- -- Gluu Support <support@gluu.org>  Thu, 02 May 2024 00:00:01
+ -- Davit Nikoghosyan <davit@gluu.org>  Thu, 13 Feb 2020 14:21:54 +0200
 

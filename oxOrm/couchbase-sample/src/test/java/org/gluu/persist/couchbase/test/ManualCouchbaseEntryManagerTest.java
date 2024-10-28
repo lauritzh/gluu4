@@ -6,20 +6,18 @@
 
 package org.gluu.persist.couchbase.test;
 
+import com.couchbase.client.core.message.kv.subdoc.multi.Lookup;
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.subdoc.DocumentFragment;
+import com.couchbase.client.java.subdoc.SubdocOptionsBuilder;
+
 import org.gluu.persist.exception.operation.SearchException;
 import org.gluu.orm.couchbase.impl.CouchbaseEntryManager;
 import org.gluu.orm.couchbase.impl.CouchbaseEntryManagerFactory;
 import org.gluu.orm.couchbase.model.SimpleClient;
 import org.gluu.orm.util.Pair;
 import org.testng.annotations.Test;
-
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.json.JsonObject;
-import com.couchbase.client.java.kv.GetOptions;
-import com.couchbase.client.java.kv.GetResult;
-import com.couchbase.client.java.kv.LookupInMacro;
-import com.couchbase.client.java.kv.LookupInResult;
-import com.couchbase.client.java.kv.LookupInSpec;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,8 +33,8 @@ public class ManualCouchbaseEntryManagerTest {
         CouchbaseEntryManager manager = createCouchbaseEntryManager();
 
         try {
-            List<SimpleClient> resultList = manager.findEntries("ou=clietns,o=gluu", SimpleClient.class, null);
-            System.out.println(resultList);
+            List<SimpleClient> attributeList = manager.findEntries("o=gluu", SimpleClient.class, null);
+            System.out.println(attributeList);
         } finally {
             manager.destroy();
         }
@@ -54,20 +52,17 @@ public class ManualCouchbaseEntryManagerTest {
             System.out.println("Key: " + key + ", ttl:" + sessionId.getTtl());
 
             Bucket sessionBucket = manager.getOperationService().getConnectionProvider().getBucketMapping("sessions").getBucket();
-            GetOptions getOptions1 = GetOptions.getOptions().withExpiry(true);
-            final GetResult lookup = sessionBucket.defaultCollection().get(key, getOptions1);
-            System.out.println("expiry: " + lookup.expiryTime());
+            final JsonDocument lookup = sessionBucket.get(key);
+            System.out.println("expiry: " + lookup.expiry());
 
-            final LookupInResult ttl = sessionBucket.defaultCollection().lookupIn(key, Collections.singletonList(
-                    LookupInSpec.get(LookupInMacro.EXPIRY_TIME).xattr()));
-            System.out.println("ttl: " + ttl.contentAs(0, Long.class));
+            DocumentFragment<Lookup> ttl = sessionBucket.lookupIn(key).get("$document.exptime", new SubdocOptionsBuilder().xattr(true)).execute();
+            System.out.println("ttl: " + ttl.content("$document.exptime"));
 
             updateSession(sessionId);
             manager.merge(sessionId);
 
-            GetOptions getOptions3 = GetOptions.getOptions().withExpiry(true);
-            final GetResult lookup2 = manager.getOperationService().getConnectionProvider().getBucketMapping("sessions").getBucket().defaultCollection().get(key, getOptions3);
-            System.out.println("expiry after update: " + lookup2.expiryTime());
+            final JsonDocument lookup2 = manager.getOperationService().getConnectionProvider().getBucketMapping("sessions").getBucket().get(key);
+            System.out.println("expiry after update: " + lookup2.expiry());
 
         } finally {
             manager.destroy();
@@ -100,7 +95,7 @@ public class ManualCouchbaseEntryManagerTest {
     }
 
     // MODIFY ACCORDING TO YOUR SERVER
-    private static Properties loadProperties() throws IOException {
+    public static Properties loadProperties() throws IOException {
         Properties properties = new Properties();
         properties.put("couchbase.auth.userPassword", "secret");
 
@@ -109,31 +104,12 @@ public class ManualCouchbaseEntryManagerTest {
             return properties;
         }
     }
-    
-    private static Properties getSampleConnectionProperties() {
-        Properties connectionProperties = new Properties();
 
-        connectionProperties.put("couchbase#servers", "localhost");
-        connectionProperties.put("couchbase#auth.userName", "admin");
-        connectionProperties.put("couchbase#auth.userPassword", "secret");
-        connectionProperties.put("couchbase#buckets", "gluu, gluu_user, gluu_site, gluu_cache, gluu_token, gluu_session");
-
-        connectionProperties.put("couchbase#bucket.default", "gluu");
-        connectionProperties.put("couchbase#bucket.gluu_user.mapping", "people, groups, authorizations");
-        connectionProperties.put("couchbase#bucket.gluu_site.mapping", "cache-refresh");
-        connectionProperties.put("couchbase#bucket.gluu_cache.mapping", "cache");
-        connectionProperties.put("couchbase#bucket.gluu_token.mapping", "tokens");
-        connectionProperties.put("couchbase#bucket.gluu_session.mapping", "sessions");
-        
-        connectionProperties.put("couchbase#password.encryption.method", "SSHA-256");
-
-        return connectionProperties;
-    }
     public static CouchbaseEntryManager createCouchbaseEntryManager() throws IOException {
         CouchbaseEntryManagerFactory couchbaseEntryManagerFactory = new CouchbaseEntryManagerFactory();
         couchbaseEntryManagerFactory.create();
 
-        CouchbaseEntryManager couchbaseEntryManager = couchbaseEntryManagerFactory.createEntryManager(getSampleConnectionProperties() /* loadProperties() */);
+        CouchbaseEntryManager couchbaseEntryManager = couchbaseEntryManagerFactory.createEntryManager(loadProperties());
         System.out.println("Created CouchbaseEntryManager: " + couchbaseEntryManager);
 
         return couchbaseEntryManager;

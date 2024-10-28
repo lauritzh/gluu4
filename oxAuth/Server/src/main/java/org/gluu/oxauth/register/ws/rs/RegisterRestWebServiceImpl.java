@@ -8,7 +8,6 @@ package org.gluu.oxauth.register.ws.rs;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.GluuAttribute;
 import org.gluu.model.metric.MetricType;
@@ -144,11 +143,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
     }
 
     private Response registerClientImpl(String requestParams, HttpServletRequest httpRequest, SecurityContext securityContext) {
-        Response.ResponseBuilder builder = Response.status(Response.Status.CREATED);
-        if (appConfiguration.getReturn200OnClientRegistration()) {
-            builder = Response.ok();
-        }
-
+        Response.ResponseBuilder builder = Response.ok();
         OAuth2AuditLog oAuth2AuditLog = new OAuth2AuditLog(ServerUtil.getIpAddress(httpRequest), Action.CLIENT_REGISTRATION);
         try {
             final JSONObject requestObject = new JSONObject(requestParams);
@@ -213,7 +208,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                     log.debug("The Initiate Login Uri is invalid. The initiate_login_uri must use the https schema: " + r.getInitiateLoginUri());
                     throw errorResponseFactory.createWebApplicationException(
                             Response.Status.BAD_REQUEST,
-                            RegisterErrorResponseType.INVALID_CLIENT_METADATA,
+                            RegisterErrorResponseType.INVALID_CLAIMS_REDIRECT_URI,
                             "The Initiate Login Uri is invalid. The initiate_login_uri must use the https schema.");
                 }
             }
@@ -651,7 +646,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                 && appConfiguration.getDynamicRegistrationScopesParamEnabled()) {
             List<String> defaultScopes = scopeService.getDefaultScopesDn();
             List<String> requestedScopes = scopeService.getScopesDn(scopes);
-            Set<String> allowedScopes = new HashSet<>();
+            Set<String> allowedScopes = new HashSet<String>();
 
             for (String requestedScope : requestedScopes) {
                 if (defaultScopes.contains(requestedScope)) {
@@ -661,7 +656,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
             scopesDn = new ArrayList<>(allowedScopes);
             p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
-        } else if (BooleanUtils.isFalse(appConfiguration.getDynamicRegistrationDisableFallbackScopesAssigning())) {
+        } else {
             scopesDn = scopeService.getDefaultScopesDn();
             p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
         }

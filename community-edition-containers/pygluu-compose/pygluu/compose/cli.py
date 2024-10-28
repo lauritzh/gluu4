@@ -8,18 +8,12 @@ import click  # noqa: E402
 
 from .app import App  # noqa: E402
 from .version import __version__  # noqa: E402
-from .version import __gluu_version__  # noqa: E402
 
 
 @click.group(context_settings={
     "help_option_names": ["-h", "--help"],
 })
-@click.version_option(
-    __version__,
-    "-v",
-    "--version",
-    message=f"%(prog)s, CLI version %(version)s, Gluu version {__gluu_version__}",
-)
+@click.version_option(__version__, "-v", "--version")
 @click.pass_context
 def cli(ctx):
     """Create groupped CLI commands."""

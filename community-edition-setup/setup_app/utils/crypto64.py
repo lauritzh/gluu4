@@ -36,8 +36,6 @@ class Crypto64:
         return encoded_pw.decode('utf-8')
 
     def unobscure(self, data=""):
-        if not data:
-            return ''
         engine = triple_des(Config.encode_salt, ECB, pad=None, padmode=PAD_PKCS5)
         cipher = triple_des(Config.encode_salt)
         decrypted = cipher.decrypt(base64.b64decode(data), padmode=PAD_PKCS5)
@@ -132,7 +130,6 @@ class Crypto64:
         self.delete_key(alias, truststore_fn)
         self.import_cert_to_java_truststore(alias, public_certificate)
 
-        return key, csr, public_certificate
 
     def delete_key(self, alias, truststore_fn=None):
         if not truststore_fn:

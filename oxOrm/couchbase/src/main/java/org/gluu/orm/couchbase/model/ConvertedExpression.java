@@ -6,51 +6,33 @@
 
 package org.gluu.orm.couchbase.model;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.query.dsl.Expression;
 
 /**
- * Filter to N1QL transformation result
+ * Filter to Expression convertation result
  *
  * @author Yuriy Movchan Date: 06/21/2019
  */
 public class ConvertedExpression {
 	
-	private String expression;
-	private JsonObject queryParameters;
+	private Expression expression;
 	private boolean consistency;
-	private Set<String> singleLevelParameters;
 
-	private ConvertedExpression(String expression, JsonObject queryParameters) {
+	private ConvertedExpression(Expression expression) {
 		this.expression = expression;
-		this.queryParameters = queryParameters;
-		this.singleLevelParameters = new HashSet<String>();
 	}
 
-	private ConvertedExpression(String expression, JsonObject queryParameters, boolean consistency) {
-		this(expression, queryParameters);
+	private ConvertedExpression(Expression expression, boolean consistency) {
+		this.expression = expression;
 		this.consistency = consistency;
 	}
 
-	public static ConvertedExpression build(String expression, JsonObject queryParameters, boolean consistency) {
-		return new ConvertedExpression(expression, queryParameters, consistency);
+	public static ConvertedExpression build(Expression expression, boolean consistency) {
+		return new ConvertedExpression(expression, consistency);
 	}
 
-	public static ConvertedExpression build(String expression, JsonObject queryParameters, String queryParameter, boolean consistency) {
-		ConvertedExpression convertedExpression = new ConvertedExpression(expression, queryParameters, consistency);
-		convertedExpression.getSingleLevelParameters().add(queryParameter);
-		
-		return convertedExpression;
-	}
-
-	public String expression() {
+	public Expression expression() {
 		return expression;
-	}
-
-	public JsonObject getQueryParameters() {
-		return queryParameters;
 	}
 
 	public boolean consistency() {
@@ -61,14 +43,9 @@ public class ConvertedExpression {
 		this.consistency = consistency;
 	}
 
-	public Set<String> getSingleLevelParameters() {
-		return singleLevelParameters;
-	}
-
 	@Override
 	public String toString() {
-		return "ConvertedExpression [expression=" + expression + ", queryParameters=" + queryParameters
-				+ ", consistency=" + consistency + ", singleLevelParameters=" + singleLevelParameters + "]";
+		return "ConvertedExpression [expression=" + expression + ", consistency=" + consistency + "]";
 	}
 
 }

@@ -12,7 +12,6 @@ import javax.ws.rs.core.Response;
 
 import org.gluu.oxtrust.api.server.model.OxtrustSetting;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.api.server.util.Constants;
 import org.gluu.oxtrust.service.ConfigurationService;
 import org.gluu.oxtrust.model.GluuConfiguration;
@@ -37,13 +36,13 @@ public class OxtrustSettingWebResource extends BaseWebResource {
 
 	@Inject
 	private ConfigurationService configurationService;
-	
+
 	@GET
 	@Operation(summary="Get oxtrust settings",description = "Get oxtrust settings")
 	@ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = OxtrustSetting.class)), description = Constants.RESULT_SUCCESS),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_OXTRUST_SETTING_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response getOxtrustSettings() {
 		try {
 			log(logger, "Processing oxtrust settings retrieval request");
@@ -65,7 +64,7 @@ public class OxtrustSettingWebResource extends BaseWebResource {
 	@ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = OxtrustSetting.class)), description = Constants.RESULT_SUCCESS),
 			@ApiResponse(responseCode = "404", description = "Not found"), @ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_OXTRUST_SETTING_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response updateOxtrustSetting(OxtrustSetting oxtrustSetting) {
 		try {
 			log(logger, "Processing oxtrust settings update request");

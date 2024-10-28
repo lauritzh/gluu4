@@ -65,7 +65,7 @@ Besides installing the client certificates plugin in Casa, the following configu
 
 ### Add the plugin to Casa
 
-1. [Download the plugin](https://maven.gluu.org/maven/org/gluu/casa/plugins/cert-authn/4.5.0.Final/cert-authn-4.5.0.Final.jar)
+1. [Download the plugin](https://maven.gluu.org/maven/org/gluu/casa/plugins/cert-authn/4.4.0.Final/cert-authn-4.4.0.Final.jar)
 
 1. Log in to Casa using an administrator account
 

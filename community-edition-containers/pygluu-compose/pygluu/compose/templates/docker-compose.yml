@@ -1,4 +1,3 @@
----
 # use v2.x API to allow `mem_limit` option
 version: "2.4"
 
@@ -10,14 +9,12 @@ services:
     environment:
       - CONSUL_BIND_INTERFACE=eth0
       - CONSUL_CLIENT_INTERFACE=eth0
-      - CONSUL_HTTP_ADDR=http://consul:8500
     container_name: consul
     restart: unless-stopped
     volumes:
       - ./volumes/consul:/consul/data
+    restart: unless-stopped
     mem_limit: 512M
-    ports:
-      - "127.0.0.1:8500:8500"
 
   vault:
     container_name: vault
@@ -39,8 +36,6 @@ services:
     depends_on:
       - consul
     mem_limit: 512M
-    ports:
-      - "127.0.0.1:8200:8200"
 
   registrator:
     image: gliderlabs/registrator:master
@@ -54,7 +49,7 @@ services:
     mem_limit: 512M
 
   nginx:
-    image: gluufederation/nginx:4.5.5-1
+    image: gluufederation/nginx:4.4.2-1
     environment:
       - GLUU_CONFIG_CONSUL_HOST=consul
       - GLUU_SECRET_VAULT_HOST=vault

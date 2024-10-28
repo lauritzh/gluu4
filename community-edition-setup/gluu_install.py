@@ -16,11 +16,7 @@ import subprocess
 from pathlib import Path
 from urllib import request
 from urllib.parse import urljoin
-from tempfile import TemporaryDirectory
 
-sys.path.append('/usr/lib/python{}.{}/gluu-packaged'.format(sys.version_info.major, sys.version_info.minor))
-
-sys.path.append('/usr/lib/python{}.{}/gluu-packaged'.format(sys.version_info.major, sys.version_info.minor))
 
 parser = argparse.ArgumentParser(description="This script downloads Gluu Server components and fires setup")
 parser.add_argument('-a', help=argparse.SUPPRESS, action='store_true')
@@ -32,7 +28,6 @@ parser.add_argument('--keep-downloads', help="Keep downloaded files", action='st
 
 if '-a' in sys.argv:
     parser.add_argument('--jetty-version', help="Jetty verison. For example 11.0.6")
-    parser.add_argument('-k', help="Don't validate the server's certificate", action='store_true')
 
 if '-uninstall' not in sys.argv:
     parser.add_argument('-maven-user', help="Maven username", required=True)
@@ -42,14 +37,10 @@ parser.add_argument('-n', help="No prompt", action='store_true')
 parser.add_argument('--no-setup', help="Do not launch setup", action='store_true')
 parser.add_argument('--dist-server-base', help="Download server", default='https://maven.gluu.org/maven')
 parser.add_argument('-profile', help="Setup profile", choices=['CE', 'DISA-STIG'], default='CE')
-parser.add_argument('--setup-branch', help="Gluu CE setup github branch", default="version_4.5.5")
+parser.add_argument('--setup-branch', help="Gluu CE setup github branch", default="version_4.4.2")
 parser.add_argument('-c', help="Don't download files that exists on disk", action='store_true')
 
 argsp = parser.parse_args()
-
-if '-a' in sys.argv and argsp.k:
-    import ssl
-    ssl._create_default_https_context = ssl._create_unverified_context
 
 maven_base = argsp.dist_server_base.rstrip('/')
 maven_root = '/'.join(maven_base.split('/')[:-1]).rstrip('/')
@@ -62,7 +53,6 @@ app_dir = os.path.join(opt_dist_dir, 'app')
 ces_dir = '/install/community-edition-setup'
 scripts_dir = os.path.join(opt_dist_dir, 'scripts')
 certs_dir = '/etc/certs'
-pylib_dir = os.path.join(ces_dir, 'setup_app/pylib/')
 
 os_type, os_version = '', ''
 
@@ -96,10 +86,6 @@ elif os_type in ('suse'):
 else:
     print("Unsopported OS. Exiting ...")
     sys.exit()
-
-if os_type == 'debian':
-    path_list = [ '/usr/local/sbin', '/usr/sbin', '/sbin', '/usr/local/bin', '/usr/bin', '/bin' ]
-    os.environ['PATH'] = os.pathsep.join(path_list) + os.pathsep + os.environ['PATH']
 
 print("OS type was determined as {}.".format(os_type))
 
@@ -143,10 +129,6 @@ if not argsp.uninstall:
         else:
             missing_packages.append('python3-pymysql')
 
-    try:
-        import psycopg2
-    except:
-        missing_packages.append('python3-psycopg2')
 
     if not shutil.which('unzip'):
         missing_packages.append('unzip')
@@ -159,22 +141,16 @@ if not argsp.uninstall:
 
     if missing_packages:
         packages_str = ' '.join(missing_packages)
-        if os_type+os_version in ('centos9'):
-            packages_str = packages_str.replace('python3-', 'python-')
         if not argsp.n:
             result = input("Missing package(s): {0}. Install now? (Y|n): ".format(packages_str))
             if result.strip() and result.strip().lower()[0] == 'n':
                 sys.exit("Can't continue without installing these packages. Exiting ...")
 
         if os_type in ('red', 'centos'):
-            print("Installing epel-release")
             cmd = '{} install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-{}.noarch.rpm'.format(package_installer, os_version)
             os.system(cmd)
             cmd = '{} clean all'
             os.system(cmd)
-            print("Enabling CRB repository")
-            os.system('/usr/bin/crb enable')
-
         elif deb_clone:
             subprocess.run(shlex.split('{} update'.format(package_installer)))
 
@@ -194,18 +170,18 @@ oxauth_war_fn = os.path.join(gluu_app_dir, 'oxauth.war')
 jetty_home = '/opt/gluu/jetty'
 services = ['casa.service', 'identity.service', 'opendj.service', 'oxauth.service', 'passport.service', 'fido2.service', 'idp.service', 'oxd-server.service', 'scim.service']
 app_versions = {
-    "JETTY_VERSION": "10.0.18",
-    "AMAZON_CORRETTO_VERSION": "11.0.24.8.1",
-    "OX_GITVERISON": "-SNAPSHOT",
-    "NODE_VERSION": "v16.16.0",
-    "OX_VERSION": "4.5.6", 
-    "PASSPORT_VERSION": "4.5.6",
+    "JETTY_VERSION": "10.0.9",
+    "AMAZON_CORRETTO_VERSION": "11.0.14.10.1",
+    "OX_GITVERISON": ".Final",
+    "NODE_VERSION": "v14.19.1",
+    "OX_VERSION": "4.4.2", 
+    "PASSPORT_VERSION": "4.4.2",
     "JYTHON_VERSION": "2.7.3",
-    "OPENDJ_VERSION": "4.5.3",
+    "OPENDJ_VERSION": "4.4.13",
     "SETUP_BRANCH": argsp.setup_branch,
     "TWILIO_VERSION": "7.17.0",
     "JSMPP_VERSION": "2.3.7",
-    "APPS_GIT_BRANCH": "master",
+    "APPS_GIT_BRANCH": "version_4.4.2",
     }
 
 jetty_dist_string = 'jetty-distribution'
@@ -245,9 +221,8 @@ if argsp.uninstall:
 
     print("Uninstalling Gluu Server...")
 
-    if os.path.exists('/opt/opendj/bin/stop-ds'):
-        print("Stopping OpenDj Server")
-        os.system('/opt/opendj/bin/stop-ds')
+    print("Stopping OpenDj Server")
+    os.system('/opt/opendj/bin/stop-ds')
     for uf in services:
         service,ext = os.path.splitext(uf)
         if os.path.exists(os.path.join(jetty_home, service)):
@@ -299,7 +274,6 @@ def download(url, target_fn):
 
     print("Opening url", url)
 
-
     with request.urlopen(url) as resp:
         if argsp.c and os.path.exists(dst) and resp.length == os.stat(dst).st_size:
             print("File", dst, "exists. Passing")
@@ -310,22 +284,40 @@ def download(url, target_fn):
             shutil.copyfileobj(resp, out_file)
 
 
-def extract_subdir(zip_fn, sub_dir, target_dir, par_dir=None):
-    target_fp = os.path.join(target_dir, os.path.basename(sub_dir))
-    if os.path.exists(target_fp):
-        return
+def download_gcs():
+    if not os.path.exists(os.path.join(app_dir, 'gcs')):
+        print("Downloading Spanner modules")
+        gcs_download_url = 'https://ox.gluu.org/icrby8xcvbcv/spanner/gcs.tgz'
+        tmp_dir = '/tmp/' + os.urandom(5).hex()
+        target_fn = os.path.join(tmp_dir, 'gcs.tgz')
+        download(gcs_download_url, target_fn)
+        shutil.unpack_archive(target_fn, app_dir)
 
-    zip_obj = zipfile.ZipFile(zip_fn, "r")
-    if par_dir is None:
-        par_dir = zip_obj.namelist()[0]
+        req = request.urlopen('https://pypi.org/pypi/grpcio/1.46.0/json')
+        data_s = req.read()
+        data = json.loads(data_s)
 
-    with TemporaryDirectory() as unpack_dir:
-        zip_obj.extractall(unpack_dir)
-        shutil.copytree(
-            os.path.join(unpack_dir, par_dir, sub_dir),
-            target_fp
-            )
-    zip_obj.close()
+        pyversion = 'cp{0}{1}'.format(sys.version_info.major, sys.version_info.minor)
+
+        package = {}
+
+        for package_ in data['urls']:
+
+            if package_['python_version'] == pyversion and 'manylinux' in package_['filename'] and package_['filename'].endswith('x86_64.whl'):
+                if package_['upload_time'] > package.get('upload_time',''):
+                    package = package_
+
+        if package.get('url'):
+            target_whl_fn = os.path.join(tmp_dir, os.path.basename(package['url']))
+            download(package['url'], target_whl_fn)
+            whl_zip = zipfile.ZipFile(target_whl_fn)
+
+            for member in  whl_zip.filelist:
+                whl_zip.extract(member, os.path.join(app_dir, 'gcs'))
+
+            whl_zip.close()
+
+        shutil.rmtree(tmp_dir)
 
 
 def package_oxd():
@@ -339,7 +331,7 @@ def package_oxd():
     else:
         download(maven_base + '/org/gluu/oxd-server/{0}{1}/oxd-server-{0}{1}-distribution-bc-fips.zip'.format(app_versions['OX_VERSION'], app_versions['OX_GITVERISON']), oxd_zip_fn)
 
-    download('https://raw.githubusercontent.com/GluuFederation/community-edition-package/{}/package/systemd/oxd-server.service'.format(app_versions['APPS_GIT_BRANCH']), os.path.join(oxd_tmp_dir, 'oxd-server.service'))
+    download('https://raw.githubusercontent.com/GluuFederation/community-edition-package/version_{}/package/systemd/oxd-server.service'.format(app_versions['OX_VERSION']), os.path.join(oxd_tmp_dir, 'oxd-server.service'))
 
     cmd = 'unzip -qqo {} -d {}'.format(oxd_zip_fn, oxd_tmp_dir)
     print("Excuting", cmd)
@@ -374,8 +366,6 @@ if not argsp.u:
         download(maven_base + '/org/gluu/fido2-server/{0}{1}/fido2-server-{0}{1}.war'.format(app_versions['OX_VERSION'], app_versions['OX_GITVERISON']), os.path.join(gluu_app_dir,'fido2.war'))
         download(maven_base + '/org/gluu/casa/{0}{1}/casa-{0}{1}.war'.format(app_versions['OX_VERSION'], app_versions['OX_GITVERISON']), os.path.join(gluu_app_dir,'casa.war'))
         download(maven_base + '/org/gluu/oxtrust-server/{0}{1}/oxtrust-server-{0}{1}.war'.format(app_versions['OX_VERSION'], app_versions['OX_GITVERISON']), os.path.join(gluu_app_dir,'identity.war'))
-        download(maven_base + '/org/gluu/gluu-orm-spanner-libs/{0}{1}/gluu-orm-spanner-libs-{0}{1}-distribution.zip'.format(app_versions['OX_VERSION'], app_versions['OX_GITVERISON']), os.path.join(gluu_app_dir, 'gluu-orm-spanner-libs-distribution.zip'))
-        download(maven_base + '/org/gluu/gluu-orm-couchbase-libs/{0}{1}/gluu-orm-couchbase-libs-{0}{1}-distribution.zip'.format(app_versions['OX_VERSION'], app_versions['OX_GITVERISON']), os.path.join(gluu_app_dir, 'gluu-orm-couchbase-libs-distribution.zip'))
     else:
         download('https://maven.gluu.org/maven/org/gluu/oxauth-client-jar-without-provider-dependencies/{0}{1}/oxauth-client-jar-without-provider-dependencies-{0}{1}.jar'.format(app_versions['OX_VERSION'], app_versions['OX_GITVERISON']), os.path.join(gluu_app_dir, 'oxauth-client-jar-without-provider-dependencies.jar'))
         download('https://maven.gluu.org/maven/org/gluu/oxauth-server-fips/{0}{1}/oxauth-server-fips-{0}{1}.war'.format(app_versions['OX_VERSION'], app_versions['OX_GITVERISON']), oxauth_war_fn)
@@ -401,8 +391,6 @@ if not argsp.u:
     download('https://mds.fidoalliance.org/', os.path.join(app_dir, 'fido2/mds/toc/toc.jwt'))
     download('https://secure.globalsign.com/cacert/root-r3.crt', os.path.join(app_dir, 'fido2/mds/cert/root-r3.crt'))
 
-    download('https://files.pythonhosted.org/packages/7a/46/8b58d6b8244ff613ecb983b9428d1168dd0b014a34e13fb19737b9ba1fc1/cryptography-39.0.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', os.path.join(app_dir, 'cryptography.whl'))
-    download('https://github.com/jpadilla/pyjwt/archive/refs/tags/2.4.0.zip', os.path.join(app_dir, 'pyjwt.zip'))
 
 
     if not argsp.upgrade:
@@ -411,11 +399,75 @@ if not argsp.u:
     package_oxd()
 
 
+# we need some files form community-edition-setup.zip
+ces = os.path.join(gluu_app_dir, 'community-edition-setup.zip')
+ces_zip = zipfile.ZipFile(ces)
+ces_par_dir = ces_zip.namelist()[0]
+
+def extract_from_ces(src, target_fn):
+    dst = os.path.join(app_dir, target_fn)
+    print("Extracting {} from community-edition-setup.zip to {}".format(src, dst))
+    content = ces_zip.read(os.path.join(ces_par_dir, src))
+    p, f = os.path.split(dst)
+    if not os.path.exists(p):
+        os.makedirs(p)
+    with open(dst, 'wb') as w:
+        w.write(content)
+
+
+def extract_file(zip_fn, source, target, ren=False):
+    zip_obj = zipfile.ZipFile(zip_fn, "r")
+    for member in zip_obj.infolist():
+        if not member.is_dir() and member.filename.endswith(source):
+            if ren:
+                target_p = Path(target)
+            else:
+                p = Path(member.filename)
+                target_p = Path(target).joinpath(p.name)
+                if not target_p.parent.exists():
+                    target_p.parent.mkdir(parents=True)
+            target_p.write_bytes(zip_obj.read(member))
+            break
+    zip_obj.close()
+
+extract_from_ces('templates/jetty.conf.tmpfiles.d', 'jetty.conf')
 shutil.copy(os.path.join(gluu_app_dir, 'facter'), '/usr/bin')
 os.chmod('/usr/bin/facter', 33261)
-if not os.path.exists(certs_dir):
-    os.makedirs(certs_dir)
+
+npyscreen_package = os.path.join(app_dir, 'npyscreen-master.zip')
+
+site_libdir = site.getsitepackages()[0]
+dest_dir = os.path.join(site_libdir, 'npyscreen')
+
+if not os.path.exists(dest_dir):
+    print("Extracting npyscreen to", dest_dir)
+    npyzip = zipfile.ZipFile(npyscreen_package)
+    parent_dir = npyzip.filelist[0].filename
+    target_dir = '/tmp/npyscreen_tmp'
+    npyzip.extractall(target_dir)
+    npyzip.close()
+
+    shutil.copytree(
+        os.path.join(target_dir, parent_dir, 'npyscreen'),
+        dest_dir
+        )
+
+    shutil.rmtree(target_dir)
+
+
+target_dir = '/tmp/{}/ces_tmp'.format(os.urandom(5).hex())
+
+if not argsp.upgrade and os.path.exists(ces_dir):
+    shutil.rmtree(ces_dir)
+
+ces_zip.extractall(target_dir)
+
+for gdir in (ces_dir, certs_dir):
+    if not os.path.exists(gdir):
+        os.makedirs(gdir)
+
 shutil.copy(os.path.join(gluu_app_dir, 'casa.pub'), certs_dir)
+
 
 if argsp.upgrade:
 
@@ -443,29 +495,30 @@ if argsp.upgrade:
 
 else:
     print("Extracting community-edition-setup package")
-    extract_subdir(
-        os.path.join(gluu_app_dir, 'community-edition-setup.zip'),
-        '',
-        ces_dir
-        )
+    source_dir = os.path.join(target_dir, ces_par_dir)
+    ces_zip.close()
 
-    extract_libs = [
-            ('npyscreen-master.zip', 'npyscreen', None)
-            ]
-    if argsp.profile != 'DISA-STIG':
-        extract_libs += [
-                    ('sqlalchemy.zip', 'lib/sqlalchemy', None),
-                    ('cryptography.whl', 'cryptography', ''),
-                    ('pyjwt.zip', 'jwt', None)
-                    ]
-
-    for zip_fn, sub_dir, par_dir in extract_libs:
-        print("Extracting", zip_fn)
-        extract_subdir(os.path.join(app_dir, zip_fn), sub_dir, pylib_dir, par_dir)
-
+    cmd = 'cp -r -f {}* {}'.format(source_dir, ces_dir)
+    os.system(cmd)
 
     if argsp.profile == 'DISA-STIG':
         open(os.path.join(ces_dir, 'disa-stig'), 'w').close()
+
+    shutil.rmtree(target_dir)
+
+    if argsp.profile != 'DISA-STIG':
+        download_gcs()
+
+    sqlalchemy_zfn = os.path.join(app_dir, 'sqlalchemy.zip')
+    sqlalchemy_zip = zipfile.ZipFile(sqlalchemy_zfn, "r")
+    sqlalchemy_par_dir = sqlalchemy_zip.namelist()[0]
+    tmp_dir = os.path.join('/tmp', os.urandom(2).hex())
+    sqlalchemy_zip.extractall(tmp_dir)
+    shutil.copytree(
+            os.path.join(tmp_dir, sqlalchemy_par_dir, 'lib/sqlalchemy'), 
+            os.path.join(ces_dir, 'setup_app/pylib/sqlalchemy')
+            )
+    shutil.rmtree(tmp_dir)
 
     if argsp.profile == 'DISA-STIG':
         war_zip = zipfile.ZipFile(oxauth_war_fn, "r")

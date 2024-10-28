@@ -27,7 +27,7 @@
 								<div class="row"
 									style="padding: 5px; margin-bottom: 5px; margin-left: 15px">
 									<b:link style-class="addScopeButtonClass btn btn-primary"
-										icon="plus" outcome="/scope/addScope" style="width: 9%;"
+										icon="plus" outcome="/scope/addScope"
 										value="#{msgs['scope.addScope']}" includeViewParams="false" />
 								</div>
 								<p:spacer height="16" />
@@ -56,19 +56,23 @@
 												value="#{searchScopeAction.scopeList}" var="clt"
 												print="true" excel="true" csv="true" pdf="true"
 												select="true">
-												<b:dataTableColumn label="#{msgs['scope.inum']}" header-style="font-size: 14px !important;">
+												<b:dataTableColumn label="#{msgs['scope.inum']}">
 													<h:link includeViewParams="false"
 														outcome="/scope/updateScope" value="#{clt.inum}">
 														<f:param name="inum" value="#{clt.inum}" />
 													</h:link>
 												</b:dataTableColumn>
-												<b:dataTableColumn label="#{msgs['scope.displayName']}" header-style="font-size: 14px !important;"
+												<b:dataTableColumn label="#{msgs['scope.displayName']}"
 													value="#{clt.id eq null ? clt.displayName : clt.id}">
 												</b:dataTableColumn>
-												<b:dataTableColumn value="#{clt.description}" header-style="font-size: 14px !important;"
+												<b:dataTableColumn value="#{clt.description}"
 													label="#{msgs['scope.description']}" />
-												<b:dataTableColumn label="#{msgs['scope.scopeType']}" header-style="font-size: 14px !important;"
-														value="#{clt.scopeType}" severity="primary" />
+												<b:dataTableColumn label="#{msgs['scope.default']}">
+													<b:label rendered="#{clt.isDefaultScope() eq 'true'}"
+														text="#{clt.isDefaultScope()}" severity="primary" />
+													<b:label rendered="#{clt.isDefaultScope() eq 'false'}"
+														text="#{clt.isDefaultScope()}" severity="info" />
+												</b:dataTableColumn>
 											</b:dataTable>
 										</h:form>
 									</div>

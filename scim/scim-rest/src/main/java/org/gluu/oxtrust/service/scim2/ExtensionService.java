@@ -4,6 +4,7 @@ import static org.gluu.oxtrust.model.scim2.Constants.USER_EXT_SCHEMA_DESCRIPTION
 import static org.gluu.oxtrust.model.scim2.Constants.USER_EXT_SCHEMA_ID;
 import static org.gluu.oxtrust.model.scim2.Constants.USER_EXT_SCHEMA_NAME;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -136,6 +137,7 @@ public class ExtensionService {
      * asociated to the field: for STRING the value is left as is; for DATE the
      * value is converted to a String following the ISO date format; for NUMERIC an
      * Integer/Double is created from the value supplied.
+     * @param ldapBackend Whether the underlying database is an ldap directory
      * @param field
      *            An ExtensionField
      * @param strValues
@@ -143,15 +145,26 @@ public class ExtensionService {
      *            passed. These values are coming from LDAP
      * @return List of opaque values
      */
-    public List<Object> convertValues(ExtensionField field, String[] strValues) {
+    public List<Object> convertValues(ExtensionField field, String strValues[], boolean ldapBackend) {
 
         List<Object> values = new ArrayList<>();
 
         for (String val : strValues) {
             // In practice, there should not be nulls in strValues
             if (val != null) {
-                Object value = ExtensionField.valueFromString(field, val);
+                Object value;
 
+                //See org.gluu.oxtrust.model.scim2.util.DateUtil.gluuCouchbaseISODate()
+                if (!ldapBackend && field.getType().equals(AttributeDataType.DATE)) {
+                    try {
+                        DateTimeFormatter.ISO_DATE_TIME.parse(val);
+                        value = val;
+                    } catch (Exception e) {
+                        value = null;
+                    }
+                } else {
+                    value = ExtensionField.valueFromString(field, val);
+                }
                 // won't happen either (value being null) because calls to this method occurs
                 // after lots of validations have taken place
                 if (value != null) {

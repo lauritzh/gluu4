@@ -8,8 +8,6 @@ package org.gluu.oxtrust.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +32,7 @@ import org.gluu.persist.model.base.InumEntry;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @DataEntry
@@ -128,10 +127,6 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 	@AttributeName(name = "oxAuthPostLogoutRedirectURI")
 	private String spLogoutURL;
 
-	@Pattern(regexp = "^$|(^(https?|http)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])", message = "Please enter a valid url, including protocol (http/https)")
-	@AttributeName(name="spLogoutRedirectUrl")
-	private String spLogoutRedirectUrl;
-
 	@AttributeName(name = "gluuValidationLog")
 	private List<String> validationLog;
 
@@ -140,27 +135,6 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 
 	@AttributeName(name = "gluuEntityType")
 	private GluuEntityType entityType;
-	
-	private String metadataStr;
-	
-	private String certificate;
-
-
-	public String getCertificate() {
-		return certificate;
-	}
-
-	public void setCertificate(String certificate) {
-		this.certificate = certificate;
-	}
-
-	public String getMetadataStr() {
-		return metadataStr;
-	}
-
-	public void setMetadataStr(String metadataStr) {
-		this.metadataStr = metadataStr;
-	}
 
 	public void setFederation(boolean isFederation) {
 		this.gluuIsFederation = Boolean.toString(isFederation);
@@ -227,6 +201,15 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 	public boolean getSpecificRelyingPartyConfig() {
 		return Boolean.parseBoolean(gluuSpecificRelyingPartyConfig);
 	}
+
+	/*public List<DeconstructedTrustRelationship> getDeconstructedTrustRelationships() {
+		return deconstructedTrustRelationships;
+	}
+
+	public void setDeconstructedTrustRelationships(
+			List<DeconstructedTrustRelationship> deconstructedTrustRelationships) {
+		this.deconstructedTrustRelationships = deconstructedTrustRelationships;
+	}*/
 
 	public String getDescription() {
 		return description;
@@ -364,17 +347,6 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 		this.spLogoutURL = spLogoutURL;
 	}
 
-	public String getSpLogoutRedirectUrl() {
-		
-		
-		return spLogoutRedirectUrl;
-	}
-
-	public void setSpLogoutRedirectUrl(String spLogoutRedirectUrl) {
-
-		this.spLogoutRedirectUrl = spLogoutRedirectUrl;
-	}
-
 	public String getSpMetaDataFN() {
 		return spMetaDataFN;
 	}
@@ -457,47 +429,5 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 
 	public void setEntityType(GluuEntityType entityType) {
 		this.entityType = entityType;
-	}
-
-	public boolean entityTypeIsFederation() {
-
-		return (this.entityType == GluuEntityType.FederationAggregate);
-	}
-
-	public boolean entityTypeIsSingleSp() {
-
-		return (this.entityType == GluuEntityType.SingleSP);
-	}
-
-	public boolean isFileMetadataSourceType() {
-
-		return (this.spMetaDataSourceType == GluuMetadataSourceType.FILE);
-	}
-
-	public boolean isUriMetadataSourceType() {
-
-		return (this.spMetaDataSourceType == GluuMetadataSourceType.URI);
-	}
-
-	public boolean isMdqMetadataSourceType() {
-
-		return (this.spMetaDataSourceType == GluuMetadataSourceType.MDQ);
-	}
-
-	public boolean isMdqFederation() {
-
-		return (this.entityType == GluuEntityType.FederationAggregate) && (this.spMetaDataSourceType == GluuMetadataSourceType.MDQ);
-	}
-
-	private static class SortByDatasourceTypeComparator implements Comparator<GluuSAMLTrustRelationship> {
-
-		public int compare(GluuSAMLTrustRelationship first, GluuSAMLTrustRelationship second) {
-
-			return first.getSpMetaDataSourceType().getRank() - second.getSpMetaDataSourceType().getRank();
-		}
-	}
-
-	public static void sortByDataSourceType(List<GluuSAMLTrustRelationship> trustRelationships) {
-		Collections.sort(trustRelationships,new SortByDatasourceTypeComparator());
 	}
 }

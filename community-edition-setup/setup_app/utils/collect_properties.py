@@ -42,9 +42,6 @@ class CollectProperties(SetupUtils, BaseInstaller):
         oxidp_ConfigurationEntryDN = gluu_prop['oxidp_ConfigurationEntryDN']
         gluu_ConfigurationDN = 'ou=configuration,o=gluu'
 
-        if Config.persistence_type in ('sql', 'spanner'):
-            Config.rdbm_install = True
-
         if Config.persistence_type in ('couchbase', 'sql', 'spanner'):
             ptype = 'rdbm' if Config.persistence_type in ('sql', 'spanner') else 'couchbase'
             Config.mappingLocations = { group: ptype for group in Config.couchbaseBucketDict }
@@ -77,21 +74,16 @@ class CollectProperties(SetupUtils, BaseInstaller):
             gluu_sql_prop = base.read_properties_file(Config.gluuRDBMProperties)
 
             uri_re = re.match('jdbc:(.*?)://(.*?):(.*?)/(.*)', gluu_sql_prop['connection.uri'])
-            Config.rdbm_type, Config.rdbm_host, Config.rdbm_port, Config.rdbm_db = uri_re.groups()
-            if '?' in Config.rdbm_db:
-                Config.rdbm_db = Config.rdbm_db.split('?')[0]
-            Config.rdbm_port = int(Config.rdbm_port)
+            Config.rdbm_type, Config.rdbm_host, self.rdbm_port, self.rdbm_db = uri_re.groups()
+            Config.rdbm_port = int(self.rdbm_port)
             Config.rdbm_install_type = static.InstallTypes.LOCAL if Config.rdbm_host == 'localhost' else static.InstallTypes.REMOTE
             Config.rdbm_user = gluu_sql_prop['auth.userName']
             Config.rdbm_password_enc = gluu_sql_prop['auth.userPassword']
             Config.rdbm_password = self.unobscure(Config.rdbm_password_enc)
-            if Config.rdbm_type == 'postgresql':
-                Config.rdbm_type = 'pgsql'
-
+            Config.rdbm_db = gluu_sql_prop['db.schema.name']
 
         if not Config.persistence_type in ('couchbase', 'ldap') and os.path.exists(Config.gluuSpannerProperties):
             Config.rdbm_type = 'spanner'
-            Config.rdbm_install_type = static.InstallTypes.REMOTE
             gluu_spanner_prop = base.read_properties_file(Config.gluuSpannerProperties)
 
             Config.spanner_project = gluu_spanner_prop['connection.project']
@@ -140,7 +132,7 @@ class CollectProperties(SetupUtils, BaseInstaller):
         admin_dn = None
         result = dbUtils.search('o=gluu', search_filter='(&(gluuGroupType=gluuManagerGroup)(objectClass=gluuGroup))', search_scope=ldap3.SUBTREE)
         if result:
-            if Config.persistence_type in ('sql',) and Config.rdbm_type != 'pgsql':
+            if Config.persistence_type in ('sql',):
                 admin_dn = result['member']['v'][0]
             else:
                 admin_dn = result['member'][0]
@@ -203,9 +195,7 @@ class CollectProperties(SetupUtils, BaseInstaller):
         Config.oxauthClient_pw = self.unobscure(oxTrustConfApplication['oxAuthClientPassword'])
         Config.oxauthClient_encoded_pw = oxTrustConfApplication['oxAuthClientPassword']
 
-        if 'scimUmaClientKeyStorePassword' in oxTrustConfApplication:
-            Config.scim_rs_client_jks_pass_encoded = oxTrustConfApplication['scimUmaClientKeyStorePassword']
-            Config.scim_rp_client_jks_pass = self.unobscure(Config.scim_rs_client_jks_pass_encoded)
+        Config.scim_rp_client_jks_pass = 'secret' # this is static
 
         if 'scimUmaClientId' in oxTrustConfApplication:
             Config.scim_rs_client_id =  oxTrustConfApplication['scimUmaClientId']

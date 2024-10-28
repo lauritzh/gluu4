@@ -103,7 +103,7 @@ public class ScimFilterParserService {
             if (StringUtils.isEmpty(filter))
                 ldapFilter=defaultFilter;
             else {
-            	List<GluuAttribute> allAttributes = attrService.getAllAttributes();
+                List<GluuAttribute> allAttributes = attrService.getAllAttributes();
             	Map<String, GluuAttribute> allAttributesMap = buildAttributesMap(allAttributes);
                 FilterListener filterListener = new FilterListener(clazz, allAttributesMap, ldapBackend);
                 walkTree(FilterUtil.preprocess(filter, clazz), filterListener);
@@ -130,7 +130,7 @@ public class ScimFilterParserService {
     	return attributesMap;
 	}
 
-	public Boolean complexAttributeMatch(ParseTree parseTree, Map<String, Object> item, String parent, Class<? extends BaseScimResource> clazz) throws Exception {
+    public Boolean complexAttributeMatch(ParseTree parseTree, Map<String, Object> item, String parent, Class<? extends BaseScimResource> clazz) throws Exception {
 
         MatchFilterVisitor matchVisitor=new MatchFilterVisitor(item, parent, clazz);
         return matchVisitor.visit(parseTree);

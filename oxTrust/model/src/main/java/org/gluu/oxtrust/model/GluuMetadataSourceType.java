@@ -8,6 +8,7 @@ package org.gluu.oxtrust.model;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.gluu.persist.annotation.AttributeEnum;
 
 /**
@@ -17,11 +18,10 @@ import org.gluu.persist.annotation.AttributeEnum;
  */
 public enum GluuMetadataSourceType implements AttributeEnum {
 
-	FILE("file", "File",1), URI("uri", "URI",2), FEDERATION("federation", "Federation",3), MANUAL("manual", "Manual",4), MDQ("mdq", "MDQ",5);
+	FILE("file", "File"), URI("uri", "URI"), FEDERATION("federation", "Federation"), MANUAL("manual", "Manual");
 
 	private final String value;
 	private final String displayName;
-	private final int rank; // used for ordering 
 
 	private static final Map<String, GluuMetadataSourceType> mapByValues = new HashMap<String, GluuMetadataSourceType>();
 	static {
@@ -30,10 +30,9 @@ public enum GluuMetadataSourceType implements AttributeEnum {
 		}
 	}
 
-	private GluuMetadataSourceType(String value, String displayName,int rank) {
+	private GluuMetadataSourceType(String value, String displayName) {
 		this.value = value;
 		this.displayName = displayName;
-		this.rank = rank;
 	}
 
 	@Override
@@ -43,11 +42,6 @@ public enum GluuMetadataSourceType implements AttributeEnum {
 
 	public String getDisplayName() {
 		return displayName;
-	}
-
-	public int getRank() {
-
-		return this.rank;
 	}
 
 	public static GluuMetadataSourceType getByValue(String value) {
@@ -62,17 +56,6 @@ public enum GluuMetadataSourceType implements AttributeEnum {
 	@Override
 	public String toString() {
 		return value;
-	}
-	
-	public static boolean contains(String name) {
-		boolean result = false;
-	    for (GluuMetadataSourceType direction : values()) {
-	        if (direction.name().equalsIgnoreCase(name)) {
-	            result = true;
-	            break;
-	        }
-	    }
-	    return result;
 	}
 
 }

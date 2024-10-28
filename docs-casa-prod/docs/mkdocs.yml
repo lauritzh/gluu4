@@ -1,14 +1,14 @@
 # Project information
-site_name: Gluu Casa 4.5 Docs
+site_name: Gluu Casa 4.4 Docs
 site_description: Documentation for Gluu Casa
 
 # Copyright
-copyright: Copyright &copy; 2023, Gluu, Inc.
+copyright: Copyright &copy; 2020, Gluu, Inc.
 
 # Repository
 repo_name: GluuFederation/docs-casa-prod
 repo_url: https://github.com/GluuFederation/docs-casa-prod/
-edit_uri: edit/4.5/docs/source
+edit_uri: edit/4.4/docs/source
 docs_dir: source
 
 # Configuration
@@ -21,7 +21,7 @@ theme:
     logo: 'gluu.jpg'
     favicon: 'favicon.ico'
 extra:
-    version: '4.5'
+    version: '4.4'
 
 # Tracking
 google_analytics:
@@ -40,10 +40,12 @@ markdown_extensions:
 # Navigation Menu
 nav:
 - 'Versions':
-    - '4.5': 'https://gluu.org/docs/casa/4.5/'
     - '4.4': 'https://gluu.org/docs/casa/4.4/'
     - '4.3': 'https://gluu.org/docs/casa/4.3/'
-    - 'EOL Versions': 'https://gluu.org/docs/eol/'
+    - '4.2': 'https://gluu.org/docs/casa/4.2/'
+    - '4.1': 'https://gluu.org/docs/casa/4.1/'
+    - '4.0': 'https://gluu.org/docs/casa/4.0/'
+    - '3.1.6': 'https://gluu.org/docs/casa/3.1.6/'
 - ' ': 'https://gluu.org'
 - ' ': 'https://gluu.org'
 - Home: 'index.md'    
@@ -65,7 +67,6 @@ nav:
         - 'Consent Management': 'plugins/consent-management.md'
         - 'Custom Branding': 'plugins/custom-branding.md'
         - 'Certificate authentication': 'plugins/cert-authn.md'
-        - 'Email OTP': 'plugins/email2fa.md'
         - 'Write your own plugin': 'plugins/writing-plugins.md'
     - 'FAQ': 'administration/faq.md'
 - Developer Guide:

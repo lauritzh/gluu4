@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.gluu.oxtrust.api.GluuServerStatus;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.service.ConfigurationService;
 import org.gluu.oxtrust.model.GluuConfiguration;
 import org.gluu.oxtrust.model.GluuOxTrustStat;
@@ -33,13 +32,13 @@ public class ServerStatusWebResource extends BaseWebResource {
 	private Logger logger;
 	@Inject
 	private ConfigurationService configurationService;
-	
+
 	@GET
 	@Operation(summary = "Get server status", description = "Get server status")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuServerStatus.class)), description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SERVER_STATUS_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response getServerStatus() {
 		log("Get server status");
 		try {

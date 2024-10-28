@@ -12,13 +12,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang.StringUtils;
+import org.gluu.fido2.model.entry.Fido2RegistrationEntry;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistration;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistrationStatus;
 import org.gluu.persist.model.base.CustomEntry;
 import org.gluu.persist.model.base.SimpleBranch;
-import org.gluu.persist.model.fido2.Fido2RegistrationEntry;
 import org.gluu.search.filter.Filter;
 import org.gluu.service.net.NetworkService;
 import org.gluu.util.StringHelper;
@@ -53,8 +53,7 @@ public class UserService extends org.gluu.oxauth.service.common.UserService {
 		return staticConfiguration.getBaseDn().getPeople();
 	}
 
-
-    public long countFido2RegisteredDevices(String username, String domain) {
+    public long countFido2RegisteredDevices(String username) {
         String userInum = getUserInum(username);
         if (userInum == null) {
             return 0;
@@ -62,18 +61,52 @@ public class UserService extends org.gluu.oxauth.service.common.UserService {
 
         String baseDn = getBaseDnForFido2RegistrationEntries(userInum);
         if (persistenceEntryManager.hasBranchesSupport(baseDn)) {
-            if (!persistenceEntryManager.contains(baseDn, SimpleBranch.class)) {
+        	if (!persistenceEntryManager.contains(baseDn, SimpleBranch.class)) {
                 return 0;
-            }
+        	}
         }
 
         Filter userInumFilter = Filter.createEqualityFilter("personInum", userInum);
         Filter registeredFilter = Filter.createEqualityFilter("oxStatus", "registered");
-        Filter domainFilter = Filter.createEqualityFilter("oxApplication", domain);
-        Filter filter = Filter.createANDFilter(userInumFilter, registeredFilter, domainFilter);
+        Filter filter = Filter.createANDFilter(userInumFilter, registeredFilter);
 
-        return persistenceEntryManager.countEntries(baseDn, Fido2RegistrationEntry.class, filter);
+        long countEntries = persistenceEntryManager.countEntries(baseDn, Fido2RegistrationEntry.class, filter);
+
+        return countEntries;
     }
+
+	public long countFidoRegisteredDevices(String username, String domain) {
+        String userInum = getUserInum(username);
+        if (userInum == null) {
+            return 0;
+        }
+
+        String baseDn = getBaseDnForFidoDevices(userInum);
+        if (persistenceEntryManager.hasBranchesSupport(baseDn)) {
+        	if (!persistenceEntryManager.contains(baseDn, SimpleBranch.class)) {
+                return 0;
+        	}
+        }
+
+    	Filter userInumFilter = Filter.createEqualityFilter("personInum", userInum);
+        Filter activeFilter = Filter.createEqualityFilter("oxStatus", DeviceRegistrationStatus.ACTIVE.getValue());
+        Filter filter = Filter.createANDFilter(userInumFilter, activeFilter);
+
+		List<DeviceRegistration> fidoRegistrations = persistenceEntryManager.findEntries(baseDn, DeviceRegistration.class, filter);
+		if (StringUtils.isEmpty(domain)) {
+			return fidoRegistrations.size();
+		}
+
+		long deviceCount = fidoRegistrations.parallelStream()
+                .filter(f -> StringHelper.equals(domain, networkService.getHost(f.getApplication()))).count();
+
+		return deviceCount;
+	}
+	
+	public long countFidoAndFido2Devices(String username, String domain) {
+		return countFidoRegisteredDevices(username, domain) + countFido2RegisteredDevices(username);
+	}
+
 
     public String getBaseDnForFido2RegistrationEntries(String userInum) {
         final String userBaseDn = getDnForUser(userInum); // "ou=fido2_register,inum=1234,ou=people,o=gluu"

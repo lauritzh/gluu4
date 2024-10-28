@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * @author Sergey Manoylo
- * @version 06/24/2022
+ * @version 
  */
 public enum SmtpConnectProtectionType implements AttributeEnum {
 
@@ -21,9 +21,9 @@ public enum SmtpConnectProtectionType implements AttributeEnum {
 
     private String value;
     private String displayName;
-
+    
     private static final Map<String, SmtpConnectProtectionType> mapByValues = new HashMap<>();
-
+    
     static {
         for (SmtpConnectProtectionType enumType : values()) {
             mapByValues.put(enumType.getValue(), enumType);

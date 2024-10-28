@@ -209,5 +209,5 @@ fi
 rm -rf %{buildroot}
 
 %changelog
-* Thu May 02 2024 Ganesh Dutt Sharma <support@gluu.org> - 1-1
+* Wed Jan 13 2016 Davit Nikoghosyan <davit@gluu.org> - 1-1
 - new release 4.0

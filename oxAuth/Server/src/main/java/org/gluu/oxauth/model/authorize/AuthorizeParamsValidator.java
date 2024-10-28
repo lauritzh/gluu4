@@ -35,12 +35,10 @@ public class AuthorizeParamsValidator {
             return false;
         }
 
-        boolean existsNonce = StringUtils.isNotBlank(nonce);
-        if (!existsNonce && ((responseTypes.contains(ResponseType.CODE) && responseTypes.contains(ResponseType.ID_TOKEN))
-                || (responseTypes.contains(ResponseType.ID_TOKEN) && responseTypes.size() == 1)
-                || (responseTypes.contains(ResponseType.ID_TOKEN) && responseTypes.contains(ResponseType.TOKEN))
-                || (responseTypes.contains(ResponseType.TOKEN) && responseTypes.size() == 1))) {
-            return false;
+        if (responseTypes.contains(ResponseType.TOKEN) || responseTypes.contains(ResponseType.ID_TOKEN)) {
+            if (StringUtils.isBlank(nonce)) {
+                return false;
+            }
         }
 
         boolean validParams = !responseTypes.isEmpty();

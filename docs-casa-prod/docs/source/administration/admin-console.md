@@ -48,7 +48,7 @@ Updates need to be made in both the Gluu Server and Casa to get Casa operational
 
 ### Enable Authentication Scripts (Gluu)
 
-The Gluu Server uses [interception scripts](https://gluu.org/docs/ce/admin-guide/custom-script/) to implement user authentication. For each type of 2FA credential that should be manageable in Casa, the corresponding authentication script **must be** enabled in Gluu. 
+The Gluu Server uses [interception scripts](https://gluu.org/docs/gluu-server/admin-guide/custom-script/) to implement user authentication. For each type of 2FA credential that should be manageable in Casa, the corresponding authentication script **must be** enabled in Gluu. 
 
 To enable authentication methods in Gluu, open oxTrust and navigate to  `Configuration` > `Manage custom scripts`. Enable the interception script for each type of 2FA credential that should be manageable in Casa - i.e. `fido2`, `u2f`, `super_gluu`, `otp`, and/or `twilio_sms`.  
 
@@ -80,7 +80,7 @@ The System plugin supports several authentication methods:
 - FIDO security keys
 - Super Gluu. 
 
-Developers can provide their own [custom handler plugins](https://gluu.org/docs/casa/4.4/developer/authn-methods/) that add or override the authentication methods.
+Developers can provide their own [custom handler plugins](../developer/authn-methods/) that add or override the authentication methods.
 
 In their home page, users will see widgets for every available method. These widgets are listed in decreasing order of ACR level. That is, the first method shown will be that with the highest level assigned in its corresponding interception script, and therefore the most secure.
     

@@ -8,11 +8,11 @@ package org.gluu.oxauth.model.uma.persistence;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Lists;
+import org.gluu.oxauth.model.util.Util;
 import org.gluu.persist.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -55,7 +55,7 @@ public class UmaResource implements Serializable {
     private List<String> resources;
 
     @AttributeName(name = "oxRevision")
-    private long rev;
+    private String rev;
 
     @AttributeName(name = "owner")
     private String creator;
@@ -87,8 +87,10 @@ public class UmaResource implements Serializable {
     }
 
     public void resetTtlFromExpirationDate() {
-        final long ttl = Duration.between(new Date().toInstant(), getExpirationDate().toInstant()).getSeconds();
-        setTtl((int) ttl);
+        final Integer ttl = Util.getNumberOfSecondFromNow(getExpirationDate());
+        if (ttl != null) {
+            setTtl(ttl);
+        }
     }
 
     public boolean isDeletable() {
@@ -191,11 +193,11 @@ public class UmaResource implements Serializable {
         this.resources = resources;
     }
 
-    public long getRev() {
+    public String getRev() {
         return rev;
     }
 
-    public void setRev(long rev) {
+    public void setRev(String rev) {
         this.rev = rev;
     }
 

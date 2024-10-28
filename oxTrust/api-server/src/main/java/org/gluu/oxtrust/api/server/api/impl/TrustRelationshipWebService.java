@@ -5,10 +5,8 @@
  */
 package org.gluu.oxtrust.api.server.api.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +33,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -52,7 +51,6 @@ import org.bouncycastle.util.encoders.Base64;
 import org.gluu.oxtrust.action.TrustContactsAction;
 import org.gluu.oxtrust.api.saml.SAMLTrustRelationshipShort;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.service.TrustService;
 import org.gluu.oxtrust.service.filter.ProtectedApi;
 import org.gluu.oxtrust.service.ClientService;
@@ -65,6 +63,7 @@ import org.gluu.oxtrust.model.GluuCustomAttribute;
 import org.gluu.oxtrust.model.GluuMetadataSourceType;
 import org.gluu.oxtrust.model.GluuSAMLTrustRelationship;
 import org.gluu.oxtrust.model.OxAuthClient;
+import org.gluu.oxtrust.security.Identity;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.persist.exception.BasePersistenceException;
 import org.gluu.config.oxtrust.AppConfiguration;
@@ -125,6 +124,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     
     ObjectMapper objectMapper;
     
+    
     @GET
     @Path("/read/{inum}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -132,7 +132,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuSAMLTrustRelationship.class)), description = "Success"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(oauthScopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response read(@PathParam("inum") @NotNull String inum) {
         logger.info("Read Trust Relationship");
         try {
@@ -152,26 +152,19 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = String.class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response create(GluuSAMLTrustRelationship trustRelationship) {
         logger.info("Create Trust Relationship");
         try {
-        	if(!StringHelper.isEmpty(trustRelationship.getSpMetaDataSourceType().name())
-        			&& (GluuMetadataSourceType.contains(trustRelationship.getSpMetaDataSourceType().name()))) {
-            
-        		String result = saveTR(trustRelationship);
-	            if(result.equalsIgnoreCase(OxTrustConstants.RESULT_SUCCESS)) {
-	            	return Response.status(Response.Status.CREATED)
-						.entity(trustRelationship.getInum()).build();
-	        	}else {
-	        		return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), result)
-	        				.entity("{'status code' : 400,'status message' : '"+result+"'}").build();
-	        	}
-	            //return inum;
-        	}else {
-        		return Response.status(Response.Status.BAD_REQUEST.getStatusCode(),"Source Type missing.")
-    					.entity("{'status code' : 400,'status message' : 'Source Type missing.'}").build();
-        	}
+            String inum = trustService.generateInumForNewTrustRelationship();
+            trustRelationship.setInum(inum);
+            String dn = trustService.getDnForTrustRelationShip(inum);
+            // Save trustRelationship
+            trustRelationship.setDn(dn);
+            saveTR(trustRelationship, false);
+            return Response.status(Response.Status.CREATED)
+					.entity(trustRelationship.getInum()).build();
+            //return inum;
         } catch (Exception e) {
             logger.error("create() Exception", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -184,21 +177,14 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GluuSAMLTrustRelationship.class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response update(@PathParam("inum") @NotNull String inum, GluuSAMLTrustRelationship trustRelationship) {
         logger.info("Update Trust Relationship");
         try {
-            //String dn = trustService.getDnForTrustRelationShip(inum);
-            //trustRelationship.setDn(dn);
-            //trustService.updateTrustRelationship(trustRelationship);
-        	String result = saveTR(trustRelationship);
-            if(result.equalsIgnoreCase(OxTrustConstants.RESULT_SUCCESS)) {
-            	return Response.ok(trustService.getRelationshipByInum(inum)).build();
-        	}else {
-        		return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), result)
-        				.entity("{'status code' : 400,'status message' : '"+result+"'}").build();
-        	}
-            
+            String dn = trustService.getDnForTrustRelationShip(inum);
+            trustRelationship.setDn(dn);
+            trustService.updateTrustRelationship(trustRelationship);
+            return Response.ok(trustService.getRelationshipByInum(inum)).build();
         } catch (Exception e) {
             logger.error("update() Exception", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -212,7 +198,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response delete(@PathParam("inum") @NotNull String inum) {
         logger.info("Delete Trust Relationship");
         try {
@@ -236,7 +222,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuSAMLTrustRelationship.class)), description = "SUCCESS"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response list() {
         try {
             List<SAMLTrustRelationshipShort> trustRelationships = convertTRtoTRShort(trustService.getAllTrustRelationships());
@@ -255,7 +241,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK",  content = @Content(schema = @Schema(implementation = SAMLTrustRelationshipShort[].class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response listAllFederations() {
         try {
             List<SAMLTrustRelationshipShort> trustRelationships = convertTRtoTRShort(trustService.getAllFederations());
@@ -272,7 +258,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SAMLTrustRelationshipShort[].class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response listAllActiveTrustRelationships() {
         try {
             List<SAMLTrustRelationshipShort> trustRelationships = convertTRtoTRShort(trustService.getAllActiveTrustRelationships());
@@ -291,7 +277,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SAMLTrustRelationshipShort[].class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response listAllOtherFederations(@PathParam("inum") String inum) {
         try {
             List<SAMLTrustRelationshipShort> trustRelationships = convertTRtoTRShort(trustService.getAllOtherFederations(inum));
@@ -309,7 +295,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SAMLTrustRelationshipShort[].class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response listAllSAMLTrustRelationships(@QueryParam("size_limit") int sizeLimit) {
         try {
             List<SAMLTrustRelationshipShort> trustRelationships = convertTRtoTRShort(trustService.getAllSAMLTrustRelationships(sizeLimit));
@@ -327,7 +313,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK",  content = @Content(schema = @Schema(implementation = SAMLTrustRelationshipShort[].class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response listDeconstructedTrustRelationships(@PathParam("inum") String inum) {
         try {
             GluuSAMLTrustRelationship trustRelationship = trustService.getRelationshipByInum(inum);
@@ -346,7 +332,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK",content = @Content(schema = @Schema(implementation = SAMLTrustRelationshipShort[].class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response searchTrustRelationships(@QueryParam("pattern") @NotNull String pattern, @QueryParam("size_limit") int sizeLimit) {
         try {
             List<SAMLTrustRelationshipShort> trustRelationships = convertTRtoTRShort(trustService.searchSAMLTrustRelationships(pattern, sizeLimit));
@@ -365,7 +351,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response setMetadata(@PathParam("inum") String trustRelationshipInum, @NotNull String metadata) {
         try {
             GluuSAMLTrustRelationship trustRelationship = trustService.getRelationshipByInum(trustRelationshipInum);
@@ -394,7 +380,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response setMetadataURL(@PathParam("inum") String trustRelationshipInum, @NotNull String url) {
         try {
             GluuSAMLTrustRelationship trustRelationship = trustService.getRelationshipByInum(trustRelationshipInum);
@@ -424,7 +410,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE})
+    @ProtectedApi(scopes = { WRITE_ACCESS})
     public Response addAttribute(@PathParam("inum") String trustRelationshipInum, @NotNull String attribute) {
         try {
             GluuSAMLTrustRelationship trustRelationship = trustService.getRelationshipByInum(trustRelationshipInum);
@@ -449,7 +435,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK",  content = @Content(schema = @Schema(implementation =String.class))),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response generateInumForNewTrustRelationship() {
         try {
             String inum = trustService.generateInumForNewTrustRelationship();
@@ -466,7 +452,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
     		@ApiResponse(responseCode = "200", description = "OK",  content = @Content(schema = @Schema(implementation =TrustContact[].class))),
     		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_READ })
+    @ProtectedApi(scopes = { READ_ACCESS })
     public Response getContacts(@PathParam("inum") String trustRelationshipInum) {
         try {
             GluuSAMLTrustRelationship trustRelationship = trustService.getRelationshipByInum(trustRelationshipInum);
@@ -486,7 +472,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response setContacts(@PathParam("inum") String trustRelationshipInum, String contacts) {
         try {
             GluuSAMLTrustRelationship trustRelationship = trustService.getRelationshipByInum(trustRelationshipInum);
@@ -509,7 +495,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response setCertificate(@PathParam("inum") String trustRelationshipInum, String certificate) {
         try {
             GluuSAMLTrustRelationship trustRelationship = trustService.getRelationshipByInum(trustRelationshipInum);
@@ -531,7 +517,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @Path("/remove_attribute")
     @Consumes({MediaType.TEXT_PLAIN})
     @Produces(MediaType.TEXT_PLAIN)
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response removeAttribute(GluuAttribute attribute) {
         try {
             trustService.removeAttribute(attribute);
@@ -550,7 +536,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
     @ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "OK"),
 		@ApiResponse(responseCode = "500", description = "Server error") })
-    @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_SAML_TR_WRITE })
+    @ProtectedApi(scopes = { WRITE_ACCESS })
     public Response generateConfigurationFiles() {
         try {
             List<GluuSAMLTrustRelationship> trustRelationships = trustService.getAllActiveTrustRelationships();
@@ -575,7 +561,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
      * @param certificate - need for FILE type TR, optional for GENERATE type TR
      * @return 
      */
-    private String saveTR(GluuSAMLTrustRelationship trustRelationship) {
+    private String saveTR(GluuSAMLTrustRelationship trustRelationship, String metadata, String certificate) {
         String inum;
         boolean update = false;
         synchronized (svnSyncTimer) {
@@ -592,43 +578,48 @@ public class TrustRelationshipWebService extends BaseWebResource {
             switch (trustRelationship.getSpMetaDataSourceType()) {
             case MANUAL:
                 try {
-                    if (saveSpMetaDataFileSourceTypeManual(trustRelationship, trustRelationship.getMetadataStr())) {
-                        //updateSpMetaDataCert(certWrapper);
-                        if (!update) {
-                            trustRelationship.setStatus(GluuStatus.ACTIVE);
-                        }
+                    if (StringHelper.isEmpty(certificate))
+                        certificate = generateCertForGeneratedSP(trustRelationship);
+                    GluuStatus status = StringHelper.isNotEmpty(certificate) ? GluuStatus.ACTIVE : GluuStatus.INACTIVE;
+                    trustRelationship.setStatus(status);
+                    if (generateSpMetaDataFile(trustRelationship, certificate)) {
+                        setEntityId(trustRelationship);
                     } else {
-                    	logger.error("Failed to save meta-data content in file");
-                        return "Failed to save meta-data content.";
+                        logger.error("Failed to generate SP meta-data file");
+                        return OxTrustConstants.RESULT_FAILURE;
                     }
                 } catch (IOException ex) {
-                	logger.error("Failed to generate SP metadata", ex);
-                    return "Manual : Failed to generate SP metadata";
+                    logger.error("Failed to download SP certificate", ex);
+
+                    return OxTrustConstants.RESULT_FAILURE;
                 }
 
                 break;
             case FILE:
                 try {
-                    if (saveSpMetaDataFileSourceTypeFile(trustRelationship, inum, trustRelationship.getMetadataStr())) {
-                        
-                        updateTRCertificate(trustRelationship, trustRelationship.getCertificate());
+                    if (saveSpMetaDataFileSourceTypeFile(trustRelationship, inum, metadata)) {
+                        //update = true;
+                        updateTRCertificate(trustRelationship, certificate);
+//					setEntityId();
                         if(!update){
                             trustRelationship.setStatus(GluuStatus.ACTIVE);
                         }
                     } else {
-                        logger.error("Failed to save SP metadata file {}", trustRelationship.getMetadataStr());
+                        logger.error("Failed to save SP metadata file {}", metadata);
                         return OxTrustConstants.RESULT_FAILURE;
                     }
                 } catch (IOException ex) {
                     logger.error("Failed to download SP metadata", ex);
                     //facesMessages.add(FacesMessage.SEVERITY_ERROR, "Failed to download SP metadata");
 
-                    return "File : Failed to save SP metadata File";
+                    return OxTrustConstants.RESULT_FAILURE;
                 }
 
                 break;
             case URI:
                 try {
+                    //if (saveSpMetaDataFileSourceTypeURI()) {
+//						setEntityId();
                     boolean result = shibboleth3ConfService.existsResourceUri(trustRelationship.getSpMetaDataURL());
                     if(result){
                         saveSpMetaDataFileSourceTypeURI(trustRelationship);
@@ -638,10 +629,13 @@ public class TrustRelationshipWebService extends BaseWebResource {
                     if(!update){
                         trustRelationship.setStatus(GluuStatus.ACTIVE);
                     }
-                    
+                    /*} else {
+                            log.error("Failed to save SP meta-data file {}", fileWrapper);
+                            return OxTrustConstants.RESULT_FAILURE;
+                    }*/
                 } catch (Exception e) {
                     //facesMessages.add(FacesMessage.SEVERITY_ERROR, "Unable to download metadata");
-                    return "URI : unable_download_metadata";
+                    return "unable_download_metadata";
                 }
                 break;
             case FEDERATION:
@@ -650,12 +644,9 @@ public class TrustRelationshipWebService extends BaseWebResource {
                 }
                 if (trustRelationship.getEntityId() == null) {
                     //facesMessages.add(FacesMessage.SEVERITY_ERROR, "EntityID must be set to a value");
-                    return "FEDERATION : invalid_entity_id";
+                    return "invalid_entity_id";
                 }
 
-                break;
-            case MDQ:
-            	//TODO: Implement MDQ Save
                 break;
             default:
 
@@ -671,14 +662,14 @@ public class TrustRelationshipWebService extends BaseWebResource {
                 trustRelationship.setFederation(federation);
             }
 
-            //trustContactsAction.saveContacts();
+            trustContactsAction.saveContacts();
 
             if (update) {
                 try {
                     saveTR(trustRelationship, update);
                 } catch (BasePersistenceException ex) {
                     logger.error("Failed to update trust relationship {}", inum, ex);
-                    return "Failed to update trust relationship {}"+ inum;
+                    return OxTrustConstants.RESULT_FAILURE;
                 }
             } else {
                 String dn = trustService.getDnForTrustRelationShip(inum);
@@ -688,7 +679,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
                         saveTR(trustRelationship, update);
                 } catch (BasePersistenceException ex) {
                         logger.error("Failed to add new trust relationship {}", trustRelationship.getInum(), ex);
-                        return "Failed to add new trust relationship.";
+                        return OxTrustConstants.RESULT_FAILURE;
                 }
 
                 update = true;
@@ -701,7 +692,7 @@ public class TrustRelationshipWebService extends BaseWebResource {
                     return "Failed to update Shibboleth v3 configuration";
                 } else {
                     logger.info("Shibboleth v3 configuration updated successfully");
-                    
+                    return "Shibboleth v3 configuration updated successfully";
                 }
             }
         }
@@ -788,7 +779,6 @@ public class TrustRelationshipWebService extends BaseWebResource {
         if (emptySpMetadataFileName) {
                 // Generate new file name
                 spMetadataFileName = shibboleth3ConfService.getSpNewMetadataFileName(trustRelationship);
-                trustRelationship.setSpMetaDataFN(spMetadataFileName);
         }
 
         String result = shibboleth3ConfService.saveSpMetadataFile(trustRelationship.getSpMetaDataURL(), spMetadataFileName);
@@ -1022,54 +1012,5 @@ public class TrustRelationshipWebService extends BaseWebResource {
         } else {
             trustRelationship.setReleasedAttributes(null);
         }
-    }
-    
-    
-    
-    private boolean saveSpMetaDataFileSourceTypeManual(GluuSAMLTrustRelationship trustRelationship , String metadataStr) throws IOException {
-        String spMetadataFileName = trustRelationship.getSpMetaDataFN();
-        InputStream is = new ByteArrayInputStream(metadataStr.getBytes());
-        boolean emptySpMetadataFileName = StringHelper.isEmpty(spMetadataFileName);
-        if ((metadataStr == null) || (is == null)) {
-            if (emptySpMetadataFileName) {
-                logger.debug("The trust relationship {} has an empty Metadata filename",trustRelationship.getInum());
-                return false;
-            }
-            String filePath = shibboleth3ConfService.getSpMetadataFilePath(spMetadataFileName);
-            if (filePath == null) {
-                logger.debug("The trust relationship {} has an invalid Metadata file storage path", trustRelationship.getInum());
-                return false;
-            }
-
-            if (shibboleth3ConfService.isLocalDocumentStoreType()) {
-                
-                File file = new File(filePath);
-                if(!file.exists()) {
-                    logger.debug("The trust relationship {} metadata used local storage but the SP metadata file `{}` was not found",
-                    trustRelationship.getInum(),filePath);
-                    return false;
-                }
-            }
-            return true;
-        }
-        if (emptySpMetadataFileName) {
-            spMetadataFileName = shibboleth3ConfService.getSpNewMetadataFileName(trustRelationship);
-            trustRelationship.setSpMetaDataFN(spMetadataFileName);
-            if (trustRelationship.getDn() == null) {
-                String dn = trustService.getDnForTrustRelationShip(trustRelationship.getInum());
-                trustRelationship.setDn(dn);
-                trustService.addTrustRelationship(trustRelationship);
-            } else {
-                trustService.updateTrustRelationship(trustRelationship);
-            }
-        }
-        String result = shibboleth3ConfService.saveSpMetadataFile(spMetadataFileName, is);
-        if (StringHelper.isNotEmpty(result)) {
-            metadataValidationTimer.queue(result);
-        } else {
-            //facesMessages.add(FacesMessage.SEVERITY_ERROR,
-              //      "Failed to save SP meta-data file. Please check if you provide correct file");
-        }
-        return StringHelper.isNotEmpty(result);
     }
 }

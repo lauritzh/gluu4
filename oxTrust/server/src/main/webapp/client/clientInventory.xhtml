@@ -27,7 +27,7 @@
 							<h:panelGroup id="oidcClientsTable">
 								<div class="row"
 									style="padding: 5px; margin-bottom: 5px; margin-left: 15px">
-									<b:link style-class="addClientButtonClass btn btn-primary" style="width: 9%;"
+									<b:link style-class="addClientButtonClass btn btn-primary"
 										icon="plus" outcome="/client/addClient" onclick="clearOIDC();"
 										value="#{msgs['client.addClient']}" includeViewParams="false" />
 								</div>
@@ -71,17 +71,9 @@
 													</b:dataTableColumn>
 													<b:dataTableColumn value="#{clt.inum}"
 														label="#{msgs['client.inum']}" />
-													<b:dataTableColumn label="Grant Types">
-														<!-- <b:label text="#{clt.grantTypes}" severity="primary" />-->
-														<ui:repeat value="#{clt.grantTypes}" var="str" varStatus="status">
-															#{str}#{status.last?'':', '}
-														</ui:repeat>
+													<b:dataTableColumn label="#{msgs['client.applicationType']}">
+														<b:label text="#{clt.oxAuthAppType}" severity="primary" />
 													</b:dataTableColumn>
-													<b:dataTableColumn label="Access Token">
-														<b:label rendered="#{clt.accessTokenAsJwt}" text="JWT" severity="primary"  />	
-														<b:label rendered="#{!clt.accessTokenAsJwt}" text="Reference" severity="primary"  />													
-													</b:dataTableColumn>
-													
 													<b:dataTableColumn
 														label="#{msgs['passport.deleteProvider']}">
 														<h:selectBooleanCheckbox id="selectId"

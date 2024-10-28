@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Yuriy Movchan Date: 01/12/2020
  */
-public class SpannerEntryManager extends BaseEntryManager<SpannerOperationService> implements Serializable {
+public class SpannerEntryManager extends BaseEntryManager implements Serializable {
 
 	private static final long serialVersionUID = 2127241817126412574L;
 
@@ -567,7 +567,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
             count++;
             EntryData entryData = searchResultEntries[i];
             
-            AttributeData attributeDataDn = entryData.getAttributeData(SpannerOperationService.DN);
+            AttributeData attributeDataDn = entryData.getAttributeDate(SpannerOperationService.DN);
             if ((attributeDataDn == null) || (attributeDataDn.getValue() == null)) {
                 throw new MappingException("Failed to convert EntryData to Entry because DN is missing");
             }
@@ -631,7 +631,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
                 return false;
             }
 
-            AttributeData attributeData = searchResult.getEntries().get(0).getAttributeData(SpannerOperationService.DN);
+            AttributeData attributeData = searchResult.getEntries().get(0).getAttributeDate(SpannerOperationService.DN);
             if ((attributeData == null) || (attributeData.getValue() == null)) {
                 throw new AuthenticationException("Failed to find user DN in entry: '%s'");
             }
@@ -811,7 +811,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
     	return filterConverter.convertToSqlFilter(tableMapping, excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap, true);
     }
 
-	protected Filter excludeObjectClassFilters(Filter genericFilter) {
+	private Filter excludeObjectClassFilters(Filter genericFilter) {
 		return filterProcessor.excludeFilter(genericFilter, FilterProcessor.OBJECT_CLASS_EQUALITY_FILTER, FilterProcessor.OBJECT_CLASS_PRESENCE_FILTER);
 	}
 

@@ -6,7 +6,6 @@
 
 package org.gluu.oxauth.service;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.config.StaticConfiguration;
@@ -26,6 +25,7 @@ import org.gluu.util.security.StringEncrypter;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
 import org.json.JSONArray;
 import org.oxauth.persistence.model.Scope;
+import org.python.jline.internal.Preconditions;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;

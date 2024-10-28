@@ -335,7 +335,5 @@
     },
     "deviceAuthzRequestExpiresIn": 1800,
     "deviceAuthzTokenPollInterval": 5,
-    "deviceAuthzResponseTypeToProcessAuthz": "code",
-    "return200OnClientRegistration": true,
-    "dateFormatterPatterns": {}
+    "deviceAuthzResponseTypeToProcessAuthz": "code"
 }

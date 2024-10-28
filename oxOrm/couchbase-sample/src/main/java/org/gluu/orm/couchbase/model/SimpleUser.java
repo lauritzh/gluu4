@@ -36,15 +36,6 @@ public class SimpleUser implements Serializable {
 
     @AttributeName(name = "userPassword")
     private String userPassword;
-
-    @AttributeName(name = "displayName")
-    private String displayName;
-
-    @AttributeName(name = "mail")
-    private String mail;
-
-    @AttributeName(name = "gluuStatus")
-    private GluuStatus status;
     
     @AttributeName(name = "role")
     private UserRole userRole; 
@@ -82,31 +73,7 @@ public class SimpleUser implements Serializable {
         this.userPassword = userPassword;
     }
 
-    public String getDisplayName() {
-		return displayName;
-	}
-
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
-
-	public String getMail() {
-		return mail;
-	}
-
-	public void setMail(String mail) {
-		this.mail = mail;
-	}
-
-	public GluuStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(GluuStatus status) {
-		this.status = status;
-	}
-
-	public UserRole getUserRole() {
+    public UserRole getUserRole() {
 		return userRole;
 	}
 

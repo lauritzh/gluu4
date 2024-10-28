@@ -32,12 +32,12 @@ public class UserService extends org.gluu.oxauth.service.common.UserService {
     private AppConfiguration appConfiguration;
 
     @Override
-	public List<String> getPersonCustomObjectClassList() {
+	protected List<String> getPersonCustomObjectClassList() {
 		return appConfiguration.getPersonCustomObjectClassList();
 	}
 
     @Override
-    public String getPeopleBaseDn() {
+	protected String getPeopleBaseDn() {
 		return staticConfiguration.getBaseDn().getPeople();
 	}
 

@@ -9,11 +9,8 @@ package org.gluu.oxtrust.action;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -33,19 +30,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.gluu.config.oxtrust.AppConfiguration;
@@ -60,7 +48,6 @@ import org.gluu.oxauth.model.common.BackchannelTokenDeliveryMode;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.crypto.signature.AsymmetricSignatureAlgorithm;
-import org.gluu.oxauth.model.uma.persistence.UmaResource;
 import org.gluu.oxauth.model.util.URLPatternList;
 import org.gluu.oxtrust.model.AuthenticationMethod;
 import org.gluu.oxtrust.model.BlockEncryptionAlgorithm;
@@ -76,16 +63,18 @@ import org.gluu.oxtrust.service.ClientService;
 import org.gluu.oxtrust.service.EncryptionService;
 import org.gluu.oxtrust.service.OxTrustAuditService;
 import org.gluu.oxtrust.service.ScopeService;
-import org.gluu.oxtrust.service.uma.ResourceSetService;
+import org.gluu.oxtrust.util.EasyCASSLProtocolSocketFactory;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.exception.BasePersistenceException;
+import org.gluu.persist.model.base.BaseEntry;
 import org.gluu.service.LookupService;
 import org.gluu.service.custom.script.AbstractCustomScriptService;
 import org.gluu.service.security.Secure;
 import org.gluu.util.SelectableEntityHelper;
 import org.gluu.util.StringHelper;
 import org.gluu.util.Util;
+import org.gluu.util.io.HTTPFileDownloader;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
 import org.oxauth.persistence.model.ClientAttributes;
 import org.oxauth.persistence.model.Scope;
@@ -130,9 +119,6 @@ public class UpdateClientAction implements Serializable {
     private AbstractCustomScriptService customScriptService;
 
     @Inject
-    private ResourceSetService resourceSetService;
-    
-    @Inject
     private LookupService lookupService;
 
     @Inject
@@ -164,13 +150,9 @@ public class UpdateClientAction implements Serializable {
     private List<String> loginUris = Lists.newArrayList();
     private List<String> logoutUris;
     private List<String> clientlogoutUris;
-    private List<String> redirectLogoutUrl;
-    private List<String> clientBackChannellogoutUris;
     private List<String> claimRedirectURIList;
-    private List<String> additionalAudienceList;
 
     private List<Scope> scopes;
-    private List<UmaResource> resources;
     private List<DisplayNameEntry> claims;
     private List<ResponseType> responseTypes;
     private List<CustomScript> customScripts;
@@ -186,28 +168,15 @@ public class UpdateClientAction implements Serializable {
 
     private String searchAvailableClaimPattern;
     private String oldSearchAvailableClaimPattern;
-    private String tlsSubjectDn;
 
     private String availableLoginUri = HTTPS;
     private String availableLogoutUri = HTTPS;
     private String availableClientlogoutUri = HTTPS;
-    private String availableRedirectLogoutUrl = HTTPS;
-    private String availableClientBacklogoutUri = HTTPS;
     private String availableContact = "";
     private String availableRequestUri = HTTPS;
     private String availableAuthorizedOrigin = HTTPS;
     private String availableClaimRedirectUri = HTTPS;
-    private String availableAdditionalAudience = "";
     private String oxAttributesJson;
-    private String backchannelLogoutUri;
-    private String customScriptsforPostAuthn;
-    private String customScriptsforConsentGather;
-    private String spontaneousScopeCustomScript;
-    private String introspectionCustomScript;
-    private String rptClaimsScript;
-    private String scopePattern;
-    
-    
     Pattern domainPattern = Pattern.compile("^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\\\.)+[A-Za-z]{2,6}");
     public String getAvailableAuthorizedOrigin() {
         return availableAuthorizedOrigin;
@@ -227,7 +196,6 @@ public class UpdateClientAction implements Serializable {
 
     private List<GluuAttribute> availableClaims;
     private List<GluuGroup> availableGroups;
-    private List<CustomScript> availableCustomScriptsAcr;
     private List<SelectableEntity<ResponseType>> availableResponseTypes;
     private List<SelectableEntity<CustomScript>> availableCustomScripts;
     private List<SelectableEntity<CustomScript>> availablePostAuthnScripts;
@@ -251,8 +219,8 @@ public class UpdateClientAction implements Serializable {
         this.client.setSubjectType(OxAuthSubjectType.PAIRWISE);
         try {
             this.loginUris = getNonEmptyStringList(client.getOxAuthRedirectURIs());
+            this.logoutUris = getNonEmptyStringList(client.getOxAuthPostLogoutRedirectURIs());
             this.clientlogoutUris = getNonEmptyStringList(client.getLogoutUri());
-            this.clientBackChannellogoutUris = getNonEmptyStringList(client.getAttributes().getBackchannelLogoutUri());
             this.scopes = getInitialEntries();
             this.claims = getInitialClaimDisplayNameEntries();
             this.responseTypes = getInitialResponseTypes();
@@ -261,16 +229,11 @@ public class UpdateClientAction implements Serializable {
             this.requestUris = getNonEmptyStringList(client.getRequestUris());
             this.authorizedOrigins = getNonEmptyStringList(client.getAuthorizedOrigins());
             this.claimRedirectURIList = getNonEmptyStringList(client.getClaimRedirectURI());
-            this.additionalAudienceList = getNonEmptyStringList(client.getAttributes().getAdditionalAudience());
+            this.customScripts = getInitialAcrs();
             this.postAuthnScripts = Lists.newArrayList();
             this.rptClaimsScripts = Lists.newArrayList();
             this.consentScripts = Lists.newArrayList();
             this.spontaneousScopesScripts = Lists.newArrayList();
-            this.backchannelLogoutUri = getStringFromList(client.getAttributes().getBackchannelLogoutUri());
-            this.tlsSubjectDn = client.getAttributes().getTlsClientAuthSubjectDn();
-            this.scopePattern = "";
-            this.redirectLogoutUrl = getNonEmptyStringList(client.getOxAuthPostLogoutRedirectURIs());
-            searchAvailableCustomScriptsforAcr();
         } catch (BasePersistenceException ex) {
             log.error("Failed to prepare lists", ex);
             facesMessages.add(FacesMessage.SEVERITY_ERROR, "Failed to add new client");
@@ -280,15 +243,19 @@ public class UpdateClientAction implements Serializable {
         return OxTrustConstants.RESULT_SUCCESS;
     }
 
-	private List<String> getNonEmptyStringList(List<String> currentList) {
-    	        if (currentList != null && currentList.size() > 0) {
-    	            return new ArrayList<String>(currentList);
-    	        } else {
-    	            return new ArrayList<String>();
-    	        }
-	}
+    private List<CustomScript> getInitialAcrs() {
+        this.customScripts = new ArrayList<CustomScript>();
+        if (this.client.getDefaultAcrValues() != null && this.client.getDefaultAcrValues().length >= 1) {
+            for (String scriptName : this.client.getDefaultAcrValues()) {
+                CustomScript customScript = new CustomScript();
+                customScript.setName(scriptName);
+                this.customScripts.add(customScript);
+            }
+        }
+        return this.customScripts;
+    }
 
-	private List<Scope> getInitialEntries() {
+    private List<Scope> getInitialEntries() {
         List<Scope> existingScopes = new ArrayList<Scope>();
         if ((client.getOxAuthScopes() == null) || (client.getOxAuthScopes().size() == 0)) {
             return existingScopes;
@@ -328,10 +295,8 @@ public class UpdateClientAction implements Serializable {
         }
         try {
             this.loginUris = getNonEmptyStringList(client.getOxAuthRedirectURIs());
-
+            this.logoutUris = getNonEmptyStringList(client.getOxAuthPostLogoutRedirectURIs());
             this.clientlogoutUris = getNonEmptyStringList(client.getLogoutUri());
-            this.redirectLogoutUrl= getNonEmptyStringList(client.getOxAuthPostLogoutRedirectURIs());
-            this.clientBackChannellogoutUris = getNonEmptyStringList(client.getAttributes().getBackchannelLogoutUri());
             this.scopes = getInitialEntries();
             this.claims = getInitialClaimDisplayNameEntries();
             this.responseTypes = getInitialResponseTypes();
@@ -340,10 +305,7 @@ public class UpdateClientAction implements Serializable {
             this.requestUris = getNonEmptyStringList(client.getRequestUris());
             this.authorizedOrigins = getNonEmptyStringList(client.getAuthorizedOrigins());
             this.claimRedirectURIList = getNonEmptyStringList(client.getClaimRedirectURI());
-            this.additionalAudienceList = getNonEmptyStringList(client.getAttributes().getAdditionalAudience());
-            this.tlsSubjectDn = client.getAttributes().getTlsClientAuthSubjectDn();
-            this.scopePattern = "";
-            
+            this.customScripts = getInitialAcrs();
             this.postAuthnScripts = searchAvailablePostAuthnCustomScripts().stream()
                     .filter(entity -> client.getAttributes().getPostAuthnScripts().contains(entity.getEntity().getDn()))
                     .map(SelectableEntity::getEntity).collect(Collectors.toList());
@@ -361,15 +323,6 @@ public class UpdateClientAction implements Serializable {
                     entity -> client.getAttributes().getIntrospectionScripts().contains(entity.getEntity().getDn()))
                     .map(SelectableEntity::getEntity).collect(Collectors.toList());
             this.oxAttributesJson = getClientAttributesJson();
-            this.backchannelLogoutUri = getStringFromList(client.getAttributes().getBackchannelLogoutUri());
-            this.customScriptsforPostAuthn = getStringFromList(client.getAttributes().getPostAuthnScripts());
-            this.customScriptsforConsentGather = getStringFromList(client.getAttributes().getConsentGatheringScripts());
-            this.spontaneousScopeCustomScript = getStringFromList(client.getAttributes().getSpontaneousScopeScriptDns());
-            this.introspectionCustomScript = getStringFromList(client.getAttributes().getIntrospectionScripts());
-            this.rptClaimsScript = getStringFromList(client.getAttributes().getRptClaimsScripts());
-            this.resources = resourceSetService.findResourcesByClients(client.getDn());
-            
-            searchAvailableCustomScriptsforAcr();
         } catch (BasePersistenceException ex) {
             log.error("Failed to prepare lists", ex);
             facesMessages.add(FacesMessage.SEVERITY_ERROR, "Failed to load client");
@@ -379,12 +332,14 @@ public class UpdateClientAction implements Serializable {
 
         return OxTrustConstants.RESULT_SUCCESS;
     }
-    
-    private String getStringFromList(List<String> currentList) {
+
+   
+
+    private List<String> getNonEmptyStringList(List<String> currentList) {
         if (currentList != null && currentList.size() > 0) {
-            return currentList.get(0);
+            return new ArrayList<String>(currentList);
         } else {
-            return null;
+            return new ArrayList<String>();
         }
     }
 
@@ -426,8 +381,7 @@ public class UpdateClientAction implements Serializable {
         }
         updateLoginURIs();
         updateLogoutURIs();
-        updateRedirectLogoutUrls();
-        updateBackChannelLogoutURIs();
+        updateClientLogoutURIs();
         updateScopes();
         updateClaims();
         updateResponseTypes();
@@ -437,9 +391,8 @@ public class UpdateClientAction implements Serializable {
         updateRequestUris();
         updateAuthorizedOrigins();
         updateClaimredirectUri();
-        updateAdditionalAudience();
+        saveAttributesJson();
         trimUriProperties();
-        client.getAttributes().setTlsClientAuthSubjectDn(tlsSubjectDn);
         this.client.setEncodedClientSecret(encryptionService.encrypt(this.client.getOxAuthClientSecret()));
         if (update) {
             try {
@@ -544,25 +497,9 @@ public class UpdateClientAction implements Serializable {
     public void removeClientLogoutURI(String uri) {
         removeFromList(this.clientlogoutUris, uri);
     }
-    
-    public void removeRedirectLogoutUrl(String uri) {
-        removeFromList(this.redirectLogoutUrl, uri);
-    }
-
-    public void removeClientBackLogoutURI(String uri) {
-        removeFromList(this.clientBackChannellogoutUris, uri);
-    }
 
     public void removeClaimRedirectURI(String uri) {
         removeFromList(this.claimRedirectURIList, uri);
-    }
-    
-    public void removeClientResource(String uri) {
-        resourceSetService.removeResource(uri);
-    }
-    
-    public void removeAdditionalAudience(String uri) {
-        removeFromList(this.additionalAudienceList, uri);
     }
 
     public void removePostAuthnScript(CustomScript script) {
@@ -677,29 +614,48 @@ public class UpdateClientAction implements Serializable {
             this.availableLoginUri = HTTPS;
             return;
         }
-		if (!this.loginUris.contains(this.availableLoginUri) && checkWhiteListRedirectUris(availableLoginUri)
-				&& checkBlackListRedirectUris(availableLoginUri)) {
-			boolean acceptable = isAcceptable(this.availableLoginUri);
-			if (acceptable) {
-				this.loginUris.add(this.availableLoginUri);
-			} else {
-				facesMessages.add(FacesMessage.SEVERITY_ERROR, "A sector identifier must be defined first.");
-			}
-		} else {
-			facesMessages.add(FacesMessage.SEVERITY_ERROR, "The URL is not valid or may be Blacklisted.",
-					"The URL is not valid or may be Blacklisted.");
-		}
+        if (!this.loginUris.contains(this.availableLoginUri) && checkWhiteListRedirectUris(availableLoginUri)
+                && checkBlackListRedirectUris(availableLoginUri)) {
+            boolean acceptable = isAcceptable(this.availableLoginUri);
+            if (acceptable) {
+                this.loginUris.add(this.availableLoginUri);
+            } else {
+                try {
+                    if (getProtocol(availableLoginUri).equalsIgnoreCase("http")) {
+                        facesMessages.add(FacesMessage.SEVERITY_ERROR,
+                                "http schema is allowed with localhost/127.0.0.1");
+                    } else {
+                        facesMessages.add(FacesMessage.SEVERITY_ERROR, "A sector identifier must be defined first.");
+                    }
+                } catch (MalformedURLException e) {
+                }
+
+            }
+
+        } else {
+            facesMessages.add(FacesMessage.SEVERITY_ERROR, "The URL is not valid or may be Blacklisted.",
+                    "The URL is not valid or may be Blacklisted.");
+        }
         this.availableLoginUri = HTTPS;
     }
-    
+
     private boolean isAcceptable(String availableLoginUri) {
         boolean result = false;
         try {
-                if (getProtocol(availableLoginUri).equalsIgnoreCase("http") 
-                		&& this.client.getOxAuthAppType().equals(OxAuthApplicationType.NATIVE) 
-                		&& isImplicitFlow()) {
+            if (getProtocol(availableLoginUri).equalsIgnoreCase("http")) {
+                if (this.client.getOxAuthAppType().equals(OxAuthApplicationType.NATIVE) && isImplicitFlow()) {
                     return true;
-                }                
+                }
+                if (!this.client.getOxAuthAppType().equals(OxAuthApplicationType.NATIVE)
+                        && getHostname(availableLoginUri).equalsIgnoreCase("localhost")) {
+                    return true;
+                }
+                if (!this.client.getOxAuthAppType().equals(OxAuthApplicationType.NATIVE)
+                        && getHostname(availableLoginUri).equalsIgnoreCase("127.0.0.1")) {
+                    return true;
+                }
+                return false;
+            } else {
             	if(!availableLoginUri.contains("//") && domainPattern.matcher(availableLoginUri.split("/")[0]).matches()) {
             		return true;
             	}
@@ -710,16 +666,12 @@ public class UpdateClientAction implements Serializable {
                     return true;
                 } else if (this.loginUris.size() < 1) {
                     result = true;
-                } else if (this.loginUris.size() >= 1 && availableLoginUri.startsWith("https://") &&  hasSameHostname(this.availableLoginUri)) {
+                } else if (this.loginUris.size() >= 1 && hasSameHostname(this.availableLoginUri)) {
                     result = true;
-                } else if (this.loginUris.size() >= 1 && availableLoginUri.startsWith("https://") && !hasSameHostname(this.availableLoginUri) && sectorExist()) {
-                    result = true;
-                }else if (this.loginUris.size() >= 1 && availableLoginUri.startsWith("http://") && !hasSameHostname(this.availableLoginUri) && sectorExist()) {
-                    result = true;
-                }else if (this.loginUris.size() >= 1 && !(availableLoginUri.startsWith("https://") || availableLoginUri.startsWith("http://")) && availableLoginUri.contains(":/")) {
+                } else if (this.loginUris.size() >= 1 && !hasSameHostname(this.availableLoginUri) && sectorExist()) {
                     result = true;
                 }
-      
+            }
         } catch (MalformedURLException e) {
             facesMessages.add(FacesMessage.SEVERITY_ERROR, "The url is malformed", "The url is malformed");
             log.error(e.getMessage());
@@ -738,13 +690,11 @@ public class UpdateClientAction implements Serializable {
         boolean result = true;
         URL uri1 = new URL(url1);
         for (String url : this.loginUris) {
-        	if(url.startsWith(HTTPS)) {
-	            URL uri = new URL(url);
-	            if (!(uri1.getHost().equalsIgnoreCase(uri.getHost()))) {
-	                result = false;
-	                break;
-	            }
-        	}
+            URL uri = new URL(url);
+            if (!(uri1.getHost().equalsIgnoreCase(uri.getHost()))) {
+                result = false;
+                break;
+            }
         }
         return result;
     }
@@ -820,19 +770,6 @@ public class UpdateClientAction implements Serializable {
         this.availableLogoutUri = HTTPS;
     }
 
-    public void acceptSelectRedirectLogoutUrl() {
-        if (StringHelper.isEmpty(this.availableRedirectLogoutUrl)) {
-            return;
-        }
-        if (this.availableRedirectLogoutUrl.equalsIgnoreCase(HTTPS)) {
-            return;
-        }
-        if (!this.redirectLogoutUrl.contains(this.availableRedirectLogoutUrl)) {
-            this.redirectLogoutUrl.add(this.availableRedirectLogoutUrl);
-        }
-        this.availableRedirectLogoutUrl = HTTPS;
-    }
-    
     public void acceptSelectClientLogoutUri() {
         if (StringHelper.isEmpty(this.availableClientlogoutUri)) {
             return;
@@ -844,19 +781,6 @@ public class UpdateClientAction implements Serializable {
             this.clientlogoutUris.add(this.availableClientlogoutUri);
         }
         this.availableClientlogoutUri = HTTPS;
-    }
-    
-    public void acceptSelectClientBackLogoutUri() {
-        if (StringHelper.isEmpty(this.availableClientBacklogoutUri)) {
-            return;
-        }
-        if (this.availableClientBacklogoutUri.equalsIgnoreCase(HTTPS)) {
-            return;
-        }
-        if (!this.clientBackChannellogoutUris.contains(this.availableClientBacklogoutUri)) {
-            this.clientBackChannellogoutUris.add(this.availableClientBacklogoutUri);
-        }
-        this.availableClientBacklogoutUri = HTTPS;
     }
 
     public void acceptSelectClaimRedirectUri() {
@@ -870,18 +794,6 @@ public class UpdateClientAction implements Serializable {
             this.claimRedirectURIList.add(this.availableClaimRedirectUri);
         }
         this.availableClaimRedirectUri = HTTPS;
-    }
-    
-    //method for audience
-    public void acceptselectedAdditionalAudiences() {
-        if (StringHelper.isEmpty(this.availableAdditionalAudience)) {
-            return;
-        }
-        
-        if (!this.additionalAudienceList.contains(this.availableAdditionalAudience)) {
-            this.additionalAudienceList.add(this.availableAdditionalAudience);
-        }
-        this.availableAdditionalAudience = "";
     }
 
     public void acceptSelectContact() {
@@ -952,21 +864,9 @@ public class UpdateClientAction implements Serializable {
     public void cancelClientLogoutUri() {
         this.availableClientlogoutUri = HTTPS;
     }
-    
-    public void cancelRedirectLogoutUrl() {
-        this.availableRedirectLogoutUrl = HTTPS;
-    }
-    
-    public void cancelClientBackLogoutUri() {
-        this.availableClientBacklogoutUri = HTTPS;
-    }
 
     public void cancelClaimRedirectUri() {
         this.availableClaimRedirectUri = HTTPS;
-    }
-    
-    public void cancelAdditionalAudience() {
-        this.availableAdditionalAudience = "";
     }
 
     public void cancelSelectContact() {
@@ -993,8 +893,20 @@ public class UpdateClientAction implements Serializable {
         }
         this.client.setOxAuthRedirectURIs(tmpUris);
     }
-    
+
     private void updateLogoutURIs() {
+        if (this.logoutUris == null || this.logoutUris.size() == 0) {
+            this.client.setOxAuthPostLogoutRedirectURIs(null);
+            return;
+        }
+        List<String> tmpUris = new ArrayList<String>();
+        for (String uri : this.logoutUris) {
+            tmpUris.add(StringHelper.trimAll(uri));
+        }
+        this.client.setOxAuthPostLogoutRedirectURIs(tmpUris);
+    }
+
+    private void updateClientLogoutURIs() {
         if (this.clientlogoutUris == null || this.clientlogoutUris.size() == 0) {
             this.client.setLogoutUri(null);
             return;
@@ -1004,43 +916,6 @@ public class UpdateClientAction implements Serializable {
             tmpUris.add(StringHelper.trimAll(uri));
         }
         this.client.setLogoutUri(tmpUris);
-    }
-    
-    private void updateRedirectLogoutUrls() {
-        if (this.redirectLogoutUrl == null || this.redirectLogoutUrl.size() == 0) {
-            this.client.setOxAuthPostLogoutRedirectURIs(null);
-            return;
-        }
-        List<String> tmpUris = new ArrayList<String>();
-        for (String uri : this.redirectLogoutUrl) {
-            tmpUris.add(StringHelper.trimAll(uri));
-        }
-        this.client.setOxAuthPostLogoutRedirectURIs(tmpUris);
-    }
-    
-    private void updateBackChannelLogoutURIs() {
-        if (this.clientBackChannellogoutUris == null || this.clientBackChannellogoutUris.size() == 0) {
-        	client.getAttributes().setBackchannelLogoutUri(new ArrayList<String>());
-            return;
-        }
-        List<String> tmpUris = new ArrayList<String>();
-        for (String uri : this.clientBackChannellogoutUris) {
-            tmpUris.add(StringHelper.trimAll(uri));
-        }
-        
-        client.getAttributes().getBackchannelLogoutUri().clear();
-        client.getAttributes().getBackchannelLogoutUri().addAll(tmpUris);
-    }
-    
-    private void updateBackchannelLogoutUri() {
-    	if(client.getAttributes().getBackchannelLogoutUri() == null) {
-    		client.getAttributes().setBackchannelLogoutUri(new ArrayList<String>());
-    	}
-    	
-    	if(!client.getAttributes().getBackchannelLogoutUri().contains(backchannelLogoutUri.trim())) {    	
-        client.getAttributes().getBackchannelLogoutUri().add(backchannelLogoutUri);
-    	}
-        
     }
 
     private void updateContacts() {
@@ -1091,19 +966,6 @@ public class UpdateClientAction implements Serializable {
         }
         client.setClaimRedirectURI(tmpClaimRedirectURI.toArray(new String[tmpClaimRedirectURI.size()]));
     }
-    
-    private void updateAdditionalAudience() {
-        if (additionalAudienceList == null || additionalAudienceList.size() == 0) {
-            client.getAttributes().setAdditionalAudience(null);
-            return;
-        }
-        List<String> tmpAdditionalAudience = new ArrayList<String>();
-        for (String additionalAudience : additionalAudienceList) {
-        	tmpAdditionalAudience.add(StringHelper.trimAll(additionalAudience));
-        }
-        client.getAttributes().setAdditionalAudience(tmpAdditionalAudience);
-        
-    }
 
     private void updateClaims() {
         if (this.claims == null || this.claims.size() == 0) {
@@ -1149,28 +1011,22 @@ public class UpdateClientAction implements Serializable {
     }
 
     private void updateCustomScripts() {
-    	if(!this.client.getAttributes().getPostAuthnScripts().contains(customScriptsforPostAuthn)
-    			&&  !customScriptsforPostAuthn.isEmpty()) {
-    		this.client.getAttributes().getPostAuthnScripts().add(customScriptsforPostAuthn);
-    	}
-    	if(!this.client.getAttributes().getRptClaimsScripts().contains(rptClaimsScript)
-    			&&  !rptClaimsScript.isEmpty()) {
-    		this.client.getAttributes().getRptClaimsScripts().add(rptClaimsScript);
-    	}
-    	if(!this.client.getAttributes().getConsentGatheringScripts().contains(customScriptsforConsentGather)
-    			&&  !customScriptsforConsentGather.isEmpty()) {
-    		this.client.getAttributes().getConsentGatheringScripts().add(customScriptsforConsentGather);
-    	}
-    	if(!this.client.getAttributes().getIntrospectionScripts().contains(introspectionCustomScript)
-    			&&  !introspectionCustomScript.isEmpty()) {
-            this.client.getAttributes().getIntrospectionScripts().clear();
-    		this.client.getAttributes().getIntrospectionScripts().add(introspectionCustomScript);
-    	}
-    	if(!this.client.getAttributes().getSpontaneousScopeScriptDns().contains(spontaneousScopeCustomScript)
-    			&&  !spontaneousScopeCustomScript.isEmpty()) {
-    		this.client.getAttributes().getSpontaneousScopeScriptDns().add(spontaneousScopeCustomScript);
-    	}
-    	
+        List<CustomScript> currentCustomScripts = this.customScripts;
+        if (currentCustomScripts == null || currentCustomScripts.size() == 0) {
+            this.client.setDefaultAcrValues(null);
+            return;
+        }
+        List<String> customScripts = new ArrayList<String>();
+        for (CustomScript customScript : currentCustomScripts) {
+            customScripts.add(customScript.getName());
+        }
+        this.client.setDefaultAcrValues(customScripts.toArray(new String[customScripts.size()]));
+
+        this.client.getAttributes().setPostAuthnScripts(BaseEntry.getDNs(getPostAuthnScripts()));
+        this.client.getAttributes().setRptClaimsScripts(BaseEntry.getDNs(getRptClaimsScripts()));
+        this.client.getAttributes().setConsentGatheringScripts(BaseEntry.getDNs(getConsentScripts()));
+        this.client.getAttributes().setIntrospectionScripts(BaseEntry.getDNs(getIntrospectionScripts()));
+        this.client.getAttributes().setSpontaneousScopeScriptDns(BaseEntry.getDNs(getSpontaneousScopesScripts()));
     }
 
     public void selectAddedClaims() {
@@ -1442,38 +1298,7 @@ public class UpdateClientAction implements Serializable {
             return;
         }
         this.availableCustomScripts = getSelectableScripts(CustomScriptType.PERSON_AUTHENTICATION);
-    }
-    
-    public void searchAvailableCustomScriptsforAcr() {        
-        this.availableCustomScriptsAcr = getScripts(CustomScriptType.PERSON_AUTHENTICATION);
-    }
-    
-    public List<CustomScript> searchAvailableCustomScriptsforPostAuthn() {        
-        return getScripts(CustomScriptType.POST_AUTHN);
-    }
-    
-    public List<CustomScript> searchAvailableCustomScriptsforConsentGath() {        
-        return getScripts(CustomScriptType.CONSENT_GATHERING);
-    }
-    
-    public List<CustomScript> searchAvailableCustomScriptsforSpontaneousScope() {        
-        return getScripts(CustomScriptType.SPONTANEOUS_SCOPE);
-    }
-    
-    public List<CustomScript> searchAvailableCustomScriptsforintrospection() {        
-        return getScripts(CustomScriptType.INTROSPECTION);
-    }
-    
-    public List<CustomScript> searchAvailableCustomScriptsforrptClaimsScripts() {        
-        return getScripts(CustomScriptType.UMA_RPT_CLAIMS);
-    }
-    
-    public List<CustomScript> searchAvailableCustomScriptsforUpdateTokens() {        
-        return getScripts(CustomScriptType.UPDATE_TOKEN);
-    }
-    
-    public List<CustomScript> searchAvailableCustomScriptsforRptModifications() {        
-        return getScripts(CustomScriptType.UMA_RPT_POLICY);
+        selectAddedCustomScripts();
     }
 
     public List<SelectableEntity<CustomScript>> searchAvailableIntrospectionCustomScripts() {
@@ -1535,17 +1360,14 @@ public class UpdateClientAction implements Serializable {
     }
 
     public void searchAvailableScopes() {
-		/*
-		 * if (this.availableScopes != null) { selectAddedScopes(); return; }
-		 */
+        if (this.availableScopes != null) {
+            selectAddedScopes();
+            return;
+        }
         List<SelectableEntity<Scope>> tmpAvailableScopes = new ArrayList<SelectableEntity<Scope>>();
         List<Scope> scopes = new ArrayList<Scope>();
         try {
-        	if(scopePattern !=  null && !scopePattern.isEmpty()) {
-        		scopes = scopeService.searchScopes(scopePattern, 0);
-        	}else {
-        		scopes = scopeService.getAllScopesList(1000);
-        	}
+            scopes = scopeService.getAllScopesList(1000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1940,7 +1762,9 @@ public class UpdateClientAction implements Serializable {
             if (client.getContacts() != null && !client.getContacts().toString().isEmpty()) {
                 items.add("**Contacts:** " + this.contacts.toString());
             }
-            
+            if (client.getDefaultAcrValues() != null && client.getDefaultAcrValues().length > 0) {
+                items.add("**DefaultAcrValues:** " + Arrays.asList(client.getDefaultAcrValues()).toString());
+            }
             sb.append(new UnorderedList<Object>(items)).append("\n");
             markDown = sb.toString();
         } catch (Exception e) {
@@ -2043,15 +1867,10 @@ public class UpdateClientAction implements Serializable {
         return availableSpontaneousScripts;
     }
 
-    private boolean loadSector(String sectorIdentifierUri) throws ClientProtocolException, IOException {
-    	try {
-    	String sectoruriContent = downloadSectorIdentifierUri(sectorIdentifierUri);
-    	
-    	if (sectoruriContent == null) {
-    		return false;
-    	}
-
-    	
+    private boolean loadSector(String sectorIdentifierUri) {
+        HTTPFileDownloader.setEasyhttps(new Protocol("https", new EasyCASSLProtocolSocketFactory(), 443));
+        String sectoruriContent = HTTPFileDownloader.getResource(sectorIdentifierUri, "application/json", null, null);
+        try {
             JSONArray uris = new JSONArray(sectoruriContent);
             this.loginUris.clear();
             for (int i = 0; i < uris.length(); i++) {
@@ -2061,53 +1880,10 @@ public class UpdateClientAction implements Serializable {
             }
             return true;
         } catch (Exception e) {
-            log.error("exception in parsing the uri", e.getMessage());
+            log.error("", e.getMessage());
             return false;
         }
     }
-
-    private String getResponseContent(HttpResponse httpResponse) throws IOException {
-        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)) {
-        	return null;
-        }
-
-        HttpEntity entity = httpResponse.getEntity();
-		byte[] responseBytes = new byte[0];
-		if (entity != null) {
-			responseBytes = EntityUtils.toByteArray(entity);
-		}
-
-    	// Consume response content
-		if (entity != null) {
-			EntityUtils.consume(entity);
-		}
-
-    	return new String(responseBytes, StandardCharsets.UTF_8);
-	}
-
-    private String downloadSectorIdentifierUri(String sectorIdentifierUri) throws IOException, ClientProtocolException, URISyntaxException {
-		
-    	HttpGet httpGet = new HttpGet();
-		httpGet.setURI(new URI(sectorIdentifierUri));
-    	httpGet.setHeader("Accept", "application/json");
-
-    	String fileContent = null;
-    	try ( CloseableHttpClient httpClient = HttpClients.custom()
-				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
-				.build() ) {
-    		HttpResponse httpResponse = httpClient.execute(httpGet);
-    		fileContent = getResponseContent(httpResponse);
-		}catch(Exception e) {
-			log.error("url is invalid please check ", e.getMessage());
-            return null;			
-		}
-
-        if (fileContent == null) {
-            return null;
-        }
-
-        return fileContent;
-	}
 
     private boolean uriIsInValid(String uri) {
         URL url;
@@ -2126,136 +1902,8 @@ public class UpdateClientAction implements Serializable {
 
     }
 	
-    public List<String> getAdditionalAudienceList() {
-		return additionalAudienceList;
-	}
-
-	public void setAdditionalAudienceList(List<String> additionalAudienceList) {
-		this.additionalAudienceList = additionalAudienceList;
-	}
-
-	public String getAvailableAdditionalAudience() {
-		return availableAdditionalAudience;
-	}
-
-	public void setAvailableAdditionalAudience(String availableAdditionalAudience) {
-		this.availableAdditionalAudience = availableAdditionalAudience;
-	}
-
-	public String getBackchannelLogoutUri() {
-		return backchannelLogoutUri;
-	}
-
-	public void setBackchannelLogoutUri(String backchannelLogoutUri) {
-		this.backchannelLogoutUri = backchannelLogoutUri;
-	}
-
 	@ObjectClass(value = "gluuAttribute")
 	class AttributeDisplayNameEntry extends DisplayNameEntry {
 	    public AttributeDisplayNameEntry() {}
-	}
-
-	public String getTlsSubjectDn() {
-		return tlsSubjectDn;
-	}
-
-	public void setTlsSubjectDn(String tlsSubjectDn) {
-		this.tlsSubjectDn = tlsSubjectDn;
-	}
-
-	public List<CustomScript> getAvailableCustomScriptsAcr() {
-		return availableCustomScriptsAcr;
-	}
-
-	public void setAvailableCustomScriptsAcr(List<CustomScript> availableCustomScriptsAcr) {
-		this.availableCustomScriptsAcr = availableCustomScriptsAcr;
-	}
-
-	public String getCustomScriptsforPostAuthn() {
-		return customScriptsforPostAuthn;
-	}
-
-	public void setCustomScriptsforPostAuthn(String customScriptsforPostAuthn) {
-		this.customScriptsforPostAuthn = customScriptsforPostAuthn;
-	}
-
-	public String getCustomScriptsforConsentGather() {
-		return customScriptsforConsentGather;
-	}
-
-	public void setCustomScriptsforConsentGather(String customScriptsforConsentGather) {
-		this.customScriptsforConsentGather = customScriptsforConsentGather;
-	}
-
-	public String getSpontaneousScopeCustomScript() {
-		return spontaneousScopeCustomScript;
-	}
-
-	public void setSpontaneousScopeCustomScript(String spontaneousScopeCustomScript) {
-		this.spontaneousScopeCustomScript = spontaneousScopeCustomScript;
-	}
-
-	public String getIntrospectionCustomScript() {
-		return introspectionCustomScript;
-	}
-
-	public void setIntrospectionCustomScript(String introspectionCustomScript) {
-		this.introspectionCustomScript = introspectionCustomScript;
-	}
-
-	public String getRptClaimsScript() {
-		return rptClaimsScript;
-	}
-
-	public void setRptClaimsScript(String rptClaimsScript) {
-		this.rptClaimsScript = rptClaimsScript;
-	}
-
-	public List<UmaResource> getResources() {
-		return resources;
-	}
-
-	public void setResources(List<UmaResource> resources) {
-		this.resources = resources;
-	}
-
-	public List<String> getClientBackChannellogoutUris() {
-		return clientBackChannellogoutUris;
-	}
-
-	public void setClientBackChannellogoutUris(List<String> clientBackChannellogoutUris) {
-		this.clientBackChannellogoutUris = clientBackChannellogoutUris;
-	}
-
-	public String getAvailableClientBacklogoutUri() {
-		return availableClientBacklogoutUri;
-	}
-
-	public void setAvailableClientBacklogoutUri(String availableClientBacklogoutUri) {
-		this.availableClientBacklogoutUri = availableClientBacklogoutUri;
-	}
-
-	public List<String> getRedirectLogoutUrl() {
-		return redirectLogoutUrl;
-	}
-
-	public void setRedirectLogoutUrl(List<String> redirectLogoutUrl) {
-		this.redirectLogoutUrl = redirectLogoutUrl;
-	}
-
-	public String getAvailableRedirectLogoutUrl() {
-		return availableRedirectLogoutUrl;
-	}
-
-	public void setAvailableRedirectLogoutUrl(String availableRedirectLogoutUrl) {
-		this.availableRedirectLogoutUrl = availableRedirectLogoutUrl;
-	}
-	
-	public String getScopePattern() {
-		return scopePattern;
-	}
-
-	public void setScopePattern(String scopePattern) {
-		this.scopePattern = scopePattern;
 	}
 }

@@ -4,7 +4,6 @@ import uuid
 import json
 
 from setup_app import paths
-from setup_app import static
 from setup_app.utils import base
 from setup_app.static import AppType, InstallOption, SetupProfiles
 from setup_app.config import Config
@@ -66,13 +65,13 @@ class OxtrustInstaller(JettyInstaller):
     def generate_api_configuration(self):
 
         if not Config.get('api_rs_client_jks_pass'):
-            Config.api_rs_client_jks_pass = self.getPW()
+            Config.api_rs_client_jks_pass = 'secret'
             Config.api_rs_client_jks_pass_encoded = self.obscure(Config.api_rs_client_jks_pass)
         self.api_rs_client_jwks = self.gen_openid_data_store_keys(self.api_rs_client_jks_fn, Config.api_rs_client_jks_pass)
         Config.templateRenderingDict['api_rs_client_base64_jwks'] = self.generate_base64_string(self.api_rs_client_jwks, 1)
 
         if not Config.get('api_rp_client_jks_pass'):
-            Config.api_rp_client_jks_pass = self.getPW()
+            Config.api_rp_client_jks_pass = 'secret'
             Config.api_rp_client_jks_pass_encoded = self.obscure(Config.api_rp_client_jks_pass)
         self.api_rp_client_jwks = self.gen_openid_data_store_keys(self.api_rp_client_jks_fn, Config.api_rp_client_jks_pass)
         Config.templateRenderingDict['api_rp_client_base64_jwks'] = self.generate_base64_string(self.api_rp_client_jwks, 1)
@@ -111,11 +110,6 @@ class OxtrustInstaller(JettyInstaller):
 
 
     def render_import_templates(self):
-
-        if Config.profile == static.SetupProfiles.DISA_STIG:
-            Config.templateRenderingDict['adminUiLocaleSupported'] = '[{"locale" : "en", "displayName" : "English"}]'
-        else:
-            Config.templateRenderingDict['adminUiLocaleSupported'] = '[{"locale" : "en", "displayName" : "English"}, {"locale" : "fr", "displayName" : "French"}, {"locale" : "rs", "displayName" : "Russian"}]'
 
         for tmp in (self.oxtrust_config_json, self.oxtrust_cache_refresh_json, self.oxtrust_import_person_json):
             self.renderTemplateInOut(tmp, self.templates_folder, self.output_folder)

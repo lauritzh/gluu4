@@ -307,9 +307,7 @@ class GluuUpdater:
         data_s = req.read()
         data = json.loads(data_s)
 
-        data_packages = data['releases']['1.37.0'] if 'releases' in data and '1.37.0' in data['releases'] else data['urls']
-
-        for package in data_packages:
+        for package in data['releases']['1.37.0']:
             ppyversion = package['python_version']
             if len(ppyversion) < 5:
                 ppyversion += '0'

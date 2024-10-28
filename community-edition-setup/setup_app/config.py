@@ -87,7 +87,6 @@ class Config:
         self.default_store_type = 'pkcs12'
         self.opendj_truststore_format = 'pkcs12'
         self.default_client_test_store_type = 'pkcs12'
-        self.start_oxauth_after = 'network.target'
 
         if self.profile == SetupProfiles.DISA_STIG:
             self.distFolder = '/var/gluu/dist'
@@ -103,7 +102,7 @@ class Config:
             self.jre_home = Path(self.cmd_java).resolve().parent.parent.as_posix()
             self.cmd_keytool = shutil.which('keytool')
             self.cmd_jar = shutil.which('jar')
-            os.environ['GLUU_SERVICES'] = 'installHttpd installOxd installCasa installScimServer installFido2'
+            os.environ['GLUU_SERVICES'] = 'installHttpd installOxd installCasa installScimServer'
             self.default_store_type = 'bcfks'
             self.opendj_truststore_format = base.argsp.opendj_keystore_type
             self.default_client_test_store_type = 'pkcs12'
@@ -115,7 +114,9 @@ class Config:
             self.cmd_keytool = os.path.join(self.jre_home, 'bin/keytool')
             self.cmd_jar = os.path.join(self.jre_home, 'bin/jar')
 
+
         os.environ['OPENDJ_JAVA_HOME'] =  self.jre_home
+
 
         #create dummy progress bar that logs to file in case not defined
         progress_log_file = os.path.join(self.install_dir, 'logs', 'progress-bar.log')

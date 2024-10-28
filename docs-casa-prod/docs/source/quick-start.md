@@ -44,7 +44,7 @@ Configuring Casa for usage requires you to enable interception scripts in the Gl
 
 ### Finish configuration
 
-Once satisfied with testing, [configure the Gluu Server](./administration/admin-console.md/#set-default-authentication-method-gluu) to log in users via Casa for all applications the server protects.
+Once satisfied with testing, [configure the Gluu Server](./administration/admin-console.md#set-default-authentication-method-gluu) to log in users via Casa for all applications the server protects.
 
 ### Check out available plugins
 

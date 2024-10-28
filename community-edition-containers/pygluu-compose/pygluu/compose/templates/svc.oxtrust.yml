@@ -3,7 +3,7 @@ version: "2.4"
 
 services:
   oxtrust:
-    image: gluufederation/oxtrust:4.5.5-2
+    image: gluufederation/oxtrust:4.4.2-2
     environment:
       - GLUU_CONFIG_CONSUL_HOST=consul
       - GLUU_SECRET_VAULT_HOST=vault
@@ -23,7 +23,6 @@ services:
       - GLUU_SQL_DB_HOST=${SQL_DB_HOST}
       - GLUU_SQL_DB_PORT=${SQL_DB_PORT}
       - GLUU_SQL_DB_USER=${SQL_DB_USER}
-      - GLUU_SQL_DB_SCHEMA=${SQL_DB_SCHEMA}
       - GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID}
       - GLUU_GOOGLE_SPANNER_INSTANCE_ID=${GOOGLE_SPANNER_INSTANCE_ID}
       - GLUU_GOOGLE_SPANNER_DATABASE_ID=${GOOGLE_SPANNER_DATABASE_ID}
@@ -45,12 +44,5 @@ services:
       - "SERVICE_NAME=oxtrust"
       - "SERVICE_8080_CHECK_HTTP=/identity/restv1/health-check"
       - "SERVICE_8080_CHECK_INTERVAL=30s"
-      - "SERVICE_8080_CHECK_TIMEOUT=5s"
+      - "SERVICE_8080_CHECK_TIMEOUT=30s"
       - "APP_NAME=oxtrust"
-      - "autoheal=true"
-    healthcheck:
-      test: python3 /app/scripts/healthcheck.py
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s

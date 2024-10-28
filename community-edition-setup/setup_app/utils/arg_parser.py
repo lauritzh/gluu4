@@ -36,19 +36,18 @@ def arg_parser():
 
     ldap_group = parser.add_mutually_exclusive_group()
     ldap_group.add_argument('--remote-ldap', help="Enables using remote LDAP server", action='store_true')
-    ldap_group.add_argument('--install-local-ldap', help="Installs local LDAP Server", action='store_true')
+    ldap_group.add_argument('--install-local-ldap', help="Installs local WrenDS", action='store_true')
     ldap_group.add_argument('--disable-local-ldap', help="Disables installing local LDAP server", action='store_true')
 
     rdbm_group = parser.add_mutually_exclusive_group()
-    rdbm_group.add_argument('-remote-rdbm', choices=['mysql', 'pgsql', 'spanner'], help="Enables using remote RDBM server")
-    rdbm_group.add_argument('-local-rdbm', choices=['mysql', 'pgsql'], help="Enables installing/configuring local RDBM server")
+    rdbm_group.add_argument('-remote-rdbm', choices=['mysql', 'spanner'], help="Enables using remote RDBM server")
+    rdbm_group.add_argument('-local-rdbm', choices=['mysql'], help="Enables installing/configuring local RDBM server")
 
     parser.add_argument('-rdbm-user', help="RDBM username")
     parser.add_argument('-rdbm-password', help="RDBM password")
     parser.add_argument('-rdbm-port', help="RDBM port")
     parser.add_argument('-rdbm-db', help="RDBM database")
     parser.add_argument('-rdbm-host', help="RDBM host")
-    parser.add_argument('--reset-rdbm-db', help="Deletes all table on target database. Warning! You will lose all data on target database.", action='store_true')
 
     parser.add_argument('--remote-couchbase', help="Enables using remote couchbase server", action='store_true')
     parser.add_argument('--local-couchbase', help="Enables installing couchbase server", action='store_true')
@@ -85,8 +84,6 @@ def arg_parser():
     parser.add_argument('-enable-script', action='append', help="inum of script to enable", required=False)
     parser.add_argument('-ox-authentication-mode', help="Sets oxAuthenticationMode")
     parser.add_argument('-ox-trust-authentication-mode', help="Sets oxTrustAuthenticationMode")
-    parser.add_argument('--gluu-passwurd-cert', help="Creates Gluu Passwurd API keystore", action='store_true')
-    parser.add_argument('-properties', help="Other properties. Example: encode_salt:Y83EBo94vj9b4iyKDX2drmZk,default_store_type:JKS")
 
     # spanner options
     parser.add_argument('-spanner-project', help="Spanner project name")

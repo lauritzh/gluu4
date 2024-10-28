@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>gluu-orm-parent</artifactId>
-		<version>4.5.6-SNAPSHOT</version>
+		<version>4.4.2.Final</version>
 	</parent>
 
 	<build>
@@ -42,7 +42,6 @@
 		<dependency>
 			<groupId>com.couchbase.client</groupId>
 			<artifactId>java-client</artifactId>
-			<scope>provided</scope>
 		</dependency>
 
 		<!-- Weld -->

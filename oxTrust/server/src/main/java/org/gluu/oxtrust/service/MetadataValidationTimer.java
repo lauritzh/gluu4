@@ -8,8 +8,6 @@ package org.gluu.oxtrust.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,7 +70,6 @@ public class MetadataValidationTimer {
 
     private LinkedBlockingQueue<String> metadataUpdates;
 
-    
     @PostConstruct
     public void init() {
         this.isActive = new AtomicBoolean(true);
@@ -171,8 +168,6 @@ public class MetadataValidationTimer {
             shibboleth3ConfService.generateConfigurationFiles(trustRelationships);
 
             log.info("IDP config generation files finished. TR count: '{}'", trustRelationships.size());
-        }else {
-            log.debug("Shibboleth config generation disabled");
         }
     }
 
@@ -224,7 +219,7 @@ public class MetadataValidationTimer {
                 if (errorHandler.isValid()) {
                     tr.setValidationLog(errorHandler.getLog());
                     tr.setValidationStatus(GluuValidationStatus.SUCCESS);
-                    if (!shibboleth3ConfService.renameMetadata(metadataPath, destinationMetadataPath)) {
+                    if (shibboleth3ConfService.renameMetadata(metadataPath, destinationMetadataPath)) {
                         log.error("Failed to move metadata file to location:" + destinationMetadataPath);
                         tr.setStatus(GluuStatus.INACTIVE);
                     } else {

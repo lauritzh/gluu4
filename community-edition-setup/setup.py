@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -14,7 +13,7 @@ import shutil
 import traceback
 import code
 
-sys.path.append('/usr/lib/python{}.{}/gluu-packaged'.format(sys.version_info.major, sys.version_info.minor))
+sys.path.append("/usr/lib/python3.6/gluu-packaged")
 
 from queue import Queue
 
@@ -246,10 +245,6 @@ if Config.installed_instance:
             if 'installCasa' in Config.addPostSetupService and 'installOxd' not in Config.addPostSetupService and not oxdInstaller.installed():
                 Config.addPostSetupService.append('installOxd')
 
-        if argsp.gluu_passwurd_cert:
-            Config.addPostSetupService.append('generate_passwurd_api_keystore')
-        else:
-            propertiesUtils.promptForPasswurdApiKeystore()
 
         if not Config.addPostSetupService:
             print("No service was selected to install. Exiting ...")
@@ -298,7 +293,7 @@ class PostSetup:
     service_name = 'post-setup'
     install_var = 'installPostSetup'
     app_type = static.AppType.APPLICATION
-    install_type = static.InstallOption.MANDATORY
+    install_type = static.InstallOption.MONDATORY
 
 gluuProgress.register(PostSetup)
 if not argsp.no_progress:

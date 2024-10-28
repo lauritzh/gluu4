@@ -27,9 +27,7 @@ from setup_app.utils.progress import gluuProgress
 
 if Config.profile != static.SetupProfiles.DISA_STIG:
     import pymysql
-    import psycopg2
-    from setup_app.utils.spanner_rest_client import SpannerClient
-
+    from setup_app.utils.spanner import Spanner
 
 
 import npyscreen
@@ -45,7 +43,7 @@ random_marketing_strings = [
     'Interested in Open Source software business models? Listen to Open Source Underdogs: https://opensourceunderdogs.com',
     'Need to learn more about OpenID and SAML? Read "Securing the Perimeter" by Gluu CEO Mike Schwartz: https://gluu.co/book',
     'The Gluu Server is one of the most advanced OpenID Providers. Compare at https://openid.net/certification',
-    'Check out Agama Lab, a new low-code way to build authentication workflows in Gluu Flex: https://agama-lab.gluu.org',
+    'Gluu Solo is coming soon. This is a hosted CE offering with 99.95% availability.',
     'Need FIPS 140-2? Consider the new Gluu Server RHEL 8.4 FIPS distribution that leverages central crypto policies',
     'Open Banking security is available with our new Gluu Server profile. See https://gluu.org/openbanking/',
     "Gluu's core software now lives at the Linux Foundation Janssen Project. See https://github.com/JanssenProject",
@@ -313,9 +311,6 @@ class ServicesForm(GluuSetupForm):
                     self.services_before_this_form.append(service)
                 cb.update()
 
-        if Config.installed_instance and Config.rdbm_type == 'spanner':
-            self.installSaml.editable = False
-
         if Config.installed_instance and 'installCasa' in self.services_before_this_form:
             self.oxd_url.hidden = True
             self.oxd_url.update()
@@ -422,7 +417,7 @@ def make_title(text):
 
 class DBBackendForm(GluuSetupForm):
     def create(self):
-        self.backends = self.add(npyscreen.TitleSelectOne, max_height=8, value=[0,], name=msg.chose_backend,
+        self.backends = self.add(npyscreen.TitleSelectOne, max_height=8, value = [0,], name=msg.chose_backend,
             values = [], scroll_exit=True)
 
     def do_beforeEditing(self):
@@ -439,11 +434,11 @@ class DBBackendForm(GluuSetupForm):
             if used_ports:
                 npyscreen.notify_confirm(msg.used_ports.format(','.join(used_ports)), title="Warning")
                 return
+
             Config.ldap_install = static.InstallTypes.LOCAL
             Config.cb_install = static.InstallTypes.NONE
             Config.rdbm_install = False
             self.parentApp.switchForm('DBLDAPForm')
-
         elif self.parentApp.backend_type_str == static.BackendStrings.REMOTE_OPENDJ:
             Config.ldap_install = static.InstallTypes.REMOTE
             Config.cb_install = static.InstallTypes.NONE
@@ -461,21 +456,21 @@ class DBBackendForm(GluuSetupForm):
             Config.cb_install = static.InstallTypes.REMOTE
             self.parentApp.switchForm('DBCBForm')
 
-        elif self.parentApp.backend_type_str in (static.BackendStrings.LOCAL_MYSQL, static.BackendStrings.LOCAL_PGSQL):
+        elif self.parentApp.backend_type_str == static.BackendStrings.LOCAL_MYSQL:
             Config.ldap_install = static.InstallTypes.NONE
             Config.rdbm_install_type = static.InstallTypes.LOCAL
             Config.rdbm_install = True
+            Config.rdbm_type = 'mysql'
             if not Config.rdbm_password:
                 Config.rdbm_password = propertiesUtils.getPW(special='.*=+-()[]{}')
             if not Config.rdbm_user:
                 Config.rdbm_user = 'gluu'
             self.parentApp.switchForm('DBRDBMForm')
-
-        elif self.parentApp.backend_type_str in (static.BackendStrings.REMOTE_MYSQL, static.BackendStrings.REMOTE_PGSQL):
+        elif self.parentApp.backend_type_str == static.BackendStrings.REMOTE_MYSQL:
             Config.ldap_install = static.InstallTypes.NONE
             Config.rdbm_install_type = static.InstallTypes.REMOTE
             Config.rdbm_install = True
-            Config.rdbm_type = 'mysql' if self.parentApp.backend_type_str == static.BackendStrings.REMOTE_MYSQL else 'pgsql'
+            Config.rdbm_type = 'mysql'
             Config.rdbm_password = ''
             self.parentApp.switchForm('DBRDBMForm')
 
@@ -488,14 +483,6 @@ class DBBackendForm(GluuSetupForm):
             Config.ldap_install = static.InstallTypes.NONE
             Config.rdbm_install_type = static.InstallTypes.REMOTE
             self.parentApp.switchForm('DBSpannerForm')
-
-
-        if self.parentApp.backend_type_str in(static.BackendStrings.LOCAL_MYSQL, static.BackendStrings.REMOTE_MYSQL):
-            Config.rdbm_type = 'mysql'
-            Config.rdbm_port = 3306
-        elif self.parentApp.backend_type_str in( static.BackendStrings.LOCAL_PGSQL, static.BackendStrings.REMOTE_PGSQL):
-            Config.rdbm_type = 'pgsql'
-            Config.rdbm_port = 5432
 
     def backButtonPressed(self):
         self.parentApp.switchForm('ServicesForm')
@@ -599,13 +586,6 @@ class DBRDBMForm(GluuSetupForm):
 
 
     def do_beforeEditing(self):
-        self.rdbm_db.label_widget.value = msg.rdbm_db_label.format(Config.rdbm_type.upper())
-        self.rdbm_user.label_widget.value = msg.rdbm_username_label.format(Config.rdbm_type.upper())
-        self.rdbm_password.label_widget.value = msg.rdbm_password_label.format(Config.rdbm_type.upper())
-        self.rdbm_host.label_widget.value = msg.rdbm_host_label.format(Config.rdbm_type.upper())
-        self.rdbm_port.label_widget.value = msg.rdbm_db_port_label.format(Config.rdbm_type.upper())
-
-
         if Config.rdbm_install_type == static.InstallTypes.LOCAL:
             self.rdbm_host.hidden = True
             self.rdbm_port.hidden = True
@@ -627,19 +607,17 @@ class DBRDBMForm(GluuSetupForm):
 
         if Config.rdbm_install_type == static.InstallTypes.LOCAL:
             Config.rdbm_host = 'localhost'
+            Config.rdbm_port = 3306
+
         else:
             Config.rdbm_host = self.rdbm_host.value
             if not self.rdbm_port.value.isnumeric():
                 npyscreen.notify_confirm("Port must be integer", title="Warning")
                 return
             Config.rdbm_port = int(self.rdbm_port.value)
-            npyscreen.notify("Please wait while checking {} connection".format(Config.rdbm_type), title="Wait!")
+            npyscreen.notify("Please wait while checking mysql connection", title="Wait!")
             try:
-                if Config.rdbm_type == 'mysql':
-                    pymysql.connect(host=Config.rdbm_host, user=Config.rdbm_user, password=Config.rdbm_password, database=Config.rdbm_db, port=Config.rdbm_port)
-                else:
-                    psycopg2.connect(dbname=Config.rdbm_db, user=Config.rdbm_user, password=Config.rdbm_password, host=Config.rdbm_host, port=Config.rdbm_port)
-
+                pymysql.connect(host=Config.rdbm_host, user=Config.rdbm_user, password=Config.rdbm_password, database=Config.rdbm_db, port=Config.rdbm_port)
             except Exception as e:
                 npyscreen.notify_confirm(str(e), title="Warning")
                 return
@@ -660,7 +638,8 @@ class DBSpannerForm(GluuSetupForm):
 
 
     def do_beforeEditing(self):
-
+        #self.rdbm_db.value = self.parentApp.backend_type_str
+        #self.rdbm_db.update()
         if self.parentApp.backend_type_str == 'Spanner Emulator':
             self.google_application_credentials.hidden = True
             self.spanner_emulator_host.hidden = False
@@ -701,14 +680,8 @@ class DBSpannerForm(GluuSetupForm):
         npyscreen.notify("Please wait while checking spanner connection", title="Wait!")
 
         try:
-            SpannerClient(
-                            project_id=Config.spanner_project,
-                            instance_id=Config.spanner_instance,
-                            database_id=Config.spanner_database,
-                            google_application_credentials=Config.google_application_credentials,
-                            emulator_host=Config.spanner_emulator_host,
-                            log_dir=os.path.join(Config.install_dir, 'logs')
-                    )
+            spanner = Spanner()
+            spanner.get_session()
         except Exception as e:
             npyscreen.notify_confirm("ERROR getting session from spanner: {}".format(e), title="Warning")
             return

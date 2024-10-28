@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>oxcore</artifactId>
-		<version>4.5.6-SNAPSHOT</version>
+		<version>4.4.2.sp1</version>
 	</parent>
 
 	<dependencies>
@@ -61,6 +61,10 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>

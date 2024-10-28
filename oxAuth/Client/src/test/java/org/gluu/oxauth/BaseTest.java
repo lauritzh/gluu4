@@ -302,7 +302,6 @@ public abstract class BaseTest {
         //driver = new InternetExplorerDriver();
 
         driver = new HtmlUnitDriver(true);
-        driver.getWebClient().getOptions().setThrowExceptionOnScriptError(false);
     }
 
     public void stopSelenium() {

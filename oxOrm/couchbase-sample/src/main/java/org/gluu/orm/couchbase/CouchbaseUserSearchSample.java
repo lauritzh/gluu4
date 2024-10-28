@@ -50,7 +50,7 @@ public final class CouchbaseUserSearchSample {
         
         int countUsers = 1000000;
         int threadCount = 200;
-        int threadIterationCount = 50;
+        int threadIterationCount = 10;
 
     	long totalStart = System.currentTimeMillis();
         try {

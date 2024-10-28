@@ -186,7 +186,7 @@ public class OxAuthClient extends Entry implements Serializable {
 	private Integer accessTokenLifetime;
 
 	@AttributeName(name = "oxAuthDefaultAcrValues")
-	private String defaultAcrValues;
+	private String[] defaultAcrValues;
 
 	@AttributeName(name = "oxAuthInitiateLoginURI")
 	private String initiateLoginUri;
@@ -621,11 +621,11 @@ public class OxAuthClient extends Entry implements Serializable {
 		this.accessTokenLifetime = accessTokenLifetime;
 	}
 
-	public String getDefaultAcrValues() {
+	public String[] getDefaultAcrValues() {
 		return defaultAcrValues;
 	}
 
-	public void setDefaultAcrValues(String defaultAcrValues) {
+	public void setDefaultAcrValues(String[] defaultAcrValues) {
 		this.defaultAcrValues = defaultAcrValues;
 	}
 

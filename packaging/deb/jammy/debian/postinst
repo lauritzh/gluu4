@@ -9,15 +9,22 @@ ARG=$1
 chmod -R 755 /opt/gluu-server/bin 
 chmod -R 755 /opt/gluu-server/lib
 
+/usr/sbin/chroot /opt/gluu-server /bin/su - root -c '/tmp/system_user.list' > /dev/null 2>&1
+/usr/sbin/chroot /opt/gluu-server /bin/su - root -c '/tmp/system_group.list' > /dev/null 2>&1
+/usr/sbin/chroot /opt/gluu-server /bin/su - root -c 'chmod 777 /tmp' > /dev/null 2>&1
+/usr/sbin/chroot /opt/gluu-server /bin/su - root -c 'chown -R man /var/cache/man' > /dev/null 2>&1
+
 # gluu-serverd
 mkdir -p /sbin/
-/bin/mv /opt/gluu-server/root/gluu-serverd /sbin/
+/bin/cp /opt/gluu-server/tmp/gluu-serverd /sbin/
+rm -rf /opt/gluu-server/tmp/gluu-serverd
 
 # systemd unit file
 mkdir -p /lib/systemd/system/
-/bin/mv /opt/gluu-server/root/systemd-unitfile /lib/systemd/system/systemd-nspawn@gluu-server.service
+/bin/cp /opt/gluu-server/tmp/systemd-unitfile /lib/systemd/system/systemd-nspawn@gluu-server.service
 systemctl enable machines.target
 systemctl enable systemd-nspawn@gluu-server.service
+rm -rf /opt/gluu-server/tmp/systemd-unitfile
 
 sed -i 's/.*Storage.*/Storage=persistent/g' /etc/systemd/journald.conf
 systemctl restart systemd-journald
@@ -51,6 +58,10 @@ if [ "$1" = "configure" ]; then
     echo "Starting gluu-server ..."
     sleep 1
     /sbin/gluu-serverd start
+    sleep 10
+    ssh -t -o IdentityFile=/etc/gluu/keys/gluu-console -o Port=60022 -o LogLevel=QUIET \
+                -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                -o PubkeyAuthentication=yes root@localhost '/opt/gluu/bin/install.py'  
   else
     if [ -n "$RUN_VERSION" ] && [ "$RUN_VERSION" != "$VERSION" ]; then
       if [ -e /opt/gluu-server/etc/gluu/conf ]; then
@@ -127,6 +138,10 @@ if [ "$1" = "configure" ]; then
             echo "Starting gluu-server ..."
             sleep 1
             /sbin/gluu-serverd start
+            sleep 10
+            ssh -t -o IdentityFile=/etc/gluu/keys/gluu-console -o Port=60022 -o LogLevel=QUIET \
+                -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                -o PubkeyAuthentication=yes root@localhost '/opt/gluu/bin/install.py'  
         fi
       fi     
     fi

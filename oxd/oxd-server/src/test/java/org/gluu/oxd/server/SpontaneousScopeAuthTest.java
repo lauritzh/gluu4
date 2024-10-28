@@ -3,9 +3,7 @@ package org.gluu.oxd.server;
 import com.google.common.collect.Lists;
 import org.gluu.oxauth.client.AuthorizationResponse;
 import org.gluu.oxd.client.ClientInterface;
-import org.gluu.oxd.common.CoreUtils;
 import org.gluu.oxd.common.SeleniumTestUtils;
-import org.gluu.oxd.common.model.AuthenticationDetails;
 import org.gluu.oxd.common.response.RegisterSiteResponse;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
@@ -18,9 +16,9 @@ import static org.testng.AssertJUnit.*;
 
 public class SpontaneousScopeAuthTest {
 
-    @Parameters({"host", "opHost", "paramRedirectUrl", "userId", "userSecret", "userInum", "userEmail"})
+    @Parameters({"host", "opHost", "paramRedirectUrl", "userId", "userSecret"})
     @Test
-    public void spontaneousScope(String host, String opHost, String paramRedirectUrl, String userId, String userSecret, String userInum, String userEmail) throws Exception {
+    public void spontaneousScope(String host, String opHost, String paramRedirectUrl, String userId, String userSecret) throws Exception {
 
         List<String> spontaneousScopes = Lists.newArrayList("^transaction:.+$");
         List<String> responseTypes = Lists.newArrayList("code", "id_token", "token");
@@ -31,8 +29,8 @@ public class SpontaneousScopeAuthTest {
         // Request authorization and receive the authorization code.
         List<String> scopesWithSpontanious = Lists.newArrayList("openid", "profile", "address", "email", "phone", "user_name",
                 "transaction:245", "transaction:8645");
-        AuthenticationDetails authenticationDetails = TestUtils.setAuthenticationDetails(host, opHost, userId, userSecret, registerResponse.getClientId(), paramRedirectUrl, CoreUtils.secureRandomString(), CoreUtils.secureRandomString(), userInum, userEmail);
-        AuthorizationResponse authorizationResponse = requestAuthorization(authenticationDetails, responseTypes, scopesWithSpontanious);
+
+        AuthorizationResponse authorizationResponse = requestAuthorization(opHost, userId, userSecret, paramRedirectUrl, responseTypes, scopesWithSpontanious, registerResponse.getClientId());
 
         final String[] responseScopes = authorizationResponse.getScope().split(" ");
 
@@ -56,10 +54,11 @@ public class SpontaneousScopeAuthTest {
         return registerResponse;
     }
 
-    private AuthorizationResponse requestAuthorization(AuthenticationDetails authenticationDetails, List<String> responseTypes, List<String> scopesWithSpontanious) {
+    private AuthorizationResponse requestAuthorization(final String opHost, final String userId, final String userSecret, final String redirectUri,
+                                                       List<String> responseTypes, List<String> scopesWithSpontanious, String clientId) {
         String state = UUID.randomUUID().toString();
         String nonce = UUID.randomUUID().toString();
-        AuthorizationResponse authorizationResponse = SeleniumTestUtils.authorizeClient(authenticationDetails, responseTypes, scopesWithSpontanious);
+        AuthorizationResponse authorizationResponse = SeleniumTestUtils.authorizeClient(opHost, userId, userSecret, clientId, redirectUri, state, nonce, responseTypes, scopesWithSpontanious);
 
         assertNotNull(authorizationResponse.getLocation(), "The location is null");
         assertNotNull(authorizationResponse.getCode(), "The authorization code is null");

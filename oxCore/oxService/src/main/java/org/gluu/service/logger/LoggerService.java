@@ -1,17 +1,18 @@
 package org.gluu.service.logger;
 
-import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.LogManager;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.RollingFileAppender;
+import org.apache.logging.log4j.core.config.AbstractConfiguration;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.JsonLayout;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.gluu.model.types.LoggingLayoutType;
 import org.gluu.service.cdi.async.Asynchronous;
 import org.gluu.service.cdi.event.ConfigurationUpdate;
@@ -21,6 +22,16 @@ import org.gluu.service.timer.event.TimerEvent;
 import org.gluu.service.timer.schedule.TimerSchedule;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
+import java.io.File;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.LogManager;
 
 /**
  * Logger service
@@ -37,8 +48,6 @@ public abstract class LoggerService {
     @Inject
     private Event<TimerEvent> timerEvent;
 
-    private Level prevLogLevel;
-
     private AtomicBoolean isActive;
     
     @PostConstruct
@@ -47,25 +56,14 @@ public abstract class LoggerService {
     }
 
     public void initTimer() {
-    	initTimer(false);
-    }
-
-    public void initTimer(boolean updateNow) {
         log.info("Initializing Logger Update Timer");
 
         final int delay = 15;
         final int interval = DEFAULT_INTERVAL;
-        
-        this.prevLogLevel = getCurrentLogLevel();
 
         timerEvent.fire(new TimerEvent(new TimerSchedule(delay, interval), new LoggerUpdateEvent(),
                 Scheduled.Literal.INSTANCE));
-        
-        if (updateNow) {
-        	updateLoggerTimerEvent(null);
-        }
     }
-
 
     @Asynchronous
     public void updateLoggerTimerEvent(@Observes @Scheduled LoggerUpdateEvent loggerUpdateEvent) {
@@ -79,7 +77,6 @@ public abstract class LoggerService {
 
         try {
             updateLoggerConfiguration();
-            this.prevLogLevel = getCurrentLogLevel();
         } catch (Throwable ex) {
             log.error("Exception happened while updating newly added logger configuration", ex);
         } finally {
@@ -98,7 +95,7 @@ public abstract class LoggerService {
         Level level = Level.toLevel(loggingLevel, Level.INFO);
         LoggingLayoutType loggingLayout = LoggingLayoutType.getByValue(this.getLoggingLayout().toUpperCase());
 
-        updateAppendersAndLogLevel(loggingLayout, prevLogLevel, level);
+        updateAppendersAndLogLevel(loggingLayout, level);
     }
 
     public void updateLoggerSeverity(@Observes @ConfigurationUpdate Object appConfiguration) {
@@ -144,7 +141,7 @@ public abstract class LoggerService {
 
         log.info("Setting layout and loggers level to '{}`, `{}' after configuration update", loggingLayout, loggingLevel);
 
-        updateAppendersAndLogLevel(loggingLayout, prevLogLevel, level);
+        updateAppendersAndLogLevel(loggingLayout, level);
     }
 
     private void setDisableJdkLogger() {
@@ -187,29 +184,25 @@ public abstract class LoggerService {
         loggerContext.reconfigure();
     }
 
-    private void updateAppendersAndLogLevel(LoggingLayoutType loggingLayout, Level prevLevel, Level newLevel) {
+    private void updateAppendersAndLogLevel(LoggingLayoutType loggingLayout, Level level) {
         if (loggingLayout == LoggingLayoutType.TEXT) {
-        	if (newLevel != prevLevel) {
-	            final LoggerContext ctx = LoggerContext.getContext(false);
-	            ctx.getConfiguration().getRootLogger().setLevel(newLevel);
-	            ctx.reconfigure();
-        	}
-
-        	LoggerContext loggerContext = LoggerContext.getContext(false);
+            final LoggerContext ctx = LoggerContext.getContext(false);
+            ctx.reconfigure();
+            LoggerContext loggerContext = LoggerContext.getContext(false);
 
             int count = 0;
             for (org.apache.logging.log4j.core.Logger logger : loggerContext.getLoggers()) {
                 String loggerName = logger.getName();
                 if (loggerName.startsWith("org.gluu")) {
-                    if (logger.getLevel() != newLevel) {
+                    if (logger.getLevel() != level) {
                         count++;
-                        logger.setLevel(newLevel);
+                        logger.setLevel(level);
                     }
                 }
             }
 
             if (count > 0) {
-                log.info("Updated log level of '{}' loggers to {}", count, newLevel.toString());
+                log.info("Updated log level of '{}' loggers to {}", count, level.toString());
             }
         }
 //    	boolean runLoggersUpdate = false;
@@ -287,19 +280,7 @@ public abstract class LoggerService {
 //        	ctx.updateLoggers();
 //        }
     }
-
-    private Level getCurrentLogLevel() {
-        String loggingLevel = getLoggingLevel();
-		if (StringHelper.isEmpty(loggingLevel) || StringUtils.isEmpty(this.getLoggingLayout())
-				|| StringHelper.equalsIgnoreCase("DEFAULT", loggingLevel)) {
-			return Level.INFO;
-		}
-
-        Level level = Level.toLevel(loggingLevel, Level.INFO);
-        
-        return level;
-    }
-
+    
     public abstract boolean isDisableJdkLogger();
 
     public abstract String getLoggingLevel();

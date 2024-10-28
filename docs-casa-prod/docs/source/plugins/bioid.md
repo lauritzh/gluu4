@@ -56,7 +56,7 @@ Click on `Enable` under the script contents box, and press `Update` at the botto
 
 ### Add the plugin to Casa
 
-1. [Download the plugin](https://maven.gluu.org/maven/org/gluu/casa/plugins/bioid-plugin/4.5.0.Final/bioid-plugin-4.5.0.Final-jar-with-dependencies.jar)
+1. [Download the plugin](https://maven.gluu.org/maven/org/gluu/casa/plugins/bioid-plugin/4.4.0.Final/bioid-plugin-4.4.0.Final-jar-with-dependencies.jar)
 
 1. Log in to Casa using an administrator account
 
@@ -85,8 +85,6 @@ You can enroll again or delete your credentials by visiting your registered cred
 
 ![plugins page](../img/plugins/enroll_bioid.png)
 
-
-
 Note - When you first use BioID you may wish to enroll a few times at different times of days or in different locations under a variety of environmental conditions. Once you can be reliably recognized, you only need to enroll again if something in your face changes significantly (such as after an accident or cosmetic surgery, or if you radically change eyeglasses, facial hair, facial jewelry, etc.) or if you often have to try more than once to be recognized. Once recognized, BioID typically adjusts itself to adapt to the changes right away.
 
 ![plugins page](../img/plugins/bioid_edit_delete.png)
@@ -100,5 +98,3 @@ Try to access the application once more and supply the username and password for
 Follow the instructions on the screen for verification of facial and periocular traits.
 
 Finally you will be redirected and get access to the application.
-
-

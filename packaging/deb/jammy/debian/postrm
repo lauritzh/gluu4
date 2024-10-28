@@ -16,6 +16,6 @@ if [ "$1" = "remove" ] ; then
         rm -rf /var/lib/container/gluu-server
     fi
     
-    rm -rf /var/lib/dpkg/info/gluu-server.* /install
+    rm -rf /var/lib/dpkg/info/gluu-server.*
 fi
 exit 0

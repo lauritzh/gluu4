@@ -32,16 +32,11 @@ public class DummyCacheRefreshType implements CacheRefreshType {
 
 	@Override
 	public int getApiVersion() {
-		return 3;
+		return 2;
 	}
 
 	@Override
 	public boolean updateUser(Object person, Map<String, SimpleCustomProperty> configurationAttributes) {
-		return false;
-	}
-
-	@Override
-	public boolean updateSourceUser(Object person, Map<String, SimpleCustomProperty> configurationAttributes) {
 		return false;
 	}
 

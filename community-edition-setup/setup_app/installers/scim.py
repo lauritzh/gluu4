@@ -42,6 +42,7 @@ class ScimInstaller(JettyInstaller):
         self.installJettyService(self.jetty_app_configuration[self.service_name], True)
         jettyServiceWebapps = os.path.join(self.jetty_base, self.service_name,  'webapps')
         self.copyFile(self.source_files[0][0], jettyServiceWebapps)
+        self.war_for_jetty10(os.path.join(jettyServiceWebapps, os.path.basename(self.source_files[0][0])))
         self.enable()
 
 
@@ -69,7 +70,7 @@ class ScimInstaller(JettyInstaller):
         Config.scim_rs_client_jks_pass_encoded = self.obscure(Config.scim_rs_client_jks_pass)
 
         if not Config.get('scim_rp_client_jks_pass'):
-            Config.scim_rp_client_jks_pass = self.getPW()
+            Config.scim_rp_client_jks_pass = 'secret'
 
         Config.enable_scim_access_policy = 'true' if Config.installPassport else 'false'
 

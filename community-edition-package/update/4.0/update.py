@@ -379,11 +379,11 @@ class GluuUpdater:
     def download_apps(self):
 
         for download_link, out_file in (
-                        ('https://ox.gluu.org/icrby8xcvbcv/maven/oxshibbolethIdp-{0}.war'.format(self.current_version), os.path.join(self.war_dir, 'idp.war')),
+                        ('https://ox.gluu.org/maven/org/gluu/oxshibbolethIdp/{0}/oxshibbolethIdp-{0}.war'.format(self.current_version), os.path.join(self.war_dir, 'idp.war')),
                         ('https://ox.gluu.org/maven/org/gluu/oxtrust-server/{0}/oxtrust-server-{0}.war'.format(self.current_version), os.path.join(self.war_dir, 'identity.war')),
                         ('https://ox.gluu.org/maven/org/gluu/oxauth-server/{0}/oxauth-server-{0}.war'.format(self.current_version), os.path.join(self.war_dir, 'oxauth.war')),
-                        ('https://ox.gluu.org/icrby8xcvbcv/maven/oxShibbolethStatic-{0}.jar'.format(self.current_version), os.path.join(self.war_dir, 'shibboleth-idp.jar')),
-                        ('https://ox.gluu.org/icrby8xcvbcv/maven/oxShibbolethKeyGenerator-{0}.jar'.format(self.current_version), os.path.join(self.war_dir, 'idp3_cml_keygenerator.jar')),
+                        ('https://ox.gluu.org/maven/org/gluu/oxShibbolethStatic/{0}/oxShibbolethStatic-{0}.jar'.format(self.current_version), os.path.join(self.war_dir, 'shibboleth-idp.jar')),
+                        ('https://ox.gluu.org/maven/org/gluu/oxShibbolethKeyGenerator/{0}/oxShibbolethKeyGenerator-{0}.jar'.format(self.current_version), os.path.join(self.war_dir, 'idp3_cml_keygenerator.jar')),
                         ('https://ox.gluu.org/npm/passport/passport-4.0.0.tgz', os.path.join(self.app_dir, 'passport.tgz')),
                         ('https://ox.gluu.org/npm/passport/passport-version_4.0-node_modules.tar.gz', os.path.join(self.app_dir, 'passport-node_modules.tar.gz')),
                         ('https://d3pxv6yz143wms.cloudfront.net/{0}/amazon-corretto-{0}-linux-x64.tar.gz'.format(setupObject.jre_version), os.path.join(self.app_dir, 'amazon-corretto-{0}-linux-x64.tar.gz'.format(setupObject.jre_version))),
@@ -396,7 +396,7 @@ class GluuUpdater:
                     ):
 
             print "Downloading", download_link
-            setupObject.run(['wget', '--no-check-certificate', '--user', argsp.maven_user, '--password', argsp.maven_password, '-nv', download_link, '-O', out_file])
+            setupObject.run(['wget', '--no-check-certificate', '-nv', download_link, '-O', out_file])
 
         setupObject.run(['chmod', '+x', self.update_casa_script])
 
@@ -722,10 +722,8 @@ class GluuUpdater:
             if 'oxClientAuthorizations' in new_entry['objectClass']:
                 new_entry['objectClass'].remove('oxClientAuthorizations')
                 new_entry['objectClass'].append('oxClientAuthorization')
-
+                
                 if dn.startswith('oxId'):
-                    if not 'oxAuthScope' in new_entry:
-                        new_entry['oxAuthScope'] = []
                     new_entry['oxAuthScope'].append('oxd')
 
                 #if 'oxAuthClientId' in new_entry:
@@ -1188,13 +1186,12 @@ class GluuUpdater:
                     for i, oac in enumerate(new_entry[p][:]):
                         new_entry[p][i] = oac.replace(self.inumOrg_ou+',','')
 
-            for e in new_entry:
-                if e == 'oxAssociatedClient':
-                     continue
 
+            for e in new_entry:
                 for i, se in enumerate(new_entry[e][:]):
                     if 'inum=' in se:
                         new_entry[e][i] = self.inum2uuid(se)
+
 
             if 'inum' in new_entry:
 
@@ -1972,8 +1969,6 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--online', help="online installation", action='store_true')
     parser.add_argument('--cluster-node', help="Use this if you are upgrading non-primary cluster node", action='store_true')
     parser.add_argument('--remote-couchbase', help="Enables using remote couchbase server", action='store_true')
-    parser.add_argument('-maven-user', help="Gluu Maven username", required=True)
-    parser.add_argument('-maven-password', help="Gluu Maven password", required=True)
     argsp = parser.parse_args()
 
     start_upgrade = raw_input('Ready to upgrade Gluu Server. Start now (y|N) ')

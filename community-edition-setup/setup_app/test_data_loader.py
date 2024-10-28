@@ -81,16 +81,6 @@ class TestDataLoader(BaseInstaller, SetupUtils):
 
     def load_test_data(self):
         Config.pbar.progress(self.service_name, "Loading Test Data", False)
-
-        if Config.rdbm_install_type and not hasattr(base.current_app.RDBMInstaller, 'qchar'):
-            base.current_app.RDBMInstaller.prepare()
-
-        if 'key_gen_path' not in Config.non_setup_properties:
-            base.current_app.GluuInstaller.determine_key_gen_path()
-
-        Config.templateRenderingDict['rdbm_type_name'] = 'postgresql' if Config.rdbm_type == 'pgsql' else Config.rdbm_type
-        Config.templateRenderingDict['rdbm_scheme'] = 'public' if Config.rdbm_type == 'pgsql' else 'gluudb'
-
         # we need ldap rebind
         if Config.persistence_type == 'ldap':
             try:
@@ -247,7 +237,6 @@ class TestDataLoader(BaseInstaller, SetupUtils):
                                     'sessionIdRequestParameterEnabled': True,
                                     'skipRefreshTokenDuringRefreshing': False,
                                     'enabledComponents': ['unknown', 'health_check', 'userinfo', 'clientinfo', 'id_generation', 'registration', 'introspection', 'revoke_token', 'revoke_session', 'end_session', 'status_session', 'gluu_configuration', 'ciba', 'uma', 'u2f', 'device_authz', 'stat'],
-                                    'opPolicyUri':'https://test.as.org/policy',
                                     'cleanServiceInterval':7200
                                     }
 
@@ -260,8 +249,7 @@ class TestDataLoader(BaseInstaller, SetupUtils):
         for inum in custom_scripts:
             self.dbUtils.enable_script(inum)
 
-        if Config.installCasa:
-            self.dbUtils.enable_script('DAA9-F7F8', enable=False)
+        self.dbUtils.enable_script('DAA9-F7F8', enable=False)
 
         if self.dbUtils.moddb == static.BackendTypes.LDAP:
             # Update LDAP schema

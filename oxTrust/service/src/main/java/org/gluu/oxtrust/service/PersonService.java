@@ -514,13 +514,12 @@ public class PersonService implements Serializable, IPersonService {
 		if (this.mandatoryAttributes == null) {
 			mandatoryAttributes = new ArrayList<GluuCustomAttribute>();
 			mandatoryAttributes.add(new GluuCustomAttribute(OxConstants.UID, "", true, true));
-			mandatoryAttributes.add(new GluuCustomAttribute("displayName", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("givenName", "", true, true));
+			mandatoryAttributes.add(new GluuCustomAttribute("displayName", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("sn", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("mail", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("userPassword", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("gluuStatus", "", true, true));
-			mandatoryAttributes.add(new GluuCustomAttribute("oxTrustActive", "", true, true));
 		}
 		return mandatoryAttributes;
 	}

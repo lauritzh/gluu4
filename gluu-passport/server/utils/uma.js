@@ -1,3 +1,4 @@
+/* eslint-disable node/handle-callback-err */
 const got = require('got')
 const parsers = require('www-authenticate').parsers
 const R = require('ramda')
@@ -74,7 +75,7 @@ function getRPT (ticket, tokenEndpoint) {
           'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
       client_assertion: token,
       client_id: clientId,
-      ticket
+      ticket: ticket
     }
   }
   logger.log2(
@@ -229,5 +230,5 @@ function request (options) {
 }
 
 module.exports = {
-  request
+  request: request
 }

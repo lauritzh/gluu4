@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.gluu.oxtrust.api.server.model.OxAuthJsonConfiguration;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.api.server.util.Constants;
 import org.gluu.oxtrust.service.JsonConfigurationService;
 import org.gluu.oxtrust.service.filter.ProtectedApi;
@@ -33,7 +32,7 @@ public class OxAuthJsonSettingWebResource extends BaseWebResource {
 	private JsonConfigurationService jsonConfigurationService;
 
 	private String oxAuthDynamicConfigJson;
-	
+
 	@GET
 	@Operation(summary = "Get json oxauth settings", description = "Gets oxAuth configuration in JSON format",
             responses = {
@@ -41,7 +40,7 @@ public class OxAuthJsonSettingWebResource extends BaseWebResource {
                     @ApiResponse(responseCode = "500", description = "Server error")
             }
     )
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_OXAUTH_JSONS_ETTING_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response getOxAuthJsonSettings() {
 		try {
 			log(logger, "Processing oxauth json settings retrieval request");
@@ -63,7 +62,7 @@ public class OxAuthJsonSettingWebResource extends BaseWebResource {
             ), description = Constants.RESULT_SUCCESS),
 			@ApiResponse(responseCode = "404", description = "Not found"),
             @ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_OXAUTH_JSON_SETTING_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response updateOxauthJsonSetting(OxAuthJsonConfiguration oxAuthJsonSetting) {
 		try {
 			log(logger, "Processing oxauth json settings update request");

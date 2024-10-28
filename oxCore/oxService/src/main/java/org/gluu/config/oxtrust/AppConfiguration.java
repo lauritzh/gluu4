@@ -8,8 +8,8 @@ package org.gluu.config.oxtrust;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.enterprise.inject.Vetoed;
-import org.gluu.model.LocaleSupported;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
@@ -39,15 +39,11 @@ public class AppConfiguration implements Configuration, Serializable {
     private String personCustomObjectClass;
 
     private String[] personObjectClassDisplayNames;
-    private List <LocaleSupported> adminUiLocaleSupported;
-    
 
     private String[] contactObjectClassTypes;
     private String[] contactObjectClassDisplayNames;
 
     private String ldifStore;
-    
-    private int keepLdifStoreHistoryDays;
 
     private boolean updateStatus;
 
@@ -78,6 +74,8 @@ public class AppConfiguration implements Configuration, Serializable {
 
     private String shibboleth3FederationRootDir;
 
+    private String caCertsLocation;
+    private String caCertsPassphrase;
     private String tempCertDir;
     private String certDir;
 
@@ -117,7 +115,7 @@ public class AppConfiguration implements Configuration, Serializable {
     private String apiUmaClientId;
     private String apiUmaClientKeyId;
     private String apiUmaResourceId;
-    private String apiUmaScope;
+    private String[] apiUmaScopes;
     private String apiUmaClientKeyStoreFile;
     private String apiUmaClientKeyStorePassword;
 
@@ -168,8 +166,6 @@ public class AppConfiguration implements Configuration, Serializable {
     private Boolean useLocalCache = false;
 
     private boolean passIdTokenHintToLogoutRedirectUri = false;
-    private OxTrustApiMode oxTrustProtectionMode;
-    private String auditConfigLogsLocation;
 
     public ScimProperties getScimProperties() {
         return scimProperties;
@@ -411,6 +407,22 @@ public class AppConfiguration implements Configuration, Serializable {
 
     public void setShibboleth3FederationRootDir(String shibboleth3FederationRootDir) {
         this.shibboleth3FederationRootDir = shibboleth3FederationRootDir;
+    }
+
+    public String getCaCertsLocation() {
+        return caCertsLocation;
+    }
+
+    public void setCaCertsLocation(String caCertsLocation) {
+        this.caCertsLocation = caCertsLocation;
+    }
+
+    public String getCaCertsPassphrase() {
+        return caCertsPassphrase;
+    }
+
+    public void setCaCertsPassphrase(String caCertsPassphrase) {
+        this.caCertsPassphrase = caCertsPassphrase;
     }
 
     public String getTempCertDir() {
@@ -834,12 +846,12 @@ public class AppConfiguration implements Configuration, Serializable {
         this.apiUmaResourceId = apiUmaResourceId;
     }
 
-    public String getApiUmaScope() {
-        return apiUmaScope;
+    public String[] getApiUmaScopes() {
+        return apiUmaScopes;
     }
 
-    public void setApiUmaScope(String apiUmaScope) {
-        this.apiUmaScope = apiUmaScope;
+    public void setApiUmaScopes(String[] apiUmaScopes) {
+        this.apiUmaScopes = apiUmaScopes;
     }
 
     /**
@@ -951,36 +963,4 @@ public class AppConfiguration implements Configuration, Serializable {
     public void setPassIdTokenHintToLogoutRedirectUri(boolean passIdTokenHintToLogoutRedirectUri) {
         this.passIdTokenHintToLogoutRedirectUri = passIdTokenHintToLogoutRedirectUri;
     }
-
-	public List<LocaleSupported> getAdminUiLocaleSupported() {
-		return adminUiLocaleSupported;
-	}
-
-	public void setAdminUiLocaleSupported(List<LocaleSupported> adminUiLocaleSupported) {
-		this.adminUiLocaleSupported = adminUiLocaleSupported;
-	}
-
-	public int getKeepLdifStoreHistoryDays() {
-		return keepLdifStoreHistoryDays;
-	}
-
-	public void setKeepLdifStoreHistoryDays(int keepLdifStoreHistoryDays) {
-		this.keepLdifStoreHistoryDays = keepLdifStoreHistoryDays;
-	}
-
-	public OxTrustApiMode getOxTrustProtectionMode() {
-		return oxTrustProtectionMode;
-	}
-
-	public void setOxTrustProtectionMode(OxTrustApiMode oxTrustProtectionMode) {
-		this.oxTrustProtectionMode = oxTrustProtectionMode;
-	}
-
-	public String getAuditConfigLogsLocation() {
-		return auditConfigLogsLocation;
-	}
-
-	public void setAuditConfigLogsLocation(String auditConfigLogsLocation) {
-		this.auditConfigLogsLocation = auditConfigLogsLocation;
-	}
 }

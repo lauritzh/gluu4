@@ -25,8 +25,7 @@ from setup_app.pylib.jproperties import Properties
 
 if Config.profile != SetupProfiles.DISA_STIG:
     import pymysql
-    import psycopg2
-    from setup_app.utils.spanner_rest_client import SpannerClient
+    from setup_app.utils.spanner import Spanner
 
 class PropertiesUtils(SetupUtils):
 
@@ -207,7 +206,6 @@ class PropertiesUtils(SetupUtils):
 
         base.argsp.ox_authentication_mode = p.get('ox-authentication-mode')
         base.argsp.ox_trust_authentication_mode = p.get('ox-trust-authentication-mode')
-        base.argsp.gluu_passwurd_cert = True if p.get('gluu-passwurd-cert','').lower() == 'true' else False
 
         properties_list = list(p.keys())
 
@@ -673,15 +671,6 @@ class PropertiesUtils(SetupUtils):
             Config.addPostSetupService.append('installGluuRadius')
 
 
-    def promptForPasswurdApiKeystore(self):
-
-        generate_passwurd_api_keystore = self.getPrompt("Generate Gluu Passwurd API keystore?", 'No')[0].lower()
-        Config.generate_passwurd_api_keystore = True if generate_passwurd_api_keystore == 'y' else False
-
-        if Config.installed_instance and Config.generate_passwurd_api_keystore:
-            Config.addPostSetupService.append('generate_passwurd_api_keystore')
-
-
     def get_backend_list(self):
 
         backend_list = [
@@ -694,8 +683,6 @@ class PropertiesUtils(SetupUtils):
                          BackendStrings.REMOTE_COUCHBASE,
                          BackendStrings.LOCAL_MYSQL,
                          BackendStrings.REMOTE_MYSQL,
-                         BackendStrings.LOCAL_PGSQL,
-                         BackendStrings.REMOTE_PGSQL,
                          BackendStrings.CLOUD_SPANNER,
                          BackendStrings.SAPNNER_EMULATOR,
                         ]
@@ -826,38 +813,6 @@ class PropertiesUtils(SetupUtils):
                 except Exception as e:
                     print("  {}Can't connect to MySQL: {}{}".format(colors.DANGER, e, colors.ENDC))
 
-        elif backend_type_str == BackendStrings.LOCAL_PGSQL:
-            Config.ldap_install = InstallTypes.NONE
-            Config.rdbm_install = True
-            Config.rdbm_install_type = InstallTypes.LOCAL
-            Config.rdbm_type = 'pgsql'
-            Config.rdbm_host = 'localhost'
-            Config.rdbm_user = 'gluu'
-            Config.rdbm_password = self.getPW(special='.*=+-()[]{}')
-            Config.rdbm_port = 5432
-            Config.rdbm_db = 'gluudb'
-
-        elif backend_type_str == BackendStrings.REMOTE_PGSQL:
-            Config.ldap_install = InstallTypes.NONE
-            Config.rdbm_install = True
-            Config.rdbm_install_type = InstallTypes.REMOTE
-            Config.rdbm_type = 'pgsql'
-
-            while True:
-                Config.rdbm_host = self.getPrompt("  PgSQL host", Config.get('rdbm_host'))
-                Config.rdbm_port = self.getPrompt("  PgSQL port", 5432, itype=int, indent=1)
-                Config.rdbm_user = self.getPrompt("  PgSQL user", Config.get('rdbm_user'))
-                Config.rdbm_password = self.getPrompt("  PgSQL password")
-                Config.rdbm_db = self.getPrompt("  PgSQL database", Config.get('rdbm_db'))
-
-                try:
-                    psycopg2.connect(dbname=Config.rdbm_db, user=Config.rdbm_user, password=Config.rdbm_password, host=Config.rdbm_host, port=Config.rdbm_port)
-                    print("  {}PgSQL connection was successfull{}".format(colors.OKGREEN, colors.ENDC))
-                    break
-                except Exception as e:
-                    print("  {}Can't connect to PgSQL: {}{}".format(colors.DANGER, e, colors.ENDC))
-
-
         elif backend_type_str in (BackendStrings.CLOUD_SPANNER, BackendStrings.SAPNNER_EMULATOR):
             Config.ldap_install = InstallTypes.NONE
             Config.rdbm_type = 'spanner'
@@ -885,14 +840,8 @@ class PropertiesUtils(SetupUtils):
 
             print("  Checking spanner connection")
             try:
-                SpannerClient(
-                            project_id=Config.spanner_project,
-                            instance_id=Config.spanner_instance,
-                            database_id=Config.spanner_database,
-                            google_application_credentials=Config.google_application_credentials,
-                            emulator_host=Config.spanner_emulator_host,
-                            log_dir=os.path.join(Config.install_dir, 'logs')
-                    )
+                spanner = Spanner()
+                spanner.get_session()
                 print("  {}Spanner connection was successfull{}".format(colors.OKGREEN, colors.ENDC))
             except Exception as e:
                 print("{}ERROR getting session from spanner: {}{}".format(colors.DANGER, e, colors.ENDC))
@@ -916,7 +865,7 @@ class PropertiesUtils(SetupUtils):
             if Config.installHttpd:
                 Config.ip = self.get_ip()
 
-            detectedHostname = Config.hostname or self.detect_hostname()
+            detectedHostname = self.detect_hostname()
 
             if detectedHostname == 'localhost':
                 detectedHostname = None
@@ -956,10 +905,10 @@ class PropertiesUtils(SetupUtils):
                     break
                 else:
                     print("Please enter valid email address")
-
+            
             Config.application_max_ram = self.getPrompt("Enter maximum RAM for applications in MB", str(Config.application_max_ram))
 
-            oxtrust_admin_password = Config.oxtrust_admin_password or self.getPW(special='.*=!%&+/-')
+            oxtrust_admin_password = Config.oxtrust_admin_password if Config.oxtrust_admin_password else self.getPW(special='.*=!%&+/-')
 
             while True:
                 oxtrust_admin_password = self.getPrompt("Enter oxTrust Admin Password", oxtrust_admin_password)
@@ -967,7 +916,7 @@ class PropertiesUtils(SetupUtils):
                     break
                 else:
                     print("Password must be at least 6 characters")
-
+            
             Config.oxtrust_admin_password = oxtrust_admin_password
 
             self.prompt_for_backend()

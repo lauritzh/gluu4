@@ -52,24 +52,9 @@ import java.util.concurrent.ThreadFactory;
 
 public class ServerUtil {
 
-    private static final Logger log = LoggerFactory.getLogger(ServerUtil.class);
+    private final static Logger log = LoggerFactory.getLogger(ServerUtil.class);
 
     private ServerUtil() {
-    }
-
-    public static Map<String, String[]> prepareForLogs(Map<String, String[]> parameters) {
-        if (parameters == null || parameters.isEmpty()) {
-            return new HashMap<>();
-        }
-
-        Map<String, String[]> result = new HashMap<>(parameters);
-        if (result.containsKey("client_secret")) {
-            result.put("client_secret", new String[] {"*****"});
-        }
-        if (result.containsKey("password")) {
-            result.put("password", new String[] {"*****"});
-        }
-        return result;
     }
 
     public static JSONObject getJwks(Client client) {

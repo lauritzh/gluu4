@@ -87,11 +87,7 @@ public class FederationDeconstructionAction implements Serializable {
 				trustRelationship = trustService.getTrustContainerFederation(trustRelationship) ;
 			}
 
-			List<String> gluuEntityIds = trustRelationship.getGluuEntityId();
-			if(gluuEntityIds != null) {
-				bulkEntities.addAll(gluuEntityIds);
-			}
-			
+			bulkEntities.addAll(trustRelationship.getGluuEntityId());
 			List<GluuSAMLTrustRelationship> currentDeconstruction = trustService.getDeconstructedTrustRelationships(trustRelationship);
 			for (GluuSAMLTrustRelationship configuredTR : currentDeconstruction) {
 				bulkEntities.remove(configuredTR.getEntityId());
@@ -99,11 +95,8 @@ public class FederationDeconstructionAction implements Serializable {
 
 		}
 		bulkFiltered = new ArrayList<String>();
+		bulkFiltered.addAll(bulkEntities);
 
-		if(bulkEntities != null) {
-			bulkFiltered.addAll(bulkEntities);
-		}
-		
 		if (filteredEntities != null) {
 			bulkFiltered.retainAll(filteredEntities);
 

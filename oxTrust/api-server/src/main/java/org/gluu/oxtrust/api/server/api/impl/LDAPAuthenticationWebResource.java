@@ -11,7 +11,6 @@ import org.gluu.oxtrust.api.server.model.ConnectionStatusDTO;
 import org.gluu.oxtrust.api.server.model.ExistingLdapConfigurationValidator;
 import org.gluu.oxtrust.api.server.model.LdapConfigurationDTO;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.api.server.util.LdapConfigurationDtoAssembly;
 import org.gluu.oxtrust.api.server.util.LdapConfigurationDuplicatedException;
 import org.gluu.oxtrust.service.LdapConfigurationService;
@@ -46,11 +45,11 @@ public class LDAPAuthenticationWebResource extends BaseWebResource {
 	private ExistingLdapConfigurationValidator existingLdapConfigurationValidator = new ExistingLdapConfigurationValidator();
 
 	private LdapConfigurationDtoAssembly ldapConfigurationDtoAssembly = new LdapConfigurationDtoAssembly();
-	
+
 	@GET
 	@Operation(summary="Get existing configuration",description = "Get the existing configuration")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = LdapConfigurationDTO[].class)), description = "Success")})
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_LDAPAUTHENTICATION_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response getLdapConfiguration() {
 		log(logger, "Get the existing configuration");
 		try {
@@ -71,7 +70,7 @@ public class LDAPAuthenticationWebResource extends BaseWebResource {
 	@ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = LdapConfigurationDTO.class)), description = "Success"),
             @ApiResponse(responseCode = "404", description = "Not found")})
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_LDAPAUTHENTICATION_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response updateLdapConfiguration(@Valid LdapConfigurationDTO ldapConfiguration) {
 		log(logger, "Update an existing configuration");
 		try {
@@ -88,7 +87,7 @@ public class LDAPAuthenticationWebResource extends BaseWebResource {
 	@POST
 	@Operation(summary="Create a new configuration",description = "Create a new configuration")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = LdapConfigurationDTO.class)), description = "Success")})
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_LDAPAUTHENTICATION_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response createLdapConfiguration(@Valid LdapConfigurationDTO ldapConfiguration) {
 		log(logger, "Create a new configuration");
 		try {
@@ -109,7 +108,7 @@ public class LDAPAuthenticationWebResource extends BaseWebResource {
 	@Path(ApiConstants.NAME_PARAM_PATH)
 	@Operation(summary="Delete an existing configuration",description = "Delete an existing configuration")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = LdapConfigurationDTO[].class)), description = "Success")})
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_LDAPAUTHENTICATION_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response deleteLdapConfigurationByName(@PathParam(ApiConstants.NAME) String name) {
 		log(logger, "Delete an existing configuration");
 		try {
@@ -126,7 +125,7 @@ public class LDAPAuthenticationWebResource extends BaseWebResource {
 	@Path(ApiConstants.STATUS)
 	@Operation(summary="Check status of a configuration" , description = "Check the status of a configuration")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ConnectionStatusDTO.class)), description = "Success")})
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_LDAPAUTHENTICATION_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response getLdapConfigurationStatus(LdapConnectionData ldapConnectionData) {
 		log(logger, "Check the status of a configuration");
 		try {
@@ -144,7 +143,7 @@ public class LDAPAuthenticationWebResource extends BaseWebResource {
 	@Path(ApiConstants.NAME_PARAM_PATH + ApiConstants.STATUS)
 	@Operation(summary= "Check the status of an existing configuration", description = "Check the status of an existing configuration")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ConnectionStatusDTO.class)), description = "Success")})
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_LDAPAUTHENTICATION_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response getLdapConfigurationStatusByName(@PathParam("name") String name) {
 		log(logger, "Check the status of an existing configuration");
 		try {

@@ -8,26 +8,24 @@ import java.util.TimeZone;
 
 import org.gluu.orm.couchbase.impl.CouchbaseFilterConverter;
 import org.gluu.orm.couchbase.model.ConvertedExpression;
-import org.gluu.orm.couchbase.operation.CouchbaseOperationService;
-import org.gluu.orm.couchbase.operation.impl.CouchbaseOperationServiceImpl;
 import org.gluu.persist.exception.operation.SearchException;
 import org.gluu.search.filter.Filter;
 import org.gluu.search.filter.FilterProcessor;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.query.Select;
+import com.couchbase.client.java.query.dsl.Expression;
+import com.couchbase.client.java.query.dsl.path.GroupByPath;
 
 public class CouchbaseFilterConverterCheckExcludeFilterTest {
 
-	private CouchbaseOperationService couchbaseOperationService;
 	private CouchbaseFilterConverter simpleConverter;
 	private FilterProcessor filterProcessor;
 
 	@BeforeClass
 	public void init() {
-		this.couchbaseOperationService = new CouchbaseOperationServiceImpl();
-		this.simpleConverter = new CouchbaseFilterConverter(couchbaseOperationService);
+		this.simpleConverter = new CouchbaseFilterConverter(null);
 		this.filterProcessor = new FilterProcessor();
 	}
 
@@ -45,48 +43,27 @@ public class CouchbaseFilterConverterCheckExcludeFilterTest {
 		ConvertedExpression expression1 = simpleConverter.convertToCouchbaseFilter(filter1, null, null);
 
 		String query1 = toSelectSQL(expression1);
-		assertEquals(query1, "SELECT gluu_doc.* FROM `gluu` AS gluu_doc WHERE ( ( ( objectClass = \"gluuPerson\" ) OR ( \"gluuPerson\" IN objectClass ) ) AND ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER( uid ) = \"test\" AND ( ( objectClass = \"gluuPerson\" ) OR ( \"gluuPerson\" IN objectClass ) ) AND ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER( uid ) = \"test\" AND ( ( objectClass = \"gluuPerson\" ) OR ( \"gluuPerson\" IN objectClass ) ) AND ANY added_ IN added SATISFIES added_ = \"2020-12-16T14:58:18.398Z\" END ) AND ANY added_ IN added SATISFIES added_ = \"2020-12-16T14:58:18.398Z\" END ) )");
+		assertEquals(query1, "SELECT gluu_doc.* FROM `gluu` AS gluu_doc WHERE ( ( ( objectClass = \"gluuPerson\" ) OR ( \"gluuPerson\" IN objectClass ) ) AND ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER(uid) = \"test\" AND ( ( objectClass = \"gluuPerson\" ) OR ( \"gluuPerson\" IN objectClass ) ) AND ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER(uid) = \"test\" AND ( ( objectClass = \"gluuPerson\" ) OR ( \"gluuPerson\" IN objectClass ) ) AND ANY added_ IN added SATISFIES added_ = \"Wed Dec 16 14:58:18 UTC 2020\" END ) AND ANY added_ IN added SATISFIES added_ = \"Wed Dec 16 14:58:18 UTC 2020\" END ) )");
 
 		Filter filter2 = filterProcessor.excludeFilter(filter1, filterEq3);
 
 		ConvertedExpression expression2 = simpleConverter.convertToCouchbaseFilter(filter2, null, null);
 
 		String query2 = toSelectSQL(expression2);
-		assertEquals(query2, "SELECT gluu_doc.* FROM `gluu` AS gluu_doc WHERE ( ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER( uid ) = \"test\" AND ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER( uid ) = \"test\" AND ANY added_ IN added SATISFIES added_ = \"2020-12-16T14:58:18.398Z\" END ) AND ANY added_ IN added SATISFIES added_ = \"2020-12-16T14:58:18.398Z\" END ) )");
+		assertEquals(query2, "SELECT gluu_doc.* FROM `gluu` AS gluu_doc WHERE ( ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER(uid) = \"test\" AND ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER(uid) = \"test\" AND ANY added_ IN added SATISFIES added_ = \"Wed Dec 16 14:58:18 UTC 2020\" END ) AND ANY added_ IN added SATISFIES added_ = \"Wed Dec 16 14:58:18 UTC 2020\" END ) )");
 
 		Filter filter3 = filterProcessor.excludeFilter(filter1, Filter.createEqualityFilter("objectClass", null));
 
 		ConvertedExpression expression3 = simpleConverter.convertToCouchbaseFilter(filter3, null, null);
 
 		String query3 = toSelectSQL(expression3);
-		assertEquals(query3, "SELECT gluu_doc.* FROM `gluu` AS gluu_doc WHERE ( ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER( uid ) = \"test\" AND ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER( uid ) = \"test\" AND ANY added_ IN added SATISFIES added_ = \"2020-12-16T14:58:18.398Z\" END ) AND ANY added_ IN added SATISFIES added_ = \"2020-12-16T14:58:18.398Z\" END ) )");
+		assertEquals(query3, "SELECT gluu_doc.* FROM `gluu` AS gluu_doc WHERE ( ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER(uid) = \"test\" AND ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) AND LOWER(uid) = \"test\" AND ANY added_ IN added SATISFIES added_ = \"Wed Dec 16 14:58:18 UTC 2020\" END ) AND ANY added_ IN added SATISFIES added_ = \"Wed Dec 16 14:58:18 UTC 2020\" END ) )");
 	}
 
 	private String toSelectSQL(ConvertedExpression convertedExpression) {
-		String select = String.format("SELECT gluu_doc.* FROM `gluu` AS gluu_doc WHERE %s", convertedExpression.expression());
-		
-		// Substitute parameters for test
-		JsonObject params = convertedExpression.getQueryParameters();
-		for (String name : params.getNames()) {
-			Object value = params.get(name);
+		GroupByPath select = Select.select("gluu_doc.*").from(Expression.i("gluu")).as("gluu_doc").where(convertedExpression.expression());
 
-			Object replaceValue = value;
-			if (value instanceof String) {
-				replaceValue = "\"" + value + "\"";
-			}
-			
-			String searchName = "\\$" + name;
-			int subIndex = select.indexOf("%$" + name + "%");
-			if (subIndex != -1) {
-				searchName = "%" + searchName + "%";
-				replaceValue = "\"%" + value + "%\"";
-			}
-			select = select.replaceAll(searchName, replaceValue.toString());
-		}
-		
-		select = select.replaceAll("\"\"%", "%").replaceAll("%\"\"", "%");
-
-		return select;
+		return select.toString();
 	}
 
 	private static Date getUtcDateFromMillis(long millis) {

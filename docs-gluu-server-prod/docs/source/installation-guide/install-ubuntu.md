@@ -1,9 +1,3 @@
-!!! Attention
-    All Linux assets, packages, and binaries require a support contract for access.
-    Contact sales@gluu.org for more information. For free up-to-date binaries,
-    check out the latest releases at [The Linux Foundation Janssen Project](https://docs.jans.io),
-    the new upstream open source project.
-
 # Ubuntu Installation 
 ## Overview
 Single-node Gluu Server Linux packages are available for Ubuntu 20.x, 22.x. Follow the instructions below: 
@@ -26,6 +20,7 @@ Single-node Gluu Server Linux packages are available for Ubuntu 20.x, 22.x. Foll
 ### Install the package
 The Gluu Server will create its file system under `/root/` and will be installed under `/opt`. File size and [minimum requirements](../installation-guide/index.md) remain the same as the host.
 
+
 For **Ubuntu 22.x** run the following commands: 
 
 ```
@@ -33,15 +28,7 @@ echo "deb https://repo.gluu.org/ubuntu/ jammy main" > /etc/apt/sources.list.d/gl
 ```
 
 ```
-curl --user "your-username:your-password" https://repo.gluu.org/ubuntu/gluu-apt.key | apt-key add -
-```
-
-```
-Create a file named /etc/apt/auth.conf.d/99repo with content:
-
-machine https://repo.gluu.org
-login your-username
-password your-password
+curl https://repo.gluu.org/ubuntu/gluu-apt.key | apt-key add -
 ```
 
 ```
@@ -49,10 +36,14 @@ apt update
 ```
 
 ```
-apt install gluu-server
+apt install gluu-server=4.4.2~ubuntu22.04_amd64.deb
 ```
 
-<!-- When the next version is released, this version should be changed to the most current 4.5.x package in repo.gluu.org, replacing the `_` between `gluu-server` and the version number with an `=` -->
+After installation, the `gluu-server` package needs to be excluded from automatic updates with the following command.
+
+```
+apt-mark hold gluu-server
+```
 
 For **Ubuntu 20.x** run the following commands: 
 
@@ -61,15 +52,7 @@ echo "deb https://repo.gluu.org/ubuntu/ focal main" > /etc/apt/sources.list.d/gl
 ```
 
 ```
-curl --user "your-username:your-password" https://repo.gluu.org/ubuntu/gluu-apt.key | apt-key add -
-```
-
-```
-Create a file named /etc/apt/auth.conf.d/99repo with content:
-
-machine https://repo.gluu.org
-login your-username
-password your-password
+curl https://repo.gluu.org/ubuntu/gluu-apt.key | apt-key add -
 ```
 
 ```
@@ -77,9 +60,15 @@ apt update
 ```
 
 ```
-apt install gluu-server
+apt install gluu-server=4.4.2~ubuntu20.04
 ```
-<!-- When the next version is released, this version should be changed to the most current 4.5.x package in repo.gluu.org, replacing the `_` between `gluu-server` and the version number with an `=` -->
+
+After installation, the `gluu-server` package needs to be excluded from automatic updates with the following command.
+
+```
+apt-mark hold gluu-server
+```
+
 
 After installation, the `gluu-server` package needs to be excluded from automatic updates with the following command.
 

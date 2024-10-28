@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>scim</artifactId>
-		<version>4.5.6-SNAPSHOT</version>
+		<version>4.4.2.Final</version>
 	</parent>
 
 	<build>
@@ -77,10 +77,6 @@
                     <groupId>org.glassfish</groupId>
                     <artifactId>jakarta.faces</artifactId>
                 </exclusion>
-                <exclusion>
-                	<groupId>org.bouncycastle</groupId>
-                	<artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -128,11 +124,11 @@
         <!-- Security -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
+            <artifactId>bcprov-jdk15on</artifactId>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk18on</artifactId>
+            <artifactId>bcpkix-jdk15on</artifactId>
         </dependency>
 	</dependencies>
 	

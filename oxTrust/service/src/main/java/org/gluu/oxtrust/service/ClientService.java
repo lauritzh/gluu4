@@ -7,7 +7,6 @@
 package org.gluu.oxtrust.service;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -15,7 +14,6 @@ import javax.inject.Inject;
 
 import org.gluu.oxtrust.model.AuthenticationMethod;
 import org.gluu.oxtrust.model.BlockEncryptionAlgorithm;
-import org.gluu.oxtrust.model.GluuCustomPerson;
 import org.gluu.oxtrust.model.KeyEncryptionAlgorithm;
 import org.gluu.oxtrust.model.OxAuthApplicationType;
 import org.gluu.oxtrust.model.OxAuthClient;
@@ -26,6 +24,7 @@ import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
+import org.python.jline.internal.Log;
 import org.slf4j.Logger;
 
 /**
@@ -206,7 +205,7 @@ public class ClientService implements Serializable {
 		try {
 			return persistenceEntryManager.find(OxAuthClient.class, Dn);
 		} catch (Exception e) {
-			logger.warn("Failed to find client by DN", e);
+			Log.warn("", e);
 			return null;
 		}
 
@@ -239,32 +238,13 @@ public class ClientService implements Serializable {
 		OxAuthClient client = new OxAuthClient();
 		client.setBaseDn(getDnForClient(null));
 		client.setDisplayName(DisplayName);
-		Filter filter = Filter.createORFilter(Filter.createEqualityFilter(OxTrustConstants.displayName, DisplayName));
-		List<OxAuthClient> clients =  persistenceEntryManager.findEntries(getDnForClient(null), OxAuthClient.class, filter,
-				null);
-		
-		//List<OxAuthClient> clients = persistenceEntryManager.findEntries(client);
+		List<OxAuthClient> clients = persistenceEntryManager.findEntries(client);
 		if ((clients != null) && (clients.size() > 0)) {
 			return clients.get(0);
 		}
 
 		return null;
 	}
-	
-	/**
-	 * Get client by scope
-	 *
-	 * @param scope
-	 * @return client
-	 * @throws Exception
-	 */
-	public List<OxAuthClient> getClientByScope(String scope) {	
-		
-		Filter filter = Filter.createORFilter(Filter.createEqualityFilter(OxTrustConstants.oxAuthScope, scope));
-		return persistenceEntryManager.findEntries(getDnForClient(null), OxAuthClient.class, filter,
-				null);
-	}
-
 
 	/**
 	 * Get custom client by Attribute

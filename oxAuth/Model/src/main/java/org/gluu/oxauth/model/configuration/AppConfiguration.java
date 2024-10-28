@@ -13,7 +13,9 @@ import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
 import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the configuration JSON file.
@@ -51,7 +53,6 @@ public class AppConfiguration implements Configuration {
     private int sectorIdentifierCacheLifetimeInMinutes = 1440;
 
     private Boolean sessionAsJwt = false;
-    private Boolean forceRopcInAuthorizationEndpoint = false;
 
     private String umaConfigurationEndpoint;
     private Boolean umaRptAsJwt = false;
@@ -69,7 +70,6 @@ public class AppConfiguration implements Configuration {
     private int statTimerIntervalInSeconds;
     private int statWebServiceIntervalLimitInSeconds;
 
-    private Boolean allowSpontaneousScopes = true;
     private int spontaneousScopeLifetime;
     private String openidSubAttribute;
     private Set<Set<ResponseType>> responseTypesSupported;
@@ -123,7 +123,6 @@ public class AppConfiguration implements Configuration {
     private Boolean trustedClientEnabled;
     private Boolean skipAuthorizationForOpenIdScopeAndPairwiseId = false;
     private Boolean dynamicRegistrationScopesParamEnabled;
-    private Boolean dynamicRegistrationDisableFallbackScopesAssigning;
     private Boolean dynamicRegistrationPasswordGrantTypeEnabled = false;
     private List<String> dynamicRegistrationAllowedPasswordGrantScopes;
     private String dynamicRegistrationCustomObjectClass;
@@ -163,7 +162,6 @@ public class AppConfiguration implements Configuration {
     private Integer serverSessionIdLifetime = sessionIdLifetime; // by default same as sessionIdLifetime
     private int configurationUpdateInterval;
 
-    private Boolean logNotFoundEntityAsError;
     private Boolean enableClientGrantTypeUpdate;
     private Set<GrantType> dynamicGrantTypeDefault;
 
@@ -196,7 +194,6 @@ public class AppConfiguration implements Configuration {
 
     private Boolean introspectionAccessTokenMustHaveUmaProtectionScope = false;
     private Boolean introspectionSkipAuthorization;
-    private Boolean introspectionRestrictBasicAuthnToOwnTokens = false;
 
     private Boolean endSessionWithAccessToken;
     private String cookieDomain;
@@ -204,7 +201,6 @@ public class AppConfiguration implements Configuration {
     private Set<String> jmsBrokerURISet;
     private String jmsUserName;
     private String jmsPassword;
-    private Boolean allowWildcardRedirectUri;
     private List<String> clientWhiteList;
     private List<String> clientBlackList;
     private Boolean legacyIdTokenClaims;
@@ -225,8 +221,6 @@ public class AppConfiguration implements Configuration {
     private Boolean useLocalCache = false;
     private Boolean fapiCompatibility = false;
     private Boolean forceIdTokenHintPrecense = false;
-    private Boolean rejectEndSessionIfIdTokenExpired = false;
-    private Boolean allowEndSessionWithUnmatchedSid = false;
     private Boolean forceOfflineAccessScopeToEnableRefreshToken = true;
     private Boolean errorReasonEnabled  = false;
     private Boolean removeRefreshTokensForClientOnLogout  = true;
@@ -243,10 +237,9 @@ public class AppConfiguration implements Configuration {
 
     private AuthenticationProtectionConfiguration authenticationProtectionConfiguration;
 
-    private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.REMOTE;
+    private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.INTERNAL;
 
     private Boolean keepAuthenticatorAttributesOnAcrChange = false;
-    private Boolean disableAuthnForMaxAgeZero = false;
     private int deviceAuthzRequestExpiresIn;
     private int deviceAuthzTokenPollInterval;
     private String deviceAuthzResponseTypeToProcessAuthz;
@@ -270,28 +263,12 @@ public class AppConfiguration implements Configuration {
     private int cibaMaxExpirationTimeAllowedSec;
     private Boolean cibaEnabled;
 
-    private Boolean return200OnClientRegistration = true;
-    private Map<String, String> dateFormatterPatterns = new HashMap<>();
-
-    private Boolean allowBlankValuesInDiscoveryResponse;
-
-    private Boolean skipAuthenticationFilterOptionsMethod = false;
-
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
     }
 
     public void setSubjectIdentifierBasedOnWholeUriBackwardCompatibility(Boolean subjectIdentifierBasedOnWholeUriBackwardCompatibility) {
         this.subjectIdentifierBasedOnWholeUriBackwardCompatibility = subjectIdentifierBasedOnWholeUriBackwardCompatibility;
-    }
-
-    public Boolean getLogNotFoundEntityAsError() {
-        if (logNotFoundEntityAsError == null) logNotFoundEntityAsError = false;
-        return logNotFoundEntityAsError;
-    }
-
-    public void setLogNotFoundEntityAsError(Boolean logNotFoundEntityAsError) {
-        this.logNotFoundEntityAsError = logNotFoundEntityAsError;
     }
 
     public Boolean getUseNestedJwtDuringEncryption() {
@@ -514,24 +491,6 @@ public class AppConfiguration implements Configuration {
         this.forceIdTokenHintPrecense = forceIdTokenHintPrecense;
     }
 
-    public Boolean getRejectEndSessionIfIdTokenExpired() {
-        if (rejectEndSessionIfIdTokenExpired == null) rejectEndSessionIfIdTokenExpired = false;
-        return rejectEndSessionIfIdTokenExpired;
-    }
-
-    public void setRejectEndSessionIfIdTokenExpired(Boolean rejectEndSessionIfIdTokenExpired) {
-        this.rejectEndSessionIfIdTokenExpired = rejectEndSessionIfIdTokenExpired;
-    }
-
-    public Boolean getAllowEndSessionWithUnmatchedSid() {
-        if (allowEndSessionWithUnmatchedSid == null) allowEndSessionWithUnmatchedSid = false;
-        return allowEndSessionWithUnmatchedSid;
-    }
-
-    public void setAllowEndSessionWithUnmatchedSid(Boolean allowEndSessionWithUnmatchedSid) {
-        this.allowEndSessionWithUnmatchedSid = allowEndSessionWithUnmatchedSid;
-    }
-
     public Boolean getRemoveRefreshTokensForClientOnLogout() {
         if (removeRefreshTokensForClientOnLogout == null) removeRefreshTokensForClientOnLogout = true;
         return removeRefreshTokensForClientOnLogout;
@@ -590,30 +549,12 @@ public class AppConfiguration implements Configuration {
         this.introspectionSkipAuthorization = introspectionSkipAuthorization;
     }
 
-    public Boolean getIntrospectionRestrictBasicAuthnToOwnTokens() {
-        if (introspectionRestrictBasicAuthnToOwnTokens == null) introspectionRestrictBasicAuthnToOwnTokens = false;
-        return introspectionRestrictBasicAuthnToOwnTokens;
-    }
-
-    public void setIntrospectionRestrictBasicAuthnToOwnTokens(Boolean introspectionRestrictBasicAuthnToOwnTokens) {
-        this.introspectionRestrictBasicAuthnToOwnTokens = introspectionRestrictBasicAuthnToOwnTokens;
-    }
-
     public Boolean getUmaRptAsJwt() {
         return umaRptAsJwt;
     }
 
     public void setUmaRptAsJwt(Boolean umaRptAsJwt) {
         this.umaRptAsJwt = umaRptAsJwt;
-    }
-
-    public Boolean getForceRopcInAuthorizationEndpoint() {
-        if (forceRopcInAuthorizationEndpoint == null) forceRopcInAuthorizationEndpoint = false;
-        return forceRopcInAuthorizationEndpoint;
-    }
-
-    public void setForceRopcInAuthorizationEndpoint(Boolean forceRopcInAuthorizationEndpoint) {
-        this.forceRopcInAuthorizationEndpoint = forceRopcInAuthorizationEndpoint;
     }
 
     public Boolean getSessionAsJwt() {
@@ -1251,15 +1192,6 @@ public class AppConfiguration implements Configuration {
         this.umaPctLifetime = umaPctLifetime;
     }
 
-    public Boolean getAllowSpontaneousScopes() {
-        if (allowSpontaneousScopes == null) allowSpontaneousScopes = true;
-        return allowSpontaneousScopes;
-    }
-
-    public void setAllowSpontaneousScopes(Boolean allowSpontaneousScopes) {
-        this.allowSpontaneousScopes = allowSpontaneousScopes;
-    }
-
     public int getSpontaneousScopeLifetime() {
         return spontaneousScopeLifetime;
     }
@@ -1371,15 +1303,6 @@ public class AppConfiguration implements Configuration {
 
     public void setDynamicRegistrationScopesParamEnabled(Boolean dynamicRegistrationScopesParamEnabled) {
         this.dynamicRegistrationScopesParamEnabled = dynamicRegistrationScopesParamEnabled;
-    }
-
-    public Boolean getDynamicRegistrationDisableFallbackScopesAssigning() {
-        if (dynamicRegistrationDisableFallbackScopesAssigning == null) dynamicRegistrationDisableFallbackScopesAssigning = false;
-        return dynamicRegistrationDisableFallbackScopesAssigning;
-    }
-
-    public void setDynamicRegistrationDisableFallbackScopesAssigning(Boolean dynamicRegistrationDisableFallbackScopesAssigning) {
-        this.dynamicRegistrationDisableFallbackScopesAssigning = dynamicRegistrationDisableFallbackScopesAssigning;
     }
 
     public Boolean getPersistIdTokenInLdap() {
@@ -1726,14 +1649,6 @@ public class AppConfiguration implements Configuration {
         this.jmsPassword = jmsPassword;
     }
 
-    public Boolean getAllowWildcardRedirectUri() {
-        return allowWildcardRedirectUri;
-    }
-
-    public void setAllowWildcardRedirectUri(Boolean allowWildcardRedirectUri) {
-        this.allowWildcardRedirectUri = allowWildcardRedirectUri;
-    }
-
     public List<String> getClientWhiteList() {
         return clientWhiteList;
     }
@@ -1941,15 +1856,7 @@ public class AppConfiguration implements Configuration {
 		this.keepAuthenticatorAttributesOnAcrChange = keepAuthenticatorAttributesOnAcrChange;
 	}
 
-    public Boolean getDisableAuthnForMaxAgeZero() {
-        return disableAuthnForMaxAgeZero;
-    }
-
-    public void setDisableAuthnForMaxAgeZero(Boolean disableAuthnForMaxAgeZero) {
-        this.disableAuthnForMaxAgeZero = disableAuthnForMaxAgeZero;
-    }
-
-    public String getBackchannelClientId() {
+	public String getBackchannelClientId() {
         return backchannelClientId;
     }
 
@@ -2199,39 +2106,4 @@ public class AppConfiguration implements Configuration {
     public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
         this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
     }
-
-    public Boolean getReturn200OnClientRegistration() {
-        return return200OnClientRegistration;
-    }
-
-    public void setReturn200OnClientRegistration(Boolean return200OnClientRegistration) {
-        this.return200OnClientRegistration = return200OnClientRegistration;
-    }
-
-    public Map<String, String> getDateFormatterPatterns() {
-        return dateFormatterPatterns;
-    }
-
-    public void setDateFormatterPatterns(Map<String, String> dateFormatterPatterns) {
-        this.dateFormatterPatterns = dateFormatterPatterns;
-    }
-
-    public Boolean isAllowBlankValuesInDiscoveryResponse() {
-        if (allowBlankValuesInDiscoveryResponse == null) allowBlankValuesInDiscoveryResponse = false;
-        return allowBlankValuesInDiscoveryResponse;
-    }
-
-    public void setAllowBlankValuesInDiscoveryResponse(Boolean allowBlankValuesInDiscoveryResponse) {
-        this.allowBlankValuesInDiscoveryResponse = allowBlankValuesInDiscoveryResponse;
-    }
-
-	public Boolean isSkipAuthenticationFilterOptionsMethod() {
-        if (skipAuthenticationFilterOptionsMethod == null) skipAuthenticationFilterOptionsMethod = false;
-		return skipAuthenticationFilterOptionsMethod;
-	}
-
-	public void setSkipAuthenticationFilterOptionsMethod(Boolean skipAuthenticationFilterOptionsMethod) {
-		this.skipAuthenticationFilterOptionsMethod = skipAuthenticationFilterOptionsMethod;
-	}
-
 }

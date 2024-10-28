@@ -4,10 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -77,9 +74,6 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 		OxDocument oxDocument = null;
 		try {
 			oxDocument = documentService.getOxDocumentByDisplayName(DisplayName);
-			if(oxDocument != null) {
-				return true;
-			}
 		} catch (Exception e) {
 			log.error("Failed to check if path '" + DisplayName + "' exists in repository", e);
 		}
@@ -88,31 +82,24 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	}
 
 	@Override
-	public boolean saveDocument(String name, String documentContent, Charset charset, List<String> moduleList) {
+	public boolean saveDocument(String name, String documentContent, Charset charset) {
 		log.debug("Save document: '{}'", name);
+		OxDocument oxDocument = new OxDocument();
+		oxDocument.setDocument(documentContent);
+		oxDocument.setDisplayName(name);		
 		try {
-			boolean update = true;
-			OxDocument oxDocument = documentService.getOxDocumentByDisplayName(name);
-			if (oxDocument == null) {
-				update = false;
-				oxDocument = new OxDocument();
-				oxDocument.setDisplayName(name);
-				oxDocument.setInum(documentService.generateInumForNewOxDocument());
-				String dn = "inum=" + oxDocument.getInum() + ",ou=document,o=gluu";
+			try {
+				oxDocument.setInum(documentService.generateInumForNewOxDocument());	
+				String dn = "inum="+ oxDocument.getInum() +",ou=document,o=gluu";
 				oxDocument.setDn(dn);
-			}
-
-			oxDocument.setDocument(documentContent);
-			oxDocument.setDescription(name);
-			oxDocument.setOxEnabled(true);
-			oxDocument.setOxModuleProperty(moduleList);
-
-			if (update)
-				documentService.updateOxDocument(oxDocument);
-			else
+				oxDocument.setDescription(name);
+				oxDocument.setOxEnabled("true");
+				oxDocument.setOxModuleProperty("oxtrusr server");
 				documentService.addOxDocument(oxDocument);
-			return true;
-
+				//persistenceEntryManager.persist(oxDocument);
+				return true;
+			} finally {
+			}
 		} catch (Exception ex) {
 			log.error("Failed to write document to file '{}'", name, ex);
 		}
@@ -121,39 +108,30 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 	}
 
 	@Override
-	public boolean saveDocumentStream(String name, InputStream documentStream, List<String> moduleList) {
-		try {
-			// log.debug("Save document from stream: '{}'", name);
-			boolean update = true;
-			OxDocument oxDocument = documentService.getOxDocumentByDisplayName(name);
-			if (oxDocument == null) {
-				update = false;
-				oxDocument = new OxDocument();
-				oxDocument.setDisplayName(name);
-				
-				String inum = documentService.generateInumForNewOxDocument();
-				oxDocument.setInum(inum);
-				
-				String dn = "inum=" + oxDocument.getInum() + ",ou=document,o=gluu";
-				oxDocument.setDn(dn);
-			}
-			String documentContent = new String(documentStream.readAllBytes(), StandardCharsets.UTF_8);
+	public boolean saveDocumentStream(String name, InputStream documentStream) {
+		
+		//log.debug("Save document from stream: '{}'", name);
+		OxDocument oxDocument = new OxDocument();
+		oxDocument.setDisplayName(name);
+		
+		 try {
+			String documentContent = Base64.getEncoder().encodeToString(IOUtils.toByteArray(documentStream));
 			oxDocument.setDocument(documentContent);
+			String inum = documentService.generateInumForNewOxDocument();
+			oxDocument.setInum(inum);	
+			String dn = "inum="+ oxDocument.getInum() +",ou=document,o=gluu";
+			oxDocument.setDn(dn);
 			oxDocument.setDescription(name);
-			oxDocument.setOxEnabled(true);
-			oxDocument.setOxModuleProperty(moduleList);
-			
-			if(update)
-				documentService.updateOxDocument(oxDocument);				
-			else
-				documentService.addOxDocument(oxDocument);
-			
+			oxDocument.setOxEnabled("true");
+			oxDocument.setOxModuleProperty("oxtrusr server");
+			documentService.addOxDocument(oxDocument);
+			//persistenceEntryManager.persist(oxDocument);
 			return true;
 		} catch (IOException e) {
 			log.error("Failed to write document from stream to file '{}'", name, e);
-		} catch (Exception e) {
+		}catch (Exception e) {
 			log.error("Failed to write document from stream to file '{}'", name, e);
-		}
+		}	
 
 		return false;
 	}
@@ -183,7 +161,7 @@ public class DBDocumentStoreProvider extends DocumentStoreProvider<DBDocumentSto
 			return null;
 		}
 
-		InputStream InputStream = new ByteArrayInputStream(filecontecnt.getBytes());
+		InputStream InputStream = new ByteArrayInputStream(Base64.getDecoder().decode(filecontecnt));
 		return InputStream;
 	}
 

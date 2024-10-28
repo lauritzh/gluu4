@@ -14,7 +14,6 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxtrust.api.server.api.impl.BaseWebResource;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.service.EncryptionService;
 import org.gluu.oxtrust.service.radius.GluuRadiusClientService;
 import org.gluu.oxtrust.service.filter.ProtectedApi;
@@ -42,7 +41,7 @@ public class GluuRadiusClientWebResource extends BaseWebResource {
 
     @Inject
     private EncryptionService encryptionService;
-    
+
     @GET
     @Operation(summary = "Get all radius clients", description = "Get all radius clients")
     @ApiResponses({
@@ -50,7 +49,7 @@ public class GluuRadiusClientWebResource extends BaseWebResource {
         @ApiResponse(responseCode = "403", description="Gluu Radius is not installed"),
         @ApiResponse(responseCode = "500", description="Internal server error")
     })
-    @ProtectedApi(scopes = {ApiScopeConstants.SCOPE_GLUU_RADIUS_CLIENT_READ})
+    @ProtectedApi(scopes = {READ_ACCESS})
     public Response listRadiusClients() {
 
         try {
@@ -74,7 +73,7 @@ public class GluuRadiusClientWebResource extends BaseWebResource {
         @ApiResponse(responseCode = "404", description="Radius client not found"),
         @ApiResponse(responseCode = "500", description="Internal server error")
     })
-    @ProtectedApi(scopes = {ApiScopeConstants.SCOPE_GLUU_RADIUS_CLIENT_READ})
+    @ProtectedApi(scopes = {READ_ACCESS})
     public Response getRadiusClient(@PathParam(ApiConstants.INUM) @NotNull String inum) {
 
         try {
@@ -99,7 +98,7 @@ public class GluuRadiusClientWebResource extends BaseWebResource {
         @ApiResponse(responseCode = "403", description = "Gluu Radius is not installed"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @ProtectedApi(scopes={ApiScopeConstants.SCOPE_GLUU_RADIUS_CLIENT_WRITE})
+    @ProtectedApi(scopes={WRITE_ACCESS})
     public Response addRadiusClient(RadiusClient client) {
 
         try {
@@ -138,7 +137,7 @@ public class GluuRadiusClientWebResource extends BaseWebResource {
         @ApiResponse(responseCode = "404", description = "Radius client not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @ProtectedApi(scopes = {ApiScopeConstants.SCOPE_GLUU_RADIUS_CLIENT_WRITE})
+    @ProtectedApi(scopes = {WRITE_ACCESS})
     public Response updateRadiusClient(RadiusClient client) {
 
         try {
@@ -182,7 +181,7 @@ public class GluuRadiusClientWebResource extends BaseWebResource {
         @ApiResponse(responseCode="404", description="Radius client not found"),
         @ApiResponse(responseCode="500", description="Internal server error")
     })
-    @ProtectedApi(scopes = {ApiScopeConstants.SCOPE_GLUU_RADIUS_CLIENT_WRITE})
+    @ProtectedApi(scopes = {WRITE_ACCESS})
     public Response deleteRadiusClient(@PathParam(ApiConstants.INUM) @NotNull String inum) {
 
         try {

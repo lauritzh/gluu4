@@ -39,26 +39,20 @@ import org.gluu.model.GluuStatus;
 import org.gluu.model.SchemaEntry;
 import org.gluu.model.custom.script.model.bind.BindCredentials;
 import org.gluu.model.ldap.GluuLdapConfiguration;
+import org.gluu.oxtrust.service.config.ConfigurationFactory;
 import org.gluu.oxtrust.ldap.cache.model.CacheCompoundKey;
 import org.gluu.oxtrust.ldap.cache.model.GluuInumMap;
 import org.gluu.oxtrust.ldap.cache.model.GluuSimplePerson;
 import org.gluu.oxtrust.model.GluuConfiguration;
 import org.gluu.oxtrust.model.GluuCustomAttribute;
 import org.gluu.oxtrust.model.GluuCustomPerson;
-import org.gluu.oxtrust.model.GluuFido2Device;
-import org.gluu.oxtrust.model.GluuUserPairwiseIdentifier;
-import org.gluu.oxtrust.model.fido.GluuCustomFidoDevice;
 import org.gluu.oxtrust.service.ApplicationFactory;
 import org.gluu.oxtrust.service.AttributeService;
 import org.gluu.oxtrust.service.ConfigurationService;
 import org.gluu.oxtrust.service.EncryptionService;
-import org.gluu.oxtrust.service.Fido2DeviceService;
-import org.gluu.oxtrust.service.FidoDeviceService;
 import org.gluu.oxtrust.service.InumService;
-import org.gluu.oxtrust.service.PairwiseIdService;
 import org.gluu.oxtrust.service.PersonService;
 import org.gluu.oxtrust.service.cdi.event.CacheRefreshEvent;
-import org.gluu.oxtrust.service.config.ConfigurationFactory;
 import org.gluu.oxtrust.service.external.ExternalCacheRefreshService;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.oxtrust.util.PropertyUtil;
@@ -68,6 +62,7 @@ import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.exception.BasePersistenceException;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.exception.operation.SearchException;
+import org.gluu.persist.ldap.impl.LdapEntryManager;
 import org.gluu.persist.ldap.impl.LdapEntryManagerFactory;
 import org.gluu.persist.ldap.operation.LdapOperationService;
 import org.gluu.persist.model.SearchScope;
@@ -146,15 +141,6 @@ public class CacheRefreshTimer {
 
 	@Inject
 	private EncryptionService encryptionService;
-	
-	@Inject
-	private PairwiseIdService pairwiseIdService;
-	
-	@Inject
-	private FidoDeviceService fidoDeviceService;
-	
-	@Inject
-	private Fido2DeviceService fido2DeviceService;
 
 	@Inject
 	private ObjectSerializationService objectSerializationService;
@@ -697,8 +683,8 @@ public class CacheRefreshTimer {
 			return true;
 		}
 
-		log.error("Skipping target entries update. Destination server schema doesn't has next attributes: '{}', target OC: '{}', target OC attributes: '{}'",
-				targetAttributesSet, targetObjectClasses.toArray(new String[0]), objectClassesAttributesSet);
+		log.error("Skipping target entries update. Destination server schema doesn't has next attributes: '{}'",
+				targetAttributesSet);
 
 		return false;
 	}
@@ -800,24 +786,8 @@ public class CacheRefreshTimer {
 			}
 
 			// Remove person from target server
-			try {				
-				//ldap ORM
-				if(targetPersistenceEntryManager.hasBranchesSupport(removedPerson.getDn())){					
-					targetPersistenceEntryManager.removeRecursively(removedPerson.getDn(), GluuCustomPerson.class);
-					
-				}else {
-					//other ORM
-					targetPersistenceEntryManager.remove(removedPerson.getDn(), GluuCustomPerson.class);
-					 
-					Filter pairwiseIdentifiersFilter = Filter.createEqualityFilter(OxTrustConstants.oxAuthUserId, removedPerson.getDn());
-					targetPersistenceEntryManager.remove(pairwiseIdService.getDnForPairWiseIdentifier(null, removedPerson.getDn()), GluuUserPairwiseIdentifier.class, pairwiseIdentifiersFilter,0);
-				
-					Filter equalityFilter = Filter.createEqualityFilter("personInum", removedPerson.getDn());
-					targetPersistenceEntryManager.remove(fidoDeviceService.getDnForFidoDevice(removedPerson.getDn(),null), GluuCustomFidoDevice.class, equalityFilter,0);
-					
-					Filter equalityFido2DeviceFilter = Filter.createEqualityFilter("personInum", removedPerson.getDn());
-					targetPersistenceEntryManager.remove(fido2DeviceService.getDnForFido2Device(null, removedPerson.getDn()), GluuFido2Device.class, equalityFido2DeviceFilter,0);
-				}
+			try {
+				targetPersistenceEntryManager.removeRecursively(removedPerson.getDn(), GluuCustomPerson.class);
 				result1.add(inum);
 			} catch (BasePersistenceException ex) {
 				log.error("Failed to remove person entry with inum '{}' and DN: {}", inum, removedPerson.getDn(), ex);
@@ -919,7 +889,6 @@ public class CacheRefreshTimer {
 				// Add to result and ignore root entry if needed
 				for (GluuSimplePerson currentSourcePerson : currentSourcePersons) {
 					currentSourcePerson.setSourceServerName(sourceServerName);
-					externalCacheRefreshService.executeExternalUpdateSourceUserMethods(currentSourcePerson);
 					// if (!StringHelper.equalsIgnoreCase(baseDn,
 					// currentSourcePerson.getDn())) {
 					String currentSourcePersonDn = currentSourcePerson.getDn().toLowerCase();
@@ -969,7 +938,6 @@ public class CacheRefreshTimer {
 					// Add to result and ignore root entry if needed
 					for (GluuSimplePerson currentSourcePerson : currentSourcePersons) {
 						currentSourcePerson.setSourceServerName(sourceServerName);
-						externalCacheRefreshService.executeExternalUpdateSourceUserMethods(currentSourcePerson);
 						// if (!StringHelper.equalsIgnoreCase(baseDn,
 						// currentSourcePerson.getDn())) {
 						String currentSourcePersonDn = currentSourcePerson.getDn().toLowerCase();

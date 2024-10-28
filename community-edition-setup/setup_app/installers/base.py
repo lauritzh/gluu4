@@ -27,11 +27,8 @@ class BaseInstaller:
         else:
             pbar_text = self.pbar_text
         self.logIt(pbar_text, pbar=self.service_name)
-
         if self.needdb and not base.argsp.dummy:
             self.dbUtils.bind()
-
-        self.pre_install()
 
         self.check_for_download()
 
@@ -143,9 +140,6 @@ class BaseInstaller:
         if (base.clone_type == 'rpm' and base.os_initdaemon == 'systemd') or base.deb_sysd_clone:
             self.run([base.service_path, 'daemon-reload'])
 
-    def pre_install(self):
-        """Installer may require some settings before installation"""
-        pass
 
     def generate_configuration(self):
         pass

@@ -10,8 +10,12 @@ info:
   license:
     name: License
     url: https://github.com/GluuFederation/oxAuth/blob/master/LICENSE
-  version: "master"
+  version: "4.3.1"
 servers:
+
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/yuriyz1/oxauth/4.3.1
   - url: https://gluu.org/
 tags:
   - name: developers
@@ -210,8 +214,6 @@ paths:
                       - session_selection_required
                       - consent_required
                       - user_mismatched
-                      - request_not_supported
-                      - request_uri_not_supported
                       - invalid_request_uri
                       - invalid_request_object
                       - authentication_session_invalid
@@ -350,8 +352,6 @@ paths:
                       - session_selection_required
                       - consent_required
                       - user_mismatched
-                      - request_not_supported
-                      - request_uri_not_supported
                       - invalid_request_uri
                       - invalid_request_object
                       - authentication_session_invalid
@@ -2448,7 +2448,7 @@ paths:
                     example: https://sample.com
                   authorization_endpoint:
                     type: string
-                    description: "URL of the authorization server's authorization endpoint."
+                    description: "URL of the authorization server's authorization endpoint.
                     example: https://sample.com/oxauth/restv1/authorize
                   token_endpoint:
                     type: string

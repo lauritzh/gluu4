@@ -50,21 +50,25 @@ public class RedirectUtil {
                         MediaType.APPLICATION_JSON_TYPE
                 );
 
-            } catch (MalformedURLException | JSONException e) {
+            } catch (MalformedURLException e) {
+                builder = Response.serverError();
+                log.debug(e.getMessage(), e);
+            } catch (JSONException e) {
                 builder = Response.serverError();
                 log.debug(e.getMessage(), e);
             }
-        } else if (redirectUriResponse.getResponseMode() == ResponseMode.FORM_POST) {
+        } else if (redirectUriResponse.getResponseMode() != ResponseMode.FORM_POST) {
+            URI redirectURI = URI.create(redirectUriResponse.toString());
+            builder = new ResponseBuilderImpl();
+            builder = Response.status(HTTP_REDIRECT);
+            builder.location(redirectURI);
+        } else {
             builder = new ResponseBuilderImpl();
             builder.status(Response.Status.OK);
             builder.type(MediaType.TEXT_HTML_TYPE);
             builder.cacheControl(CacheControl.valueOf("no-cache, no-store"));
             builder.header("Pragma", "no-cache");
             builder.entity(redirectUriResponse.toString());
-        } else {
-            URI redirectURI = URI.create(redirectUriResponse.toString());
-            builder = Response.status(HTTP_REDIRECT);
-            builder.location(redirectURI);
         }
 
         return builder;

@@ -16,15 +16,6 @@
       "type": "STRING(MAX)"
     }
   },
-  "gluuAttribute:description": {
-    "mysql": {
-      "type": "TEXT"
-    },
-    "pgsql": {
-      "size": 768,
-      "type": "VARCHAR"
-    }
-  },
   "displayName": {
     "mysql": {
       "size": 128,
@@ -71,7 +62,7 @@
       "type": "VARCHAR"
     },
     "spanner": {
-      "size": 256,
+      "size": 100,
       "type": "STRING"
     }
   },
@@ -189,9 +180,6 @@
   "member": {
     "mysql": {
       "type": "JSON"
-    },
-    "pgsql": {
-      "type": "JSONB"
     },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
@@ -311,6 +299,17 @@
     }
   },
   "oxAuthTosURI": {
+    "mysql": {
+      "type": "TINYTEXT"
+    },
+    "pgsql": {
+      "type": "TEXT"
+    },
+    "spanner": {
+      "type": "STRING(MAX)"
+    }
+  },
+  "oxClaimRedirectURI": {
     "mysql": {
       "type": "TINYTEXT"
     },
@@ -526,9 +525,6 @@
   "scimCustomSecond": {
     "mysql": {
       "type": "JSON"
-    },
-    "pgsql": {
-      "type": "JSONB"
     },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
@@ -763,20 +759,6 @@
       "type": "STRING"
     }
   },
-  "oxApplication": {
-    "mysql": {
-      "size": 96,
-      "type": "VARCHAR"
-    },
-    "pgsql": {
-      "size": 96,
-      "type": "VARCHAR"
-    },
-    "spanner": {
-      "size": 96,
-      "type": "STRING"
-    }
-  },
   "oxRequest": {
     "mysql": {
       "type": "TEXT"
@@ -803,9 +785,6 @@
     "mysql": {
       "type": "JSON"
     },
-    "pgsql": {
-      "type": "JSONB"
-    },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
     }
@@ -822,9 +801,6 @@
     "mysql": {
       "type": "JSON"
     },
-    "pgsql": {
-      "type": "JSONB"
-    },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
     }
@@ -832,9 +808,6 @@
   "eduPersonEntitlement": {
     "mysql": {
       "type": "JSON"
-    },
-    "pgsql": {
-      "type": "JSONB"
     },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
@@ -844,9 +817,6 @@
     "mysql": {
       "type": "JSON"
     },
-    "pgsql": {
-      "type": "JSONB"
-    },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
     }
@@ -854,9 +824,6 @@
   "eduPersonOrgUnitDN": {
     "mysql": {
       "type": "JSON"
-    },
-    "pgsql": {
-      "type": "JSONB"
     },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
@@ -866,9 +833,6 @@
     "mysql": {
       "type": "JSON"
     },
-    "pgsql": {
-      "type": "JSONB"
-    },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
     }
@@ -876,9 +840,6 @@
   "eduPersonPrimaryOrgUnitDN": {
     "mysql": {
       "type": "JSON"
-    },
-    "pgsql": {
-      "type": "JSONB"
     },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
@@ -888,50 +849,8 @@
     "mysql": {
       "type": "JSON"
     },
-    "pgsql": {
-      "type": "JSONB"
-    },
     "spanner": {
       "type": "ARRAY<STRING(MAX)>"
-    }
-  },
-  "document": {
-    "mysql": {
-      "type": "TEXT"
-    },
-    "pgsql": {
-      "type": "TEXT"
-    },
-    "spanner": {
-      "type": "STRING(MAX)"
-    }
-  },
-  "gluuHostname": {
-    "mysql": {
-      "size": 255,
-      "type": "VARCHAR"
-    },
-    "spanner": {
-      "size": 255,
-      "type": "STRING"
-    }
-  },
-  "gluuSAMLspMetaDataURL": {
-    "mysql": {
-      "size": 255,
-      "type": "VARCHAR"
-    },
-    "spanner": {
-      "size": 255,
-      "type": "STRING"
-    }
-  },
-  "gluuConfErrors": {
-    "mysql": {
-      "type": "TEXT"
-    },
-    "spanner": {
-      "type": "STRING(MAX)"
     }
   }
 }

@@ -17,8 +17,6 @@ import javax.inject.Inject;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.gluu.fido2.exception.Fido2RuntimeException;
-import org.gluu.fido2.model.attestation.AttestationErrorResponseType;
-import org.gluu.fido2.model.error.ErrorResponseFactory;
 import org.gluu.util.security.SecurityProviderUtility;
 import org.slf4j.Logger;
 
@@ -32,20 +30,17 @@ public class SignatureVerifier {
     @Inject
     private Logger log;
 
-    @Inject
-    private ErrorResponseFactory errorResponseFactory;
-
     public void verifySignature(byte[] signature, byte[] signatureBase, PublicKey publicKey, int signatureAlgorithm) {
         try {
             Signature signatureChecker = getSignatureChecker(signatureAlgorithm);
             signatureChecker.initVerify(publicKey);
             signatureChecker.update(signatureBase);
             if (!signatureChecker.verify(signature)) {
-            	throw errorResponseFactory.badRequestException(AttestationErrorResponseType.INVALID_CERTIFICATE, "Unable to verify signature");
+                throw new Fido2RuntimeException("Unable to verify signature");
             }
         } catch (IllegalArgumentException | InvalidKeyException | SignatureException e) {
             log.error("Can't verify the signature ", e);
-            throw errorResponseFactory.badRequestException(AttestationErrorResponseType.INVALID_CERTIFICATE, "Can't verify the signature");
+            throw new Fido2RuntimeException("Can't verify the signature");
         }
     }
 
@@ -100,7 +95,7 @@ public class SignatureVerifier {
                 return signatureChecker;
             }
             case -65535: {
-                Signature signatureChecker = Signature.getInstance("SHA1withRSA");
+                Signature signatureChecker = Signature.getInstance("SHA1withRSA", provider);
                 return signatureChecker;
             }
 

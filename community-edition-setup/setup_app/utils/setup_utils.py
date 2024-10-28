@@ -17,7 +17,6 @@ import ruamel.yaml
 
 from pathlib import Path
 from urllib.parse import urlparse
-from collections import OrderedDict
 
 from setup_app import paths
 from setup_app.config import Config
@@ -89,9 +88,9 @@ class SetupUtils(Crypto64):
 
 
 
-    def appendLine(self, line, fileName=False, backup=True):
-        if backup:
-            self.backupFile(fileName)
+    def appendLine(self, line, fileName=False):
+
+        self.backupFile(fileName)
 
         try:
             with open(fileName, 'a') as w:
@@ -214,18 +213,18 @@ class SetupUtils(Crypto64):
     def applyChangesInFiles(self, changes):
         self.logIt("Applying changes to %s files..." % changes['name'])
         for change in changes['files']:
-            cfile = change['path']
+            file = change['path']
 
-            text = self.readFile(cfile)
-            file_backup = '%s.bak' % cfile
+            text = self.readFile(file)
+            file_backup = '%s.bak' % file
             self.writeFile(file_backup, text)
             self.logIt("Created backup of %s file %s..." % (changes['name'], file_backup))
 
             for replace in change['replace']:
                 text = self.replaceInText(text, replace['pattern'], replace['update'])
 
-            self.writeFile(cfile, text)
-            self.logIt("Wrote updated %s file %s..." % (changes['name'], cfile))
+            self.writeFile(file, text)
+            self.logIt("Wrote updated %s file %s..." % (changes['name'], file))
 
 
     def copyFile(self, inFile, destFolder, backup=True):
@@ -394,32 +393,24 @@ class SetupUtils(Crypto64):
 
         return text % dictionary
 
-    def render_template(self, tmp_fn):
-        template_text = self.readFile(tmp_fn)
+
+    def renderTemplateInOut(self, file_path, template_folder, output_folder, backup=False):
+        fn = os.path.basename(file_path)
+        in_fp = os.path.join(template_folder, fn) 
+        self.logIt("Rendering template %s" % in_fp)
+        template_text = self.readFile(in_fp)
+
+        # Create output folder if needed
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
         format_dict = self.merge_dicts(Config.__dict__, Config.templateRenderingDict)
         for k in format_dict:
             if isinstance(format_dict[k], bool):
                 format_dict[k] = str(format_dict[k]).lower()
 
         rendered_text = self.fomatWithDict(template_text, format_dict)
-
-        return rendered_text
-
-    def renderTemplateInOut(self, file_path, template_folder, output_folder=None, backup=False, out_file=None):
-        fn = os.path.basename(file_path)
-        in_fp = os.path.join(template_folder, fn) 
-        self.logIt("Rendering template %s" % in_fp)
-
-        if not output_folder:
-            output_folder = os.path.dirname(out_file)
-
-        # Create output folder if needed
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-
-        rendered_text = self.render_template(in_fp)
-
-        out_fp = out_file or os.path.join(output_folder, fn)
+        out_fp = os.path.join(output_folder, fn)
         self.writeFile(out_fp, rendered_text, backup=backup)
 
     def renderTemplate(self, filePath):
@@ -428,23 +419,12 @@ class SetupUtils(Crypto64):
     def createUser(self, userName, homeDir, shell='/bin/bash'):
 
         try:
-            grp.getgrnam(userName)
-            user_group_exists = True
-        except KeyError:
-            user_group_exists = False
-
-        try:
             pwd.getpwnam(userName)
             self.logIt("User {} exists".format(userName))
         except KeyError:
             try:
                 useradd = '/usr/sbin/useradd'
-                cmd = [useradd, '--system', '--shell', shell, userName]
-                if user_group_exists:
-                    cmd.insert(1, '-g')
-                    cmd.insert(2, userName)
-                else:
-                    cmd.insert(1, '--user-group')
+                cmd = [useradd, '--system', '--user-group', '--shell', shell, userName]
                 if homeDir:
                     cmd.insert(-1, '--create-home')
                     cmd.insert(-1, '--home-dir')
@@ -456,9 +436,8 @@ class SetupUtils(Crypto64):
                     self.logOSChanges("User %s with homedir %s was created" % (userName, homeDir))
                 else:
                     self.logOSChanges("User %s without homedir was created" % (userName))
-
-            except Exception as e:
-                self.logIt("Error adding user: {}".format(e), True)
+            except:
+                self.logIt("Error adding user", True)
 
     def createGroup(self, groupName):
         try:
@@ -703,28 +682,3 @@ class SetupUtils(Crypto64):
                 pass
 
         return tuple(ret_val)
-
-    def get_unit_file_location(self, service):
-        output = self.run([paths.cmd_systemctl, 'show', '-p', 'FragmentPath', service])
-        if output and output.startswith('FragmentPath'):
-            return output[13:].strip()
-        return ''
-
-    def parse_unit_file(self, unit_fn):
-        unit_file_content = self.readFile(unit_fn)
-        unit_file_dict = OrderedDict()
-        section = None
-        for l in unit_file_content.splitlines():
-            if l.startswith(('#', ';')) or not l:
-                continue
-            rem = re.match(r'^\[(.*)\]', l)
-            if rem:
-                section = rem.groups()[0]
-                unit_file_dict[section] = []
-
-            elif section:
-                eqn = l.find('=')
-                unit_file_dict[section].append([l[:eqn].strip(), l[eqn+1:].strip()])
-
-        return unit_file_dict
-

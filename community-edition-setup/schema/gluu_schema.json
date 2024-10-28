@@ -36,6 +36,17 @@
             "x_origin": "Gluu created attribute"
         },
         {
+            "desc": "ISO 3166-1 Alpha-2 Country Code",
+            "equality": "caseIgnoreMatch",
+            "names": [
+                "county"
+            ],
+            "oid": "oxAttribute",
+            "substr": "caseIgnoreSubstringsMatch",
+            "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
+            "x_origin": "Gluu created attribute"
+        },
+        {
             "desc": "Creation Date used for password reset requests",
             "equality": "generalizedTimeMatch",
             "names": [
@@ -3605,19 +3616,6 @@
             "x_origin": "Gluu created attribute"
         },
         {
-            "desc": "Private configuration property",
-            "equality": "caseIgnoreMatch",
-            "names": [
-                "gluuPrivateProperty"
-            ],
-            "json": true,
-            "multivalued": true,
-            "oid": "oxAttribute",
-            "substr": "caseIgnoreSubstringsMatch",
-            "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
-            "x_origin": "Gluu created attribute"
-        },
-        {
             "desc": "oxAuthSessionAttribute",
             "equality": "caseIgnoreMatch",
             "names": [
@@ -3962,7 +3960,6 @@
                 "oxClaimRedirectURI"
             ],
             "oid": "oxAttribute",
-            "multivalued": true,
             "substr": "caseIgnoreSubstringsMatch",
             "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
             "x_origin": "Gluu created attribute"
@@ -4250,17 +4247,6 @@
             "x_origin": "Gluu created attribute"
         },
         {
-            "desc": "oxPublicKeyIdHash",
-            "equality": "integerMatch",
-            "names": [
-                "oxPublicKeyIdHash"
-            ],
-            "oid": "oxAttribute",
-            "substr": "caseIgnoreSubstringsMatch",
-            "syntax": "1.3.6.1.4.1.1466.115.121.1.27",
-            "x_origin": "Gluu created attribute"
-        },
-        {
             "desc": "Lifetime of access token",
             "equality": "integerMatch",
             "names": [
@@ -4315,13 +4301,12 @@
         },
         {
             "desc": "OX code challenge hash",
-            "equality": "caseIgnoreMatch",
-            "substr": "caseIgnoreSubstringsMatch",
+            "equality": "integerMatch",
             "names": [
                 "oxCodeChallengeHash"
             ],
             "oid": "oxAttribute",
-            "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
+            "syntax": "1.3.6.1.4.1.1466.115.121.1.27",
             "x_origin": "Gluu created attribute"
         },
         {
@@ -4568,18 +4553,6 @@
             "x_origin": "Gluu created attribute"
         },
         {
-            "desc": "Gluu Errors Configuration",
-            "equality": "caseIgnoreMatch",
-            "names": [
-                "gluuConfErrors"
-            ],
-            "json": true,
-            "oid": "oxAttribute",
-            "substr": "caseIgnoreSubstringsMatch",
-            "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
-            "x_origin": "Gluu created attribute"
-        },
-        {
             "desc": "Authentication request id",
             "equality": "caseIgnoreMatch",
             "names": [
@@ -4695,18 +4668,6 @@
             "names": [
                 "oxEmailAlternate"
             ],
-            "oid": "oxAttribute",
-            "substr": "caseIgnoreSubstringsMatch",
-            "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
-            "x_origin": "Gluu created attribute"
-        },
-        {
-            "desc": "SAML Service Provider Logout Redirect URI",
-            "equality": "caseIgnoreMatch",
-            "names": [
-                "spLogoutRedirectUrl"
-            ],
-            "multivalued": true,
             "oid": "oxAttribute",
             "substr": "caseIgnoreSubstringsMatch",
             "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
@@ -4878,6 +4839,7 @@
             "kind": "STRUCTURAL",
             "may": [
                 "c",
+                "county",
                 "deployedAppliances",
                 "description",
                 "displayName",
@@ -5109,8 +5071,7 @@
                 "oxAuthPostLogoutRedirectURI",
                 "url",
                 "researchAndScholarshipEnabled",
-                "gluuEntityType",
-                "spLogoutRedirectUrl"
+                "gluuEntityType"
             ],
             "must": [
                 "objectclass"
@@ -5718,7 +5679,6 @@
                 "programmingLanguage",
                 "oxModuleProperty",
                 "oxConfigurationProperty",
-                "gluuPrivateProperty",
                 "oxLevel",
                 "oxRevision",
                 "oxEnabled",
@@ -5956,13 +5916,9 @@
                 "creationDate",
                 "oxSessionStateId",
                 "oxCodeChallenge",
-                "oxCodeChallengeHash",
                 "personInum",
                 "oxAuthenticationData",
-                "oxApplication",
-                "oxStatus",
-                "exp",
-                "del"
+                "oxStatus"
             ],
             "must": [
                 "objectclass"
@@ -5982,20 +5938,15 @@
                 "oxId",
                 "creationDate",
                 "displayName",
-                "oxApplication",
                 "oxSessionStateId",
                 "oxCodeChallenge",
                 "oxCodeChallengeHash",
                 "oxPublicKeyId",
-                "oxPublicKeyIdHash",
                 "personInum",
                 "oxRegistrationData",
-                "oxDeviceData",
                 "oxDeviceNotificationConf",
                 "oxCounter",
-                "oxStatus",
-                "exp",
-                "del"
+                "oxStatus"
             ],
             "must": [
                 "objectclass"
@@ -6060,7 +6011,6 @@
                 "ou",
                 "gluuConfDynamic",
                 "gluuConfStatic",
-                "gluuConfErrors",
                 "oxRevision"
             ],
             "must": [
