@@ -351,6 +351,9 @@ public class SqlFilterConverter {
     			}
             } else {
             	expression = columnExpression;
+				if (SupportedDbType.POSTGRESQL == this.dbType) {
+					ConvertedExpression.build(ExpressionUtils.toLower((Expression) expression), null);
+				}
             }
 
             return ConvertedExpression.build(Expressions.booleanOperation(Ops.LIKE, expression, Expressions.constant(like.toString())), jsonAttributes);
