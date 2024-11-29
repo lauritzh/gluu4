@@ -234,6 +234,10 @@ public class CryptoProviderTest extends ConfigurableTest {
     @Test(dependsOnMethods = {"configuration"})
     public void testGenerateKeyRS512() {
         try {
+            System.out.println("#######################################################");
+            System.out.println("testDeleteKeyRS256");
+            System.out.println("#######################################################");
+
             JSONObject response = cryptoProvider.generateKey(Algorithm.RS512, expirationTime);
             rs512Key = response.optString(KEY_ID);
         } catch (Exception e) {
@@ -274,6 +278,10 @@ public class CryptoProviderTest extends ConfigurableTest {
     @Test(dependsOnMethods = {"configuration"})
     public void testGenerateKeyES256() {
         try {
+            System.out.println("#######################################################");
+            System.out.println("testGenerateKeyES256");
+            System.out.println("#######################################################");
+
             JSONObject response = cryptoProvider.generateKey(Algorithm.ES256, expirationTime);
             es256Key = response.optString(KEY_ID);
         } catch (Exception e) {
