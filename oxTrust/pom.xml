@@ -7,7 +7,7 @@
 	<groupId>org.gluu</groupId>
 	<artifactId>oxtrust</artifactId>
 	<packaging>pom</packaging>
-	<version>4.5.6-SNAPSHOT</version>
+	<version>4.5.6.sp1</version>
 	<name>oxTrust</name>
 	<url>https://www.gluu.org</url>
 
@@ -147,7 +147,7 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>scim-model</artifactId>
-				<version>4.5.6-SNAPSHOT</version>
+				<version>4.5.6.sp1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
@@ -202,7 +202,7 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>uma-rs-resteasy</artifactId>
-				<version>4.5.6-SNAPSHOT</version>
+				<version>4.5.6.sp1</version>
 				<exclusions>
 					<exclusion>
 						<groupId>org.slf4j</groupId>
