@@ -179,7 +179,7 @@ public class StatService {
         }
 
         try {
-            nodeId = InetAddressUtility.getMACAddressOrNull();
+            nodeId = InetAddressUtility.getMACAddressOrNull() + "_" + monthString();
             if (StringUtils.isNotBlank(nodeId)) {
                 log.trace("NodeId created: " + nodeId);
                 return;
@@ -192,6 +192,10 @@ public class StatService {
             nodeId = UUID.randomUUID().toString();
             log.trace("NodeId created: " + nodeId);
         }
+    }
+
+    public String monthString() {
+        return PERIOD_DATE_FORMAT.format(new Date()); // yyyyMM
     }
 
     public String getNodeId() {
