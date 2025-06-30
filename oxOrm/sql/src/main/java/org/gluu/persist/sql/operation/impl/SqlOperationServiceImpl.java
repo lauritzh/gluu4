@@ -12,15 +12,11 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,31 +25,27 @@ import java.util.Properties;
 import org.gluu.orm.util.ArrayHelper;
 import org.gluu.orm.util.StringHelper;
 import org.gluu.persist.exception.MappingException;
+import org.gluu.persist.exception.extension.PersistenceExtension;
 import org.gluu.persist.exception.operation.DeleteException;
 import org.gluu.persist.exception.operation.DuplicateEntryException;
 import org.gluu.persist.exception.operation.EntryConvertationException;
 import org.gluu.persist.exception.operation.EntryNotFoundException;
 import org.gluu.persist.exception.operation.PersistenceException;
 import org.gluu.persist.exception.operation.SearchException;
-import org.gluu.persist.extension.PersistenceExtension;
 import org.gluu.persist.model.AttributeData;
 import org.gluu.persist.model.AttributeDataModification;
 import org.gluu.persist.model.AttributeDataModification.AttributeModificationType;
-import org.gluu.persist.model.AttributeType;
 import org.gluu.persist.model.BatchOperation;
 import org.gluu.persist.model.EntryData;
 import org.gluu.persist.model.PagedResult;
-import org.gluu.persist.model.PasswordAttributeData;
 import org.gluu.persist.model.SearchScope;
 import org.gluu.persist.operation.auth.PasswordEncryptionHelper;
 import org.gluu.persist.sql.impl.SqlBatchOperationWraper;
 import org.gluu.persist.sql.model.ConvertedExpression;
 import org.gluu.persist.sql.model.JsonAttributeValue;
-import org.gluu.persist.sql.model.JsonString;
 import org.gluu.persist.sql.model.SearchReturnDataType;
 import org.gluu.persist.sql.model.TableMapping;
 import org.gluu.persist.sql.operation.SqlOperationService;
-import org.gluu.persist.sql.operation.SupportedDbType;
 import org.gluu.persist.sql.operation.watch.OperationDurationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +57,6 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.SubQueryExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.sql.RelationalPathBase;
@@ -91,8 +82,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 	private boolean disableAttributeMapping = false;
 
-	private SupportedDbType dbType;
-
 	private PersistenceExtension persistenceExtension;
 
 	private SQLQueryFactory sqlQueryFactory;
@@ -100,7 +89,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	private String schemaName;
 
 	private Path<String> docAlias = ExpressionUtils.path(String.class, DOC_ALIAS);
-	private Path<String> docInnerAlias = ExpressionUtils.path(String.class, DOC_INNER_ALIAS);
 
     @SuppressWarnings("unused")
     private SqlOperationServiceImpl() {
@@ -115,7 +103,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	private void init() {
 		this.sqlQueryFactory = connectionProvider.getSqlQueryFactory();
 		this.schemaName = connectionProvider.getSchemaName();
-		this.dbType = connectionProvider.getDbType();
 	}
 
     @Override
@@ -135,7 +122,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         if (password != null) {
 	        try {
 		        List<AttributeData> attributes = lookup(key, objectClass, USER_PASSWORD);
-
+		        
 		        Object userPasswordObj = null;
 		        for (AttributeData attribute : attributes) {
 		        	if (StringHelper.equalsIgnoreCase(attribute.getName(), USER_PASSWORD)) {
@@ -184,24 +171,19 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 	private boolean addEntryImpl(TableMapping tableMapping, String key, Collection<AttributeData> attributes) throws PersistenceException {
 		try {
-			Map<String, AttributeType> columTypes = tableMapping.getColumTypes();
+			Map<String, String> columTypes = tableMapping.getColumTypes();
 
 			RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
 			SQLInsertClause sqlInsertQuery = this.sqlQueryFactory.insert(tableRelationalPath);
 
 			for (AttributeData attribute : attributes) {
-				AttributeType attributeType = getAttributeType(columTypes, attribute);
-				if (attributeType == null) {
-		            throw new PersistenceException(String.format("Failed to find attribute type for '%s'", attribute.getName()));
-				}
+				String attributeType = columTypes.get(attribute.getName().toLowerCase());
+				boolean multiValued = (attributeType != null) && isJsonColumn(tableMapping.getTableName(), attributeType);
 
-				boolean multiValued = (attributeType != null) && isJsonColumn(tableMapping.getTableName(), attributeType.getType());
-
+				sqlInsertQuery.columns(Expressions.stringPath(attribute.getName()));
 				if (multiValued || Boolean.TRUE.equals(attribute.getMultiValued())) {
-					sqlInsertQuery.columns(Expressions.path(Object.class, attribute.getName()));
 					sqlInsertQuery.values(convertValueToDbJson(attribute.getValues()));
 				} else {
-					sqlInsertQuery.columns(Expressions.stringPath(attribute.getName()));
 					sqlInsertQuery.values(attribute.getValue());
 				}
 			}
@@ -229,7 +211,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 	private boolean updateEntryImpl(TableMapping tableMapping, String key, List<AttributeDataModification> mods) throws PersistenceException {
 		try {
-			Map<String, AttributeType> columTypes = tableMapping.getColumTypes();
+			Map<String, String> columTypes = tableMapping.getColumTypes();
 
 			RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
 			SQLUpdateClause sqlUpdateQuery = this.sqlQueryFactory.update(tableRelationalPath);
@@ -238,12 +220,8 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 				AttributeData attribute = attributeMod.getAttribute();
 				Path path = Expressions.stringPath(attribute.getName());
 
-				AttributeType attributeType = getAttributeType(columTypes, attribute);
-				if (attributeType == null) {
-		            throw new PersistenceException(String.format("Failed to find attribute type for '%s'", attribute.getName()));
-				}
-
-				boolean multiValued = (attributeType != null) && isJsonColumn(tableMapping.getTableName(), attributeType.getType());
+				String attributeType = columTypes.get(attribute.getName().toLowerCase());
+				boolean multiValued = (attributeType != null) && isJsonColumn(tableMapping.getTableName(), attributeType);
 				
 				AttributeModificationType type = attributeMod.getModificationType();
                 if ((AttributeModificationType.ADD == type) || (AttributeModificationType.FORCE_UPDATE == type)) {
@@ -321,26 +299,15 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
     private long deleteImpl(TableMapping tableMapping, ConvertedExpression expression, int count) throws DeleteException {
 		try {
-			Predicate exp = (Predicate) expression.expression();
-			SQLDeleteClause sqlDeleteQuery;
-
 			RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
-			if ((count > 0) && (SupportedDbType.POSTGRESQL == connectionProvider.getDbType())) {
-				// Workaround because PostgreSQL not supports limit in delete request
+			SQLDeleteClause sqlDeleteQuery = this.sqlQueryFactory.delete(tableRelationalPath);
 
-				// Inner query
-				RelationalPathBase<Object> innerTableRelationalPath = new RelationalPathBase<>(Object.class, DOC_INNER_ALIAS, this.schemaName, tableMapping.getTableName());
-				SubQueryExpression<String> sqlSelectQuery = this.sqlQueryFactory.select(Expressions.path(String.class, docInnerAlias, DOC_ID)).from(innerTableRelationalPath)
-						.where(exp).limit(count);
+			Predicate exp = (Predicate) expression.expression();
+			sqlDeleteQuery.where(exp);
 
-				Predicate deleteExp = ExpressionUtils.in(Expressions.stringPath(DOC_ID), sqlSelectQuery);
-				sqlDeleteQuery = this.sqlQueryFactory.delete(tableRelationalPath).where(deleteExp);
-			} else {
-				sqlDeleteQuery = this.sqlQueryFactory.delete(tableRelationalPath).where(exp);
-				if (count > 0) {
-					sqlDeleteQuery = sqlDeleteQuery.limit(count);
-	            }
-			}
+			if (count > 0) {
+				sqlDeleteQuery = sqlDeleteQuery.limit(count);
+            }
 
 			long rowDeleted = sqlDeleteQuery.execute();
 
@@ -455,12 +422,13 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	            boolean collectSearchResult;
 	
 	            SQLQuery<?> query;
-	            ResultSet resultSet = null;
 	            int currentLimit;
 	    		try {
 	                int resultCount = 0;
 	                int lastCountRows = 0;
 	                do {
+	                    collectSearchResult = true;
+	
 	                    currentLimit = pageSize;
 	                    if (count > 0) {
 	                        currentLimit = Math.min(pageSize, count - resultCount);
@@ -471,12 +439,12 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	                    queryStr = query.getSQL().getSQL();
 	                    LOG.debug("Executing query: '" + queryStr + "'");
 
-	                    resultSet = query.getResults();
-	                    lastResult = getEntryDataList(tableMapping, resultSet);
+	                    try (ResultSet resultSet = query.getResults()) {
+	                    	lastResult = getEntryDataList(tableMapping, resultSet);
+	                    }
 
 		    			lastCountRows = lastResult.size();
 		    			
-	                    collectSearchResult = true;
 	                    if (batchOperation != null) {
 	                        collectSearchResult = batchOperation.collectSearchResult(lastCountRows);
 	                    }
@@ -499,14 +467,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         			throw new SearchException(String.format("Failed to build search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
 	    		} catch (SQLException | EntryConvertationException ex) {
 	    			throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", queryStr, key), ex);
-	    		} finally {
-	    			if (resultSet != null) {
-	    				try {
-							resultSet.close();
-						} catch (SQLException ex) {
-			    			throw new SearchException(String.format("Failed to close query after paged result collection. Query '%s'  with key: '%s'", queryStr, key), ex);
-						}
-	    			}
 	    		}
 	        } else {
 	    		try {
@@ -573,21 +533,13 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         return result;
     }
 
-	public String[] createStoragePassword(String[] passwords, AttributeData attributeData) {
+	public String[] createStoragePassword(String[] passwords) {
         if (ArrayHelper.isEmpty(passwords)) {
             return passwords;
         }
 
-    	boolean isSkipHashed = (attributeData instanceof PasswordAttributeData) && ((PasswordAttributeData) attributeData).isSkipHashed();
-
         String[] results = new String[passwords.length];
         for (int i = 0; i < passwords.length; i++) {
-			if (isSkipHashed && (PasswordEncryptionHelper.findAlgorithmString(passwords[i]) != null)) {
-				// Skip password hashing only if password has prefix {alg} and defined with @Password(skipHashed = false)
-				results[i] = passwords[i];
-				continue;
-			}
-
 			if (persistenceExtension == null) {
 				results[i] = PasswordEncryptionHelper.createStoragePassword(passwords[i], connectionProvider.getPasswordEncryptionMethod());
 			} else {
@@ -658,18 +610,15 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 						attributeValueObjects = new Object[] { attributeObject };
 					} else if (attributeObject instanceof String) {
 						Object value = attributeObject.toString();
-						Date dateValue = decodeTime(attributeObject.toString(), true);
-						if (dateValue != null) {
-							value = dateValue;
+						try {
+							SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SQL_DATA_FORMAT);
+							value = jsonDateFormat.parse(attributeObject.toString());
+						} catch (Exception ex) {
 						}
-
 						attributeValueObjects = new Object[] { value };
 					} else if (attributeObject instanceof Timestamp) {
 						attributeValueObjects = new Object[] {
 								new java.util.Date(((Timestamp) attributeObject).getTime()) };
-					} else if (attributeObject instanceof LocalDateTime) {
-						attributeValueObjects = new Object[] {
-								new java.util.Date(Timestamp.valueOf((LocalDateTime) attributeObject).getTime()) };
 					} else {
 						Object value = attributeObject.toString();
 						attributeValueObjects = new Object[] { value };
@@ -694,8 +643,9 @@ public class SqlOperationServiceImpl implements SqlOperationService {
     private List<EntryData> getEntryDataList(TableMapping tableMapping, ResultSet resultSet) throws EntryConvertationException, SQLException {
     	List<EntryData> entryDataList = new LinkedList<>();
 
+    	List<AttributeData> attributeDataList = null;
     	while (!resultSet.isLast()) {
-    		List<AttributeData> attributeDataList = getAttributeDataList(tableMapping, resultSet, false);
+    		attributeDataList = getAttributeDataList(tableMapping, resultSet, false);
     		if (attributeDataList == null) {
     			break;
     		}
@@ -751,13 +701,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
     public DatabaseMetaData getMetadata() {
         return connectionProvider.getDatabaseMetaData();
     }
-
-	@Override
-	public TableMapping getTabeMapping(String key, String objectClass) {
-    	TableMapping tableMapping = connectionProvider.getTableMappingByKey(key, objectClass);
-    	
-    	return tableMapping;
-	}
 
 	@Override
 	public void setPersistenceExtension(PersistenceExtension persistenceExtension) {
@@ -883,73 +826,24 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 //		return resultAttributeNames;
 	}
 
-	@Override
-    public String encodeTime(Date date) {
-        if (date == null) {
-            return null;
-        }
-
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.SQL_DATA_FORMAT);
-        return jsonDateFormat.format(date);
-    }
-
-    @Override
-    public Date decodeTime(String date, boolean silent) {
-        if (StringHelper.isEmpty(date)) {
-            return null;
-        }
-
-        // Add ending Z if necessary
-        String dateZ = date.endsWith("Z") ? date : date + "Z";
-        try {
-            return new Date(Instant.parse(dateZ).toEpochMilli());
-        } catch (DateTimeParseException ex) {
-	        try {
-	            SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.SQL_DATA_FORMAT);
-	            return jsonDateFormat.parse(date);
-	        } catch (ParseException ex2) {
-	        	if (!silent) {
-		            LOG.error("Failed to decode generalized time '{}'", date, ex2);
-	        	}
-	
-	        	return null;
-	        }
-        }
-    }
-
-	private Object convertValueToDbJson(Object propertyValue) {
+	private String convertValueToDbJson(Object propertyValue) {
 		try {
-			if (SupportedDbType.POSTGRESQL == connectionProvider.getDbType()) {
-				Object[] attributeValue;
-				if (propertyValue == null) {
-					attributeValue = new Object[0];
-				} if (propertyValue instanceof List) {
-					attributeValue = ((List<?>) propertyValue).toArray();
-				} else if (propertyValue.getClass().isArray()) {
-					attributeValue = (Object[]) propertyValue;
-				} else {
-					attributeValue = new Object[] { propertyValue };
-				}
-	
-				String value = JSON_OBJECT_MAPPER.writeValueAsString(attributeValue);
-	
-				return new JsonString(value);
+//			String value = JSON_OBJECT_MAPPER.writeValueAsString(propertyValue);
+
+			JsonAttributeValue attributeValue;
+			if (propertyValue == null) {
+				attributeValue = new JsonAttributeValue();
+			} if (propertyValue instanceof List) {
+				attributeValue = new JsonAttributeValue(((List) propertyValue).toArray());
+			} else if (propertyValue.getClass().isArray()) {
+				attributeValue = new JsonAttributeValue((Object[]) propertyValue);
 			} else {
-				JsonAttributeValue attributeValue;
-				if (propertyValue == null) {
-					attributeValue = new JsonAttributeValue();
-				} if (propertyValue instanceof List) {
-					attributeValue = new JsonAttributeValue(((List<?>) propertyValue).toArray());
-				} else if (propertyValue.getClass().isArray()) {
-					attributeValue = new JsonAttributeValue((Object[]) propertyValue);
-				} else {
-					attributeValue = new JsonAttributeValue(new Object[] { propertyValue });
-				}
-
-				String value = JSON_OBJECT_MAPPER.writeValueAsString(attributeValue);
-
-				return value;
+				attributeValue = new JsonAttributeValue(new Object[] { propertyValue });
 			}
+
+			String value = JSON_OBJECT_MAPPER.writeValueAsString(attributeValue);
+
+			return value;
 		} catch (Exception ex) {
 			LOG.error("Failed to convert '{}' to json value:", propertyValue, ex);
 			throw new MappingException(String.format("Failed to convert '%s' to json value", propertyValue));
@@ -959,46 +853,33 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	private Object[] convertDbJsonToValue(String jsonValue) {
 		try {
 //			Object[] values = JSON_OBJECT_MAPPER.readValue(jsonValue, Object[].class);
-			if (SupportedDbType.POSTGRESQL == connectionProvider.getDbType()) {
-				Object[] values = JSON_OBJECT_MAPPER.readValue(jsonValue, Object[].class);
 
-				return values;
-			} else {
-				JsonAttributeValue attributeValue = JSON_OBJECT_MAPPER.readValue(jsonValue, JsonAttributeValue.class);
-				
-				Object[] values = null;
-				if (attributeValue != null) {
-					values = attributeValue.getValues();
-				}
-	
-				return values;
+			JsonAttributeValue attributeValue = JSON_OBJECT_MAPPER.readValue(jsonValue, JsonAttributeValue.class);
+			
+			Object[] values = null;
+			if (attributeValue != null) {
+				values = attributeValue.getValues();
 			}
+
+			return values;
 		} catch (Exception ex) {
 			LOG.error("Failed to convert json value '{}' to array:", jsonValue, ex);
 			throw new MappingException(String.format("Failed to convert json value '%s' to array", jsonValue));
 		}
 	}
 
-	public boolean isJsonColumn(String tableName, String columnTypeName) {
+	private boolean isJsonColumn(String tableName, String columnTypeName) {
 		if (columnTypeName == null) {
 			return false;
 		}
-
-		if ((SupportedDbType.MARIADB == dbType) && SqlOperationService.LONGTEXT_TYPE_NAME.equals(columnTypeName)) {
-			return true;
-		}
-
+		
 //		String engineType = connectionProvider.getEngineType(tableName);
 //		if ((engineType != null) && engineType.equalsIgnoreCase("mariadb")) {
 //			return "longtext".equals(columnTypeName);
 //		}
 
-		return SqlOperationService.JSON_TYPE_NAME.equals(columnTypeName) || SqlOperationService.JSONB_TYPE_NAME.equals(columnTypeName);
+		return "json".equals(columnTypeName);
 		
-	}
-
-	private AttributeType getAttributeType(Map<String, AttributeType> columTypes, AttributeData attribute) {
-		return columTypes.get(attribute.getName().toLowerCase());
 	}
 
 }

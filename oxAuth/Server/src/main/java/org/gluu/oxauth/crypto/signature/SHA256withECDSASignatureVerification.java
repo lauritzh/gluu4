@@ -22,7 +22,6 @@ import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.gluu.oxauth.model.exception.SignatureException;
-import org.gluu.util.security.SecurityProviderUtility;
 
 @Named
 public class SHA256withECDSASignatureVerification implements SignatureVerification {
@@ -36,7 +35,7 @@ public class SHA256withECDSASignatureVerification implements SignatureVerificati
     public boolean checkSignature(PublicKey publicKey, byte[] signedBytes, byte[] signature) throws SignatureException {
         boolean isValid = false;
 		try {
-			Signature ecdsaSignature = Signature.getInstance("SHA256withECDSA", SecurityProviderUtility.getBCProvider());
+			Signature ecdsaSignature = Signature.getInstance("SHA256withECDSA", "BC");
 			ecdsaSignature.initVerify(publicKey);
 			ecdsaSignature.update(signedBytes);
 

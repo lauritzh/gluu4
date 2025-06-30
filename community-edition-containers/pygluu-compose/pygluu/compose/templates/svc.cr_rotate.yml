@@ -2,8 +2,8 @@
 version: "2.4"
 
 services:
-  cr-rotate:
-    image: gluufederation/cr-rotate:4.5.11_dev
+  cr_rotate:
+    image: gluufederation/cr-rotate:4.3.1_02
     environment:
       - GLUU_CONFIG_CONSUL_HOST=consul
       - GLUU_SECRET_VAULT_HOST=vault
@@ -19,11 +19,9 @@ services:
       - GLUU_SQL_DB_HOST=${SQL_DB_HOST}
       - GLUU_SQL_DB_PORT=${SQL_DB_PORT}
       - GLUU_SQL_DB_USER=${SQL_DB_USER}
-      - GLUU_SQL_DB_SCHEMA=${SQL_DB_SCHEMA}
       - GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID}
       - GLUU_GOOGLE_SPANNER_INSTANCE_ID=${GOOGLE_SPANNER_INSTANCE_ID}
       - GLUU_GOOGLE_SPANNER_DATABASE_ID=${GOOGLE_SPANNER_DATABASE_ID}
-      - SPANNER_EMULATOR_HOST=${SPANNER_EMULATOR_HOST}
     volumes:
       - ./vault_role_id.txt:/etc/certs/vault_role_id
       - ./vault_secret_id.txt:/etc/certs/vault_secret_id
@@ -35,4 +33,3 @@ services:
     container_name: cr-rotate
     restart: unless-stopped
     mem_limit: 512M
-    user: "0"

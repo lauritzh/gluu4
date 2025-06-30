@@ -25,10 +25,6 @@ import org.gluu.fido2.ctap.AttestationFormat;
 import org.gluu.fido2.exception.Fido2RuntimeException;
 import org.gluu.fido2.service.processors.AssertionFormatProcessor;
 
-/**
- * Factory Class that returns Processor based on the attestationType value in Fido2RegistrationData
- *
- */
 @ApplicationScoped
 public class AssertionProcessorFactory {
 

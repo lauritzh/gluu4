@@ -27,7 +27,6 @@ import org.gluu.oxtrust.service.ImageService;
 import org.gluu.oxtrust.service.uma.ResourceSetService;
 import org.gluu.oxtrust.service.uma.UmaScopeService;
 import org.gluu.oxtrust.util.OxTrustConstants;
-import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.service.LookupService;
 import org.gluu.service.security.Secure;
 import org.gluu.util.StringHelper;
@@ -129,9 +128,8 @@ public class UmaInventoryAction implements Serializable {
 	public List<DisplayNameEntry> getScopeDisplayNameEntries(UmaResource resource) {
 		List<String> scopeDns = resource.getScopes();
 		List<DisplayNameEntry> result = new ArrayList<DisplayNameEntry>();
-		List<ScopeDisplayNameEntry> tmp = lookupService
-				.getDisplayNameEntries(umaScopeService.getDnForScope(null),
-						ScopeDisplayNameEntry.class, scopeDns);
+		List<DisplayNameEntry> tmp = lookupService
+				.getDisplayNameEntries(umaScopeService.getDnForScope(null), scopeDns);
 		if (tmp != null) {
 			result.addAll(tmp);
 		}
@@ -154,8 +152,7 @@ public class UmaInventoryAction implements Serializable {
 
 	public List<DisplayNameEntry> getClientDisplayNameEntries(List<String> clientDns) {
 		List<DisplayNameEntry> result = new ArrayList<DisplayNameEntry>();
-		List<ClientDisplayNameEntry> tmp = lookupService.getDisplayNameEntries(clientService.getDnForClient(null),
-				ClientDisplayNameEntry.class, clientDns);
+		List<DisplayNameEntry> tmp = lookupService.getDisplayNameEntries(clientService.getDnForClient(null), clientDns);
 		if (tmp != null) {
 			result.addAll(tmp);
 		}
@@ -185,16 +182,6 @@ public class UmaInventoryAction implements Serializable {
 
 	public UmaMetadata getUmaMetadata() {
 		return umaMetadata;
-	}
-
-	@ObjectClass(value = "oxAuthCustomScope")
-	class ScopeDisplayNameEntry extends DisplayNameEntry {
-		public ScopeDisplayNameEntry() {}
-	}
-
-	@ObjectClass(value = "oxAuthClient")
-	class ClientDisplayNameEntry extends DisplayNameEntry {
-		public ClientDisplayNameEntry() {}
 	}
 
 }

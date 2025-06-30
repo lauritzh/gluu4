@@ -20,13 +20,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.gluu.model.GluuAttribute;
-import org.gluu.oxauth.model.common.IdType;
 import org.gluu.oxtrust.exception.DuplicateEmailException;
 import org.gluu.oxtrust.model.GluuCustomAttribute;
 import org.gluu.oxtrust.model.GluuCustomPerson;
 import org.gluu.oxtrust.model.SimplePerson;
 import org.gluu.oxtrust.model.User;
-import org.gluu.oxtrust.service.external.ExternalIdGeneratorService;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.operation.DuplicateEntryException;
@@ -66,9 +64,6 @@ public class PersonService implements Serializable, IPersonService {
 
 	@Inject
 	private OrganizationService organizationService;
-
-	@Inject
-	private ExternalIdGeneratorService idGeneratorService;
 
 	private List<GluuCustomAttribute> mandatoryAttributes;
 
@@ -113,28 +108,19 @@ public class PersonService implements Serializable, IPersonService {
 		try {
 			List<GluuCustomPerson> persons = getPersonsByUid(person.getUid());
 			if (persons == null || persons.size() == 0) {
-				addPersonWithoutCheck(person);
+				person.setCreationDate(new Date());
+				persistenceEntryManager.persist(person);
 			} else {
 				throw new DuplicateEntryException("Duplicate UID value: " + person.getUid());
 			}
 		} catch (Exception e) {
-			if (log.isTraceEnabled()) {
-				log.trace("Failed to add person entry!", e);
-			}
-
-			if ((e.getCause() != null) && (e.getCause().getMessage() != null) &&
-				 e.getCause().getMessage().contains("unique attribute conflict was detected for attribute mail")) {
+			if (e.getCause().getMessage().contains("unique attribute conflict was detected for attribute mail")) {
 				throw new DuplicateEmailException("Email Already Registered");
 			} else {
-				throw new DuplicateEmailException("Duplicate UID value: " + person.getUid());
+				throw new Exception("Duplicate UID value: " + person.getUid());
 			}
 		}
 
-	}
-
-	public void addPersonWithoutCheck(GluuCustomPerson person) {
-		person.setCreationDate(new Date());
-		persistenceEntryManager.persist(person);
 	}
 
 	/*
@@ -147,12 +133,13 @@ public class PersonService implements Serializable, IPersonService {
 	@Override
 	public void updatePerson(GluuCustomPerson person) throws Exception {
 		try {
-			updatePersonWithoutCheck(person);
-		} catch (Exception e) {
-			if (log.isTraceEnabled()) {
-				log.trace("Failed to add person entry!", e);
+			Date updateDate = new Date();
+			person.setUpdatedAt(updateDate);
+			if (person.getAttribute("oxTrustMetaLastModified") != null) {
+				person.setAttribute("oxTrustMetaLastModified", Instant.ofEpochMilli(updateDate.getTime()).toString());
 			}
-
+			persistenceEntryManager.merge(person);
+		} catch (Exception e) {
 			if (e.getCause().getMessage().contains("unique attribute conflict was detected for attribute mail")) {
 				throw new DuplicateEmailException("Email Already Registered");
 			} else {
@@ -160,15 +147,6 @@ public class PersonService implements Serializable, IPersonService {
 			}
 		}
 
-	}
-
-	public void updatePersonWithoutCheck(GluuCustomPerson person) {
-		Date updateDate = new Date();
-		person.setUpdatedAt(updateDate);
-		if (person.getAttribute("oxTrustMetaLastModified") != null) {
-			person.setAttribute("oxTrustMetaLastModified", Instant.ofEpochMilli(updateDate.getTime()).toString());
-		}
-		persistenceEntryManager.merge(person);
 	}
 
 	/*
@@ -180,7 +158,7 @@ public class PersonService implements Serializable, IPersonService {
 	 */
 	@Override
 	public void removePerson(GluuCustomPerson person) {
-		persistenceEntryManager.removeRecursively(person.getDn(), GluuCustomPerson.class);
+		persistenceEntryManager.removeRecursively(person.getDn());
 	}
 
 	/*
@@ -225,12 +203,12 @@ public class PersonService implements Serializable, IPersonService {
 	}
 
 	private Filter buildFilterForList(String pattern) {
-		String[] targetArray = new String[] { pattern.toLowerCase() };
-		Filter uidFilter = Filter.createSubstringFilter(Filter.createLowercaseFilter(OxConstants.UID), null, targetArray, null);
-		Filter mailFilter = Filter.createSubstringFilter(Filter.createLowercaseFilter(OxTrustConstants.mail), null, targetArray, null);
-		Filter nameFilter = Filter.createSubstringFilter(Filter.createLowercaseFilter(OxTrustConstants.displayName), null, targetArray, null);
+		String[] targetArray = new String[] { pattern };
+		Filter uidFilter = Filter.createSubstringFilter(OxConstants.UID, null, targetArray, null);
+		Filter mailFilter = Filter.createSubstringFilter(OxTrustConstants.mail, null, targetArray, null);
+		Filter nameFilter = Filter.createSubstringFilter(OxTrustConstants.displayName, null, targetArray, null);
 
-		Filter snFilter = Filter.createSubstringFilter(Filter.createLowercaseFilter(OxTrustConstants.sn), null, targetArray, null);
+		Filter snFilter = Filter.createSubstringFilter(OxTrustConstants.sn, null, targetArray, null);
 		Filter searchFilter = Filter.createORFilter(uidFilter, mailFilter, nameFilter, snFilter);
 		return searchFilter;
 	}
@@ -461,19 +439,7 @@ public class PersonService implements Serializable, IPersonService {
 	 * @throws Exception
 	 */
 	private String generateInumForNewPersonImpl() {
-
-	    String id = null;
-	    if (idGeneratorService.isEnabled()) {
-	        id = idGeneratorService.executeExternalGenerateIdMethod(
-	            //Use the first enabled script only
-	            idGeneratorService.getCustomScriptConfigurations().stream().findFirst().orElse(null)
-	            , ""    //appId 
-	            , IdType.PEOPLE.getType()    //idType
-	            , ""    //idPrefix
-            );
-	    }
-        return id == null ? UUID.randomUUID().toString() : id;
-
+		return UUID.randomUUID().toString();
 	}
 
 	/*
@@ -514,13 +480,12 @@ public class PersonService implements Serializable, IPersonService {
 		if (this.mandatoryAttributes == null) {
 			mandatoryAttributes = new ArrayList<GluuCustomAttribute>();
 			mandatoryAttributes.add(new GluuCustomAttribute(OxConstants.UID, "", true, true));
-			mandatoryAttributes.add(new GluuCustomAttribute("displayName", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("givenName", "", true, true));
+			mandatoryAttributes.add(new GluuCustomAttribute("displayName", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("sn", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("mail", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("userPassword", "", true, true));
 			mandatoryAttributes.add(new GluuCustomAttribute("gluuStatus", "", true, true));
-			mandatoryAttributes.add(new GluuCustomAttribute("oxTrustActive", "", true, true));
 		}
 		return mandatoryAttributes;
 	}

@@ -6,8 +6,10 @@
 
 package org.gluu.oxauth.service.external.context;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.net.util.SubnetUtils;
-import org.gluu.oxauth.model.common.ExecutionContext;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
@@ -15,13 +17,6 @@ import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.model.base.CustomEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  * Holds object required in custom scripts
@@ -35,14 +30,6 @@ public class ExternalScriptContext extends org.gluu.service.external.context.Ext
 
     private final PersistenceEntryManager ldapEntryManager;
 
-    private WebApplicationException webApplicationException;
-    private ExecutionContext executionContext;
-
-    public ExternalScriptContext(ExecutionContext executionContext) {
-        this(executionContext.getHttpRequest(), executionContext.getHttpResponse());
-        this.executionContext = executionContext;
-    }
-
     public ExternalScriptContext(HttpServletRequest httpRequest) {
         this(httpRequest, null);
     }
@@ -50,10 +37,6 @@ public class ExternalScriptContext extends org.gluu.service.external.context.Ext
     public ExternalScriptContext(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
     	super(httpRequest, httpResponse);
         this.ldapEntryManager = ServerUtil.getLdapManager();
-    }
-
-    public ExecutionContext getExecutionContext() {
-        return executionContext;
     }
 
     public PersistenceEntryManager getPersistenceEntryManager() {
@@ -87,35 +70,5 @@ public class ExternalScriptContext extends org.gluu.service.external.context.Ext
         }
 
         return "";
-    }
-
-    public WebApplicationException getWebApplicationException() {
-        return webApplicationException;
-    }
-
-    public void setWebApplicationException(WebApplicationException webApplicationException) {
-        this.webApplicationException = webApplicationException;
-    }
-
-    public WebApplicationException createWebApplicationException(Response response) {
-        return new WebApplicationException(response);
-    }
-
-    public WebApplicationException createWebApplicationException(int status, String entity) {
-        final CacheControl cacheControl = new CacheControl();
-        cacheControl.setNoStore(true);
-
-        this.webApplicationException = new WebApplicationException(Response
-                .status(status)
-                .entity(entity)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .cacheControl(cacheControl)
-                .build());
-        return this.webApplicationException;
-    }
-
-    public void throwWebApplicationExceptionIfSet() {
-        if (webApplicationException != null)
-            throw webApplicationException;
     }
 }

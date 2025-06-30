@@ -141,14 +141,12 @@ public class ScopeService implements Serializable {
 					null);
 			Filter descriptionFilter = Filter.createSubstringFilter(OxTrustConstants.description, null, targetArray,
 					null);
-			Filter oxIdFilter = Filter.createSubstringFilter(OxTrustConstants.oxId, null, targetArray,
-					null);
-			searchFilter = Filter.createORFilter(displayNameFilter, descriptionFilter, oxIdFilter);
+			searchFilter = Filter.createORFilter(displayNameFilter, descriptionFilter);
 		}
 		List<Scope> result = new ArrayList<>();
 		try {
 			result = persistenceEntryManager.findEntries(getDnForScope(null), Scope.class, searchFilter, sizeLimit);
-			return result;
+			return filter(result);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -193,7 +191,7 @@ public class ScopeService implements Serializable {
 	public List<ScopeType> getScopeTypes() {
 		List<ScopeType> scopeTypes = new ArrayList<ScopeType>(
 				Arrays.asList(org.gluu.oxauth.model.common.ScopeType.values()));
-		
+		scopeTypes.remove(ScopeType.UMA);
 		return scopeTypes;
 	}
 
@@ -206,23 +204,6 @@ public class ScopeService implements Serializable {
 	public Scope getScopeByDisplayName(String DisplayName) throws Exception {
 		Scope scope = new Scope();
 		scope.setDisplayName(DisplayName);
-		List<Scope> scopes = persistenceEntryManager.findEntries(scope);
-		if ((scopes != null) && (scopes.size() > 0)) {
-			return scopes.get(0);
-		}
-		return null;
-	}
-	
-	/**
-	 * Get scope by oxId
-	 * 
-	 * @param oxId
-	 * @return scope
-	 */
-	public Scope getScopeById(String id) throws Exception {
-		Scope scope = new Scope();
-		scope.setBaseDn(getDnForScope(null));
-		scope.setId(id);
 		List<Scope> scopes = persistenceEntryManager.findEntries(scope);
 		if ((scopes != null) && (scopes.size() > 0)) {
 			return scopes.get(0);

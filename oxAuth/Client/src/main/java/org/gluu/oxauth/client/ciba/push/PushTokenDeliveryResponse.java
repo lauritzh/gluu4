@@ -21,5 +21,9 @@ public class PushTokenDeliveryResponse extends BaseResponse {
 
     public PushTokenDeliveryResponse(Response clientResponse) {
         super(clientResponse);
+
+        String entity = clientResponse.readEntity(String.class);
+        setEntity(entity);
+        setHeaders(clientResponse.getMetadata());
     }
 }

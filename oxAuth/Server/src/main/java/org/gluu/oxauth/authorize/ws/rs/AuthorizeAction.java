@@ -6,45 +6,21 @@
 
 package org.gluu.oxauth.authorize.ws.rs;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.apache.logging.log4j.util.Strings;
-import org.gluu.jsf2.message.FacesMessages;
-import org.gluu.jsf2.service.FacesService;
-import org.gluu.model.AuthenticationScriptUsageType;
-import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
-import org.gluu.oxauth.auth.Authenticator;
-import org.gluu.oxauth.i18n.LanguageBean;
-import org.gluu.oxauth.model.auth.AuthenticationMode;
-import org.gluu.oxauth.model.authorize.*;
-import org.gluu.oxauth.model.common.*;
-import org.gluu.oxauth.model.config.Constants;
-import org.gluu.oxauth.model.configuration.AppConfiguration;
-import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
-import org.gluu.oxauth.model.error.ErrorResponseFactory;
-import org.gluu.oxauth.model.exception.AcrChangedException;
-import org.gluu.oxauth.model.exception.InvalidJwtException;
-import org.gluu.oxauth.model.jwt.JwtClaimName;
-import org.gluu.oxauth.model.ldap.ClientAuthorization;
-import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
-import org.gluu.oxauth.model.util.Base64Util;
-import org.gluu.oxauth.model.util.JwtUtil;
-import org.gluu.oxauth.model.util.Util;
-import org.gluu.oxauth.security.Identity;
-import org.gluu.oxauth.service.*;
-import org.gluu.oxauth.service.ciba.CibaRequestService;
-import org.gluu.oxauth.service.external.ExternalAuthenticationService;
-import org.gluu.oxauth.service.external.ExternalConsentGatheringService;
-import org.gluu.oxauth.service.external.ExternalPostAuthnService;
-import org.gluu.oxauth.service.external.context.ExternalPostAuthnContext;
-import org.gluu.oxauth.util.ServerUtil;
-import org.gluu.persist.exception.EntryPersistenceException;
-import org.gluu.service.net.NetworkService;
-import org.gluu.util.StringHelper;
-import org.gluu.util.locale.LocaleUtil;
-import org.slf4j.Logger;
+import static org.gluu.oxauth.service.DeviceAuthorizationService.SESSION_USER_CODE;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import javax.enterprise.context.RequestScoped;
 import javax.faces.application.FacesMessage;
@@ -58,13 +34,59 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.*;
 
-import static org.gluu.oxauth.service.DeviceAuthorizationService.SESSION_USER_CODE;
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.util.Strings;
+import org.gluu.jsf2.message.FacesMessages;
+import org.gluu.jsf2.service.FacesService;
+import org.gluu.model.AuthenticationScriptUsageType;
+import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
+import org.gluu.oxauth.auth.Authenticator;
+import org.gluu.oxauth.i18n.LanguageBean;
+import org.gluu.oxauth.model.auth.AuthenticationMode;
+import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
+import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
+import org.gluu.oxauth.model.authorize.Claim;
+import org.gluu.oxauth.model.authorize.JwtAuthorizationRequest;
+import org.gluu.oxauth.model.authorize.ScopeChecker;
+import org.gluu.oxauth.model.common.CibaRequestCacheControl;
+import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.common.SessionIdState;
+import org.gluu.oxauth.model.common.SubjectType;
+import org.gluu.oxauth.model.common.User;
+import org.gluu.oxauth.model.config.Constants;
+import org.gluu.oxauth.model.configuration.AppConfiguration;
+import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
+import org.gluu.oxauth.model.error.ErrorResponseFactory;
+import org.gluu.oxauth.model.exception.AcrChangedException;
+import org.gluu.oxauth.model.exception.InvalidJwtException;
+import org.gluu.oxauth.model.jwt.JwtClaimName;
+import org.gluu.oxauth.model.ldap.ClientAuthorization;
+import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.util.Base64Util;
+import org.gluu.oxauth.model.util.JwtUtil;
+import org.gluu.oxauth.model.util.Util;
+import org.gluu.oxauth.security.Identity;
+import org.gluu.oxauth.service.AuthenticationService;
+import org.gluu.oxauth.service.AuthorizeService;
+import org.gluu.oxauth.service.ClientAuthorizationsService;
+import org.gluu.oxauth.service.ClientService;
+import org.gluu.oxauth.service.CookieService;
+import org.gluu.oxauth.service.ErrorHandlerService;
+import org.gluu.oxauth.service.RedirectionUriService;
+import org.gluu.oxauth.service.RequestParameterService;
+import org.gluu.oxauth.service.SessionIdService;
+import org.gluu.oxauth.service.ciba.CibaRequestService;
+import org.gluu.oxauth.service.external.ExternalAuthenticationService;
+import org.gluu.oxauth.service.external.ExternalConsentGatheringService;
+import org.gluu.oxauth.service.external.ExternalPostAuthnService;
+import org.gluu.oxauth.service.external.context.ExternalPostAuthnContext;
+import org.gluu.oxauth.util.ServerUtil;
+import org.gluu.persist.exception.EntryPersistenceException;
+import org.gluu.util.StringHelper;
+import org.gluu.util.ilocale.LocaleUtil;
+import org.slf4j.Logger;
 /**
  * @author Javier Rojas Blum
  * @author Yuriy Movchan
@@ -103,9 +125,6 @@ public class AuthorizeAction {
 
     @Inject
     private LanguageBean languageBean;
-
-    @Inject
-    private NetworkService networkService;
 
     @Inject
     private AppConfiguration appConfiguration;
@@ -218,16 +237,7 @@ public class AuthorizeAction {
         }
     }
 
-    public void checkPermissionGranted() {
-        try {
-            checkPermissionGrantedInternal();
-        } catch (Exception e) {
-            log.error("Failed to perform checkPermissionGranted()", e);
-            permissionDenied();
-        }
-    }
-
-    public void checkPermissionGrantedInternal() throws IOException {
+    public void checkPermissionGranted() throws IOException {
         if ((clientId == null) || clientId.isEmpty()) {
             log.debug("Permission denied. client_id should be not empty.");
             permissionDenied();
@@ -259,7 +269,7 @@ public class AuthorizeAction {
         try {
             redirectUri = authorizeRestWebServiceValidator.validateRedirectUri(client, redirectUri, state, session != null ? session.getSessionAttributes().get(SESSION_USER_CODE) : null, (HttpServletRequest) externalContext.getRequest());
         } catch (WebApplicationException e) {
-            log.debug(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             permissionDenied();
             return;
         }
@@ -311,8 +321,7 @@ public class AuthorizeAction {
             }
 
             // Store Remote IP
-            String remoteIp = networkService.getRemoteIp();
-            requestParameterMap.put(Constants.REMOTE_IP, remoteIp);
+            requestParameterMap.put(Constants.REMOTE_IP, getRemoteIp());
 
             // User Code used in Device Authz flow
             if (session != null && session.getSessionAttributes().containsKey(SESSION_USER_CODE)) {
@@ -449,8 +458,7 @@ public class AuthorizeAction {
                 session.setState(SessionIdState.UNAUTHENTICATED);
 
                 // Update Remote IP
-                String remoteIp = networkService.getRemoteIp();
-                session.getSessionAttributes().put(Constants.REMOTE_IP, remoteIp);
+                session.getSessionAttributes().put(Constants.REMOTE_IP, getRemoteIp());
 
                 final boolean isSessionPersisted = sessionIdService.reinitLogin(session, false);
                 if (!isSessionPersisted) {
@@ -459,6 +467,16 @@ public class AuthorizeAction {
             }
         }
         return session;
+    }
+    
+    protected String getRemoteIp() {
+        HttpServletRequest request = (HttpServletRequest) externalContext.getRequest();
+        if (request != null) {
+            return ServerUtil.getIpAddress(request);
+        }
+        
+        return null;
+
     }
 
     private SessionId getSession() {
@@ -730,7 +748,7 @@ public class AuthorizeAction {
     }
 
     public void setLoginHint(String loginHint) {
-        this.loginHint = StringEscapeUtils.escapeEcmaScript(loginHint);
+        this.loginHint = loginHint;
     }
 
     public String getAcrValues() {

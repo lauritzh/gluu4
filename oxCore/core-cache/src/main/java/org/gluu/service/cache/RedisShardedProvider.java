@@ -2,15 +2,13 @@ package org.gluu.service.cache;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.JedisShardInfo;
-import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPool;
+import redis.clients.jedis.*;
 
 import javax.net.ssl.SSLParameters;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,17 +32,14 @@ public class RedisShardedProvider extends AbstractRedisProvider {
         try {
             LOG.debug("Starting RedisShardedProvider ... configuration:" + redisConfiguration);
 
-            GenericObjectPoolConfig<ShardedJedis> poolConfig = new GenericObjectPoolConfig<>();
-            poolConfig.setMaxTotal(redisConfiguration.getMaxTotalConnections());
-            poolConfig.setMaxIdle(redisConfiguration.getMaxIdleConnections());
-            poolConfig.setMinIdle(2);
+            JedisPoolConfig poolConfig = createPoolConfig();
 
             pool = new ShardedJedisPool(poolConfig, shards(redisConfiguration));
 
             testConnection();
             LOG.debug("RedisShardedProvider started.");
         } catch (Exception e) {
-            LOG.error("Failed to start RedisShardedProvider.", e);
+            LOG.error("Failed to start RedisShardedProvider.");
             throw new IllegalStateException("Error starting RedisShardedProvider", e);
         }
     }
@@ -63,10 +58,9 @@ public class RedisShardedProvider extends AbstractRedisProvider {
                 try {
                     final JedisShardInfo shardInfo;
                     if (configuration.getUseSSL()) {
-                        if (StringUtils.isNotBlank(configuration.getSslTrustStoreFilePath())
-                                && StringUtils.isNotBlank(configuration.getSslKeyStoreFilePath())) {
+                        if (StringUtils.isNotBlank(configuration.getSslTrustStoreFilePath())) {
                             shardInfo = new JedisShardInfo(host, port, true,
-                                    RedisProviderFactory.createSslSocketFactory(configuration),
+                                    RedisProviderFactory.createTrustStoreSslSocketFactory(new File(configuration.getSslTrustStoreFilePath())),
                                     new SSLParameters(), new DefaultHostnameVerifier());
                         } else {
                             shardInfo = new JedisShardInfo(host, port, true);

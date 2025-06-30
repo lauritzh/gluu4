@@ -1,6 +1,6 @@
 # oxshibboleth
 
-![Version: 1.8.45](https://img.shields.io/badge/Version-1.8.45-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.5.11](https://img.shields.io/badge/AppVersion-4.5.11-informational?style=flat-square)
+![Version: 1.6.19](https://img.shields.io/badge/Version-1.6.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.3.1](https://img.shields.io/badge/AppVersion-4.3.1-informational?style=flat-square)
 
 Shibboleth project for the Gluu Server's SAML IDP functionality.
 
@@ -10,15 +10,16 @@ Shibboleth project for the Gluu Server's SAML IDP functionality.
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| Mohammad Abudayyeh | <support@gluu.org> | <https://github.com/moabu> |
+| Mohammad Abudayyeh | support@gluu.org | https://github.com/moabu |
 
 ## Source Code
 
-* <https://github.com/GluuFederation/gluu4/tree/4.5/cloud-native-edition>
+* <https://github.com/GluuFederation/docker-oxshibboleth>
+* <https://github.com/GluuFederation/cloud-native-edition/tree/4.3/pygluu/kubernetes/templates/helm/gluu/charts/oxshibboleth>
 
 ## Requirements
 
-Kubernetes: `>=v1.22.0-0`
+Kubernetes: `>=v1.21.0-0`
 
 ## Values
 
@@ -27,7 +28,6 @@ Kubernetes: `>=v1.22.0-0`
 | additionalAnnotations | object | `{}` | Additional annotations that will be added across all resources  in the format of {cert-manager.io/issuer: "letsencrypt-prod"}. key app is taken |
 | additionalLabels | object | `{}` | Additional labels that will be added across all resources definitions in the format of {mylabel: "myapp"} |
 | affinity | object | `{}` |  |
-| customScripts | list | `[]` | Add custom scripts that have been mounted to run before the entrypoint. |
 | dnsConfig | object | `{}` | Add custom dns config |
 | dnsPolicy | string | `""` | Add custom dns policy |
 | fullnameOverride | string | `""` |  |
@@ -37,22 +37,22 @@ Kubernetes: `>=v1.22.0-0`
 | image.pullPolicy | string | `"IfNotPresent"` | Image pullPolicy to use for deploying. |
 | image.pullSecrets | list | `[]` | Image Pull Secrets |
 | image.repository | string | `"gluufederation/oxshibboleth"` | Image  to use for deploying. |
-| image.tag | string | `"4.5.11_dev"` | Image  tag to use for deploying. |
-| lifecycle | object | `{}` |  |
+| image.tag | string | `"4.3.1_01"` | Image  tag to use for deploying. |
+| livenessProbe | object | `{"httpGet":{"path":"/idp","port":"http-oxshib"},"initialDelaySeconds":30,"periodSeconds":30,"timeoutSeconds":5}` | Configure the liveness healthcheck for the oxShibboleth if needed. |
+| livenessProbe.httpGet.path | string | `"/idp"` | http liveness probe endpoint |
 | nameOverride | string | `""` |  |
 | nodeSelector | object | `{}` |  |
+| readinessProbe | object | `{"httpGet":{"path":"/idp","port":"http-oxshib"},"initialDelaySeconds":25,"periodSeconds":25,"timeoutSeconds":5}` | Configure the readiness healthcheck for the casa if needed. |
+| readinessProbe.httpGet.path | string | `"/idp"` | http liveness probe endpoint |
 | replicas | int | `1` | Service replica number. |
 | resources | object | `{"limits":{"cpu":"1000m","memory":"1000Mi"},"requests":{"cpu":"1000m","memory":"1000Mi"}}` | Resource specs. |
 | resources.limits.cpu | string | `"1000m"` | CPU limit. |
 | resources.limits.memory | string | `"1000Mi"` | Memory limit. |
 | resources.requests.cpu | string | `"1000m"` | CPU request. |
 | resources.requests.memory | string | `"1000Mi"` | Memory request. |
-| service.livenessProbe | object | `{"exec":{"command":["python3","/app/scripts/healthcheck.py"]},"initialDelaySeconds":30,"periodSeconds":30,"timeoutSeconds":5}` | Configure the liveness healthcheck for the oxshibboleth if needed. |
-| service.livenessProbe.exec | object | `{"command":["python3","/app/scripts/healthcheck.py"]}` | Executes the python3 healthcheck. |
 | service.name | string | `"http-oxshib"` | Port of the oxShibboleth service. Please keep it as default. |
 | service.oxShibbolethServiceName | string | `"oxshibboleth"` | Name of the oxShibboleth service. Please keep it as default. |
 | service.port | int | `8080` | The name of the oxPassport port within the oxPassport service. Please keep it as default. |
-| service.readinessProbe | object | `{"exec":{"command":["python3","/app/scripts/healthcheck.py"]}}` | Configure the readiness healthcheck for the oxshibboleth if needed. |
 | service.sessionAffinity | string | `"None"` | Default set to None If you want to make sure that connections from a particular client are passed to the same Pod each time, you can select the session affinity based on the client's IP addresses by setting this to ClientIP |
 | service.sessionAffinityConfig | object | `{"clientIP":{"timeoutSeconds":10800}}` | the maximum session sticky time if sessionAffinity is ClientIP |
 | service.targetPort | int | `8080` |  |
@@ -62,3 +62,6 @@ Kubernetes: `>=v1.22.0-0`
 | usrEnvs.secret | object | `{}` | Add custom secret envs to the service variable1: value1 |
 | volumeMounts | list | `[]` | Configure any additional volumesMounts that need to be attached to the containers |
 | volumes | list | `[]` | Configure any additional volumes that need to be attached to the pod |
+
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.7.0](https://github.com/norwoodj/helm-docs/releases/v1.7.0)

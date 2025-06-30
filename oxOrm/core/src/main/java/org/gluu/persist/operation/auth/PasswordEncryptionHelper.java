@@ -34,7 +34,7 @@ public final class PasswordEncryptionHelper {
     private PasswordEncryptionHelper() {
     }
 
-	/**
+    /**
      * Get the algorithm from the stored password
      */
     public static PasswordEncryptionMethod findAlgorithm(String credentials) {
@@ -45,25 +45,6 @@ public final class PasswordEncryptionHelper {
      * Get the algorithm from the stored password
      */
     public static PasswordEncryptionMethod findAlgorithm(byte[] credentials) {
-    	String algorithm = findAlgorithmString(credentials);
-    	if (algorithm != null) {
-    		return PasswordEncryptionMethod.getMethod(algorithm);
-    	}
-
-    	return null;
-    }
-
-    /**
-     * Get the algorithm from the stored password
-     */
-    public static String findAlgorithmString(String credentials) {
-    	return findAlgorithmString(StringHelper.getBytesUtf8(credentials));
-    }
-
-    /**
-     * Get the algorithm from the stored password
-     */
-    public static String findAlgorithmString(byte[] credentials) {
         if ((credentials == null) || (credentials.length == 0)) {
             return null;
         }
@@ -98,7 +79,7 @@ public final class PasswordEncryptionHelper {
                     }
                 }
 
-                return algorithm;
+                return PasswordEncryptionMethod.getMethod(algorithm);
             } else {
                 // We don't have an algorithm
                 return null;
@@ -108,6 +89,7 @@ public final class PasswordEncryptionHelper {
             return null;
         }
     }
+
     /**
      * @see #createStoragePassword(byte[], PasswordEncryptionMethod)
      */

@@ -455,7 +455,7 @@ class PersonAuthentication(PersonAuthenticationType):
         if acr == None and onMobile:
             print "Casa. getSuitableAcr. No mobile-friendly authentication method available for user %s" % id
             # user_methods is not empty when this function is called, so just pick any
-            acr = user_methods.stream().findFirst().get()
+            acr = user_methods.get(0)
 
         print "Casa. getSuitableAcr. %s was selected for user %s" % (acr, id)
         return acr
@@ -619,7 +619,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         session_attributes = identity.getSessionId().getSessionAttributes()
         if session_attributes.containsKey("remote_ip"):
-            remote_ip = session_attributes.get("remote_ip").split(",", 2)[0].strip()
+            remote_ip = session_attributes.get("remote_ip")
             if StringHelper.isNotEmpty(remote_ip):
 
                 httpService = CdiUtil.bean(HttpService)

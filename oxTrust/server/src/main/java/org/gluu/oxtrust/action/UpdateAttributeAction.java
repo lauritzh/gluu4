@@ -279,13 +279,6 @@ public class UpdateAttributeAction implements Serializable {
                     return OxTrustConstants.RESULT_VALIDATION_ERROR;
                 }
 
-                if (attribute.getSaml1Uri() == null || attribute.getSaml1Uri().equals("")) {
-                    attribute.setSaml1Uri("urn:gluu:dir:attribute-def:" + attributeName);
-                }
-                if (attribute.getSaml2Uri() == null || attribute.getSaml2Uri().equals("")) {
-                    attribute.setSaml2Uri("urn:oid:" + attributeName);
-                }
-
                 attributeService.updateAttribute(this.attribute);
                 oxTrustAuditService.audit(
                         "ATTRIBUTE " + this.attribute.getInum() + " **" + this.attribute.getDisplayName()
@@ -544,9 +537,5 @@ public class UpdateAttributeAction implements Serializable {
     public GluuAttributeUsageType[] getAttributeUsageTypes() {
         return attributeService.getAttributeUsageTypes();
     }
-    
-    public String getPersistenceType() {
-		return attributeService.getPersistenceType();
-	}
 
 }

@@ -1,5 +1,3 @@
-"""Application to manage containers."""
-
 import contextlib
 import io
 import ipaddress
@@ -22,7 +20,6 @@ from compose.config.environment import Environment
 
 from .settings import DEFAULT_SETTINGS
 from .settings import COMPOSE_MAPPINGS
-from .version import __gluu_version__
 
 CONFIG_DIR = "volumes/config-init/db"
 EMAIL_RGX = re.compile(
@@ -34,12 +31,6 @@ PASSWD_RGX = re.compile(
 
 
 class ContainerHelper:
-    """Thin wrapper to act with container.
-
-    :param name: Service name.
-    :param docker_client: An instance of Docker client.
-    """
-
     def __init__(self, name, docker_client):
         containers = docker_client.containers(filters={'label': [
             'com.docker.compose.service=' + name,
@@ -55,11 +46,6 @@ class ContainerHelper:
         self.docker = docker_client
 
     def exec(self, cmd):  # noqa: A003
-        """Execute command inside a running container.
-
-        :param cmd: Command string to be executed.
-        :returns: A ``tuple`` of raw output and exit code.
-        """
         exec_id = self.docker.exec_create(self.name, cmd).get("Id")
         retval = self.docker.exec_start(exec_id)
         retcode = self.docker.exec_inspect(exec_id).get("ExitCode")
@@ -67,16 +53,9 @@ class ContainerHelper:
 
 
 class Secret:
-    """Thin wrapper to interact with Vault container.
-
-    :param docker_client: An instance of Docker client.
-    """
-
     UNSEAL_KEY_RE = re.compile(r"^Unseal Key 1: (.+)", re.M)
-
     # auto-unseal uses recovery key instead of unseal key
     RECOVERY_KEY_RE = re.compile(r"^Recovery Key 1: (.+)", re.M)
-
     ROOT_TOKEN_RE = re.compile(r"^Initial Root Token: (.+)", re.M)
 
     def __init__(self, docker_client):
@@ -84,7 +63,6 @@ class Secret:
 
     @contextlib.contextmanager
     def login(self):
-        """Log in to Vault using specific token."""
         token = self.creds["token"]
         try:
             self.container.exec("vault login {}".format(token))
@@ -94,10 +72,6 @@ class Secret:
 
     @property
     def creds(self):
-        """Get credentials (root token and recovery/unseal keys).
-
-        :returns: A mapping contains of key and token credentials.
-        """
         key = ""
         token = ""
         path = pathlib.Path("vault_key_token.txt")
@@ -112,10 +86,6 @@ class Secret:
         return {"key": key, "token": token}
 
     def status(self):
-        """Check Vault status.
-
-        :returns: A mapping contains of data from Vault status output.
-        """
         print("[I] Checking Vault status")
 
         status = {}
@@ -133,7 +103,6 @@ class Secret:
         return status
 
     def initialize(self):
-        """Initialize Vault."""
         print("[I] Initializing Vault with 1 recovery key and token")
         out, _ = self.container.exec(
             "vault operator init "
@@ -148,12 +117,10 @@ class Secret:
               "saved to vault_key_token.txt")
 
     def unseal(self):
-        """Run process to unseal Vault."""
         print("[I] Unsealing Vault manually")
         self.container.exec("vault operator unseal {}".format(self.creds["key"]))
 
     def write_policy(self):
-        """Create policy required by the application."""
         policies, _ = self.container.exec("vault policy list")
         if b"gluu" in policies.splitlines():
             return
@@ -162,7 +129,6 @@ class Secret:
         self.container.exec("vault policy write gluu /vault/config/policy.hcl")
 
     def enable_approle(self):
-        """Enable Vault's AppRole authentication."""
         raw, retcode = self.container.exec("vault auth list -format yaml")
 
         if retcode != 0:
@@ -194,7 +160,6 @@ class Secret:
         pathlib.Path("vault_secret_id.txt").write_text(secret_id.decode())
 
     def setup(self):
-        """Set up Vault for the application."""
         status = self.status()
         if not status["initialized"]:
             self.initialize()
@@ -214,19 +179,10 @@ class Secret:
 
 
 class Config:
-    """Thin wrapper to interact with Consul container.
-
-    :param docker_client: An instance of Docker client.
-    """
-
     def __init__(self, docker_client):
         self.container = ContainerHelper("consul", docker_client)
 
     def hostname_from_backend(self):
-        """Get hostname from configs backend (Consul).
-
-        :returns: Hostname.
-        """
         print("[I] Attempting to gather FQDN from Consul")
 
         hostname = ""
@@ -246,11 +202,6 @@ class Config:
         return hostname
 
     def hostname_from_file(self, file_):
-        """Get hostname defined in a JSON file.
-
-        :param file_: Path to JSON file.
-        :returns: Hostname.
-        """
         hostname = ""
         with contextlib.suppress(FileNotFoundError, json.decoder.JSONDecodeError):
             data = json.loads(pathlib.Path(file_).read_text())
@@ -258,15 +209,12 @@ class Config:
         return hostname
 
 
-class App:
-    """Application for managing containers."""
-
+class App(object):
     def __init__(self):
         self.settings = self.get_settings()
 
     @contextlib.contextmanager
     def top_level_cmd(self):
-        """Get TopLevelCommand instance."""
         try:
             compose_files = self.get_compose_files()
             config_path = get_config_path_from_options(
@@ -295,8 +243,6 @@ class App:
 
     def get_settings(self):
         """Get merged settings (default and custom settings from local Python file).
-
-        :returns: A mapping of pre-populated configs.
         """
         settings = DEFAULT_SETTINGS
         custom_settings = {}
@@ -315,49 +261,13 @@ class App:
         return settings
 
     def get_compose_files(self):
-        """Get all enabled Compose files.
-
-        :returns: List of Compose files as colon-separated string.
-        """
         files = ["docker-compose.yml"]
         for svc, filename in COMPOSE_MAPPINGS.items():
             if all([svc in self.settings, self.settings.get(svc), os.path.isfile(filename)]):
                 files.append(filename)
-
-        # add dev override (if any)
-        if self.settings.get("ENABLE_DEV_OVERRIDE", False) is True:
-            dev_overrides = {"version": "2.4", "services": {}}
-
-            for file_ in files:
-                with open(file_) as f:
-                    data = yaml.safe_load(f)
-
-                for name, svc in data["services"].items():
-                    if "image" not in svc:
-                        continue
-
-                    if not svc["image"].startswith("gluufederation/"):
-                        continue
-
-                    try:
-                        image_name, _ = svc["image"].split(":")
-                    except ValueError:
-                        image_name = svc["image"]
-                    finally:
-                        dev_overrides["services"][name] = {"image": f"{image_name}:{__gluu_version__}_dev"}
-
-            with open("docker-compose.dev.yml", "w") as f:
-                yaml.dump(dev_overrides, f)
-            files.append("docker-compose.dev.yml")
-
-        # add custom override (if any)
-        if self.settings.get("ENABLE_OVERRIDE", False) is True and os.path.isfile("docker-compose.override.yml"):
-            files.append("docker-compose.override.yml")
-
         return ":".join(files)
 
     def logs(self, follow, tail, services=None):
-        """View output from containers."""
         with self.top_level_cmd() as tlc:
             tlc.logs({
                 "SERVICE": services or [],
@@ -368,7 +278,6 @@ class App:
             })
 
     def config(self):
-        """Validate and view the Compose files."""
         with self.top_level_cmd() as tlc:
             tlc.config({
                 "--resolve-image-digests": False,
@@ -380,7 +289,6 @@ class App:
             })
 
     def down(self):
-        """Teardown running containers."""
         with self.top_level_cmd() as tlc:
             tlc.down({
                 "--rmi": False,
@@ -407,10 +315,6 @@ class App:
             })
 
     def ps(self, service):
-        """Get a list of running container.
-
-        :returns: List of running container as string.
-        """
         trap = io.StringIO()
 
         # suppress output of `ps` command
@@ -426,22 +330,16 @@ class App:
 
     @property
     def network_name(self):
-        """Get docker network name used by the application."""
         with self.top_level_cmd() as tlc:
             return f"{tlc.project.name}_default"
 
     def gather_ip(self):
         """Gather IP address.
-
-        :returns: IP address.
         """
 
         def auto_detect_ip():
             # detect IP address automatically (if possible)
             ip = ""
-
-            socket.setdefaulttimeout(30.0)
-
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
                 sock.connect(("8.8.8.8", 80))
                 ip, _ = sock.getsockname()
@@ -459,11 +357,6 @@ class App:
             raise click.Abort()
 
     def generate_params(self, file_):
-        """Generate parameters required to bootstrap the application and containers.
-
-        :returns: A mapping of pre-populated parameters.
-        """
-
         def prompt_hostname():
             while True:
                 value = click.prompt("Enter hostname", default="demoexample.gluu.org")
@@ -522,7 +415,6 @@ class App:
         return params
 
     def prepare_config_secret(self):
-        """Prepare configs and secrets required by the application before deploying containers."""
         workdir = os.getcwd()
 
         with self.top_level_cmd() as tlc:
@@ -560,7 +452,6 @@ class App:
             print(f"[I] Using {self.settings['DOMAIN']} as FQDN")
 
     def up(self):
-        """Build, (re)create, start, and attach to containers for services."""
         self.check_ports()
         self.gather_ip()
         self.prepare_config_secret()
@@ -568,13 +459,6 @@ class App:
         self.healthcheck()
 
     def healthcheck(self):
-        """Run healthcheck against the application.
-
-        The process involves making request to oxTrust container periodically.
-        If the request returns a success response, mark the deployment as complete.
-        Otherwise, retry the healthcheck until certain threshold (currently set at 300 seconds)
-        is reached and error message is thrown.
-        """
         import requests
         import urllib3
         urllib3.disable_warnings()
@@ -605,7 +489,6 @@ class App:
             print(f"\n[W] Unable to get healthcheck status; please check the logs or visit https://{self.settings['DOMAIN']}")
 
     def touch_files(self):
-        """Create pre-defined files in current directory."""
         files = [
             "vault_role_id.txt",
             "vault_secret_id.txt",
@@ -616,32 +499,26 @@ class App:
             "couchbase_superuser_password",
             "jackrabbit_admin_password",
             "sql_password",
-            "sql_root_password",
             "google-credentials.json",
         ]
         for file_ in files:
             pathlib.Path(file_).touch()
 
     def copy_templates(self):
-        """Copy pre-defined templates to current directory."""
         entries = pathlib.Path(
             os.path.join(os.path.dirname(__file__), "templates")
         )
         curdir = os.getcwd()
         for entry in entries.iterdir():
             dst = os.path.join(curdir, entry.name)
-            if dst.endswith("yaml") or dst.endswith("yml"):
-                shutil.copy(entry, dst)
-                print(f"[I] Creating/updating {dst}")
+            if os.path.exists(dst):
+                print(f"[W] Skipping existing {dst}")
+                continue
+            shutil.copy(entry, dst)
+            print(f"[I] Creating new {dst}")
 
     def check_ports(self):
-        """Check whether ports required by the application are available.
-
-        :returns: Ports availability as boolean.
-        """
         def _check(host, port):
-            socket.setdefaulttimeout(30.0)
-
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 conn = sock.connect_ex((host, port))
                 if conn == 0:
@@ -662,13 +539,6 @@ class App:
                     raise click.Abort()
 
     def check_workdir(self):
-        """Check whether current directory is a working directory.
-
-        Current directory will be marked as working directory if there's
-        ``docker-compose.yml`` under the directory.
-
-        If ``docker-compose.yml`` file is not exist, an error will be thrown.
-        """
         if not os.path.isfile("docker-compose.yml"):
             print("[E] docker-compose.yml file is not found; "
                   "make sure to run init command first")

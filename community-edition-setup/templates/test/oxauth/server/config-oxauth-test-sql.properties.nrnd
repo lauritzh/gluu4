@@ -1,6 +1,6 @@
-config.sql.db.schema.name=%(rdbm_scheme)s
+config.sql.db.schema.name=%(rdbm_db)s
 
-config.sql.connection.uri=jdbc:%(rdbm_type_name)s://%(hostname)s:%(rdbm_port)s/%(rdbm_db)s
+config.sql.connection.uri=jdbc:%(rdbm_type)s://%(hostname)s:%(rdbm_port)s/%(rdbm_db)s
 
 config.sql.connection.driver-property.serverTimezone=%(server_time_zone)s
 # Prefix connection.driver-property.key=value will be coverterd to key=value JDBC driver properties
@@ -13,7 +13,7 @@ config.sql.auth.userPassword=%(rdbm_password_enc)s
 config.sql.password.encryption.method=SSHA-256
 
 # Connection pool size
-config.sql.connection.pool.max-total=200
+config.sql.connection.pool.max-total=20
 config.sql.connection.pool.max-idle=10
 config.sql.connection.pool.min-idle=5
 

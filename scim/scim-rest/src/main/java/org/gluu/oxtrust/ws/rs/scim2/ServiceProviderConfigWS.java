@@ -33,16 +33,14 @@ public class ServiceProviderConfigWS extends BaseScimWebService {
 
         try {
             ServiceProviderConfig serviceProviderConfig = new ServiceProviderConfig();
-            serviceProviderConfig.getFilter().setMaxResults(getMaxCount());
-            serviceProviderConfig.getBulk().setMaxOperations(scimProperties.getBulkMaxOperations());
-            serviceProviderConfig.getBulk().setMaxPayloadSize(scimProperties.getBulkMaxPayloadSize());
- 
+            serviceProviderConfig.getFilter().setMaxResults(appConfiguration.getScimProperties().getMaxCount());
+
             Meta meta = new Meta();
             meta.setLocation(endpointUrl);
             meta.setResourceType(ScimResourceUtil.getType(serviceProviderConfig.getClass()));
             serviceProviderConfig.setMeta(meta);
 
-            boolean uma = scimProperties.getProtectionMode().equals(ScimMode.UMA);
+            boolean uma = appConfiguration.getScimProperties().getProtectionMode().equals(ScimMode.UMA);
             serviceProviderConfig.setAuthenticationSchemes(Arrays.asList(
                     AuthenticationScheme.createOAuth2(!uma), AuthenticationScheme.createUma(uma)));
 

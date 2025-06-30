@@ -12,6 +12,7 @@ import string
 import inspect
 import threading
 import math
+import pymysql
 import json
 
 # for putty connections we need the following env
@@ -23,14 +24,7 @@ from setup_app import static
 from setup_app.utils import base
 from setup_app.utils.properties_utils import propertiesUtils
 from setup_app.utils.progress import gluuProgress
-
-
-if Config.profile != static.SetupProfiles.DISA_STIG:
-    import pymysql
-    import psycopg2
-    from setup_app.utils.spanner_rest_client import SpannerClient
-
-
+from setup_app.utils.spanner import Spanner
 
 import npyscreen
 
@@ -45,7 +39,8 @@ random_marketing_strings = [
     'Interested in Open Source software business models? Listen to Open Source Underdogs: https://opensourceunderdogs.com',
     'Need to learn more about OpenID and SAML? Read "Securing the Perimeter" by Gluu CEO Mike Schwartz: https://gluu.co/book',
     'The Gluu Server is one of the most advanced OpenID Providers. Compare at https://openid.net/certification',
-    'Check out Agama Lab, a new low-code way to build authentication workflows in Gluu Flex: https://agama-lab.gluu.org',
+    'Installing the Gluu Server is a SNAP. Search for Gluu on https://snapcraft.io',
+    'Gluu Solo is coming soon. This is a hosted CE offering with 99.95% availability.',
     'Need FIPS 140-2? Consider the new Gluu Server RHEL 8.4 FIPS distribution that leverages central crypto policies',
     'Open Banking security is available with our new Gluu Server profile. See https://gluu.org/openbanking/',
     "Gluu's core software now lives at the Linux Foundation Janssen Project. See https://github.com/JanssenProject",
@@ -88,7 +83,7 @@ class GluuSetupApp(npyscreen.StandardApp):
             self.addForm('ServicesForm', ServicesForm, name=msg.ServicesForm_label)
 
         for obj in list(globals().items()):
-            if obj[0] not in ('MAIN', 'GluuSetupForm', 'ServicesForm') and obj[0].endswith('Form') and inspect.isclass(obj[1]):
+            if not obj[0] in ('MAIN', 'GluuSetupForm', 'ServicesForm') and obj[0].endswith('Form') and inspect.isclass(obj[1]):
                 self.addForm(obj[0], obj[1], name=getattr(msg, obj[0]+'_label'))
 
 
@@ -107,7 +102,7 @@ class GluuSetupForm(npyscreen.FormBaseNew):
 
         form_name = getClassName(self)
 
-        self.add(npyscreen.TitleFixedText, name=msg.version_label.format(Config.profile.upper()) + ' ' + Config.oxVersion, rely=self.lines-5,  editable=False, labelColor='CONTROL')
+        self.add(npyscreen.TitleFixedText, name=msg.version_label + ' ' + Config.oxVersion, rely=self.lines-5,  editable=False, labelColor='CONTROL')
         self.add(npyscreen.MultiLineEdit, value='=' * (self.columns - 4), max_height=1, rely=self.lines-4, editable=False)
 
         if form_name != 'InstallStepsForm':
@@ -157,7 +152,7 @@ class MAIN(GluuSetupForm):
 
         self.description_label = self.add(npyscreen.MultiLineEdit, value='\n'.join(desc_wrap), max_height=6, rely=2, editable=False)
         self.description_label.autowrap = True
-        os_string = base.get_os_description()
+        os_string = "{} {} {}".format('snap' if base.snap else '', base.os_type, base.os_version).strip()
         self.os_type = self.add(npyscreen.TitleFixedText, name=msg.os_type_label, begin_entry_at=18, value=os_string, editable=False)
         self.init_type = self.add(npyscreen.TitleFixedText, name=msg.init_type_label, begin_entry_at=18, value=base.os_initdaemon, editable=False)
         self.httpd_type = self.add(npyscreen.TitleFixedText, name=msg.httpd_type_label, begin_entry_at=18, value=base.httpd_name, field_width=40, editable=False)
@@ -313,9 +308,6 @@ class ServicesForm(GluuSetupForm):
                     self.services_before_this_form.append(service)
                 cb.update()
 
-        if Config.installed_instance and Config.rdbm_type == 'spanner':
-            self.installSaml.editable = False
-
         if Config.installed_instance and 'installCasa' in self.services_before_this_form:
             self.oxd_url.hidden = True
             self.oxd_url.update()
@@ -381,7 +373,7 @@ class ServicesForm(GluuSetupForm):
 
         propertiesUtils.check_oxd_server_https()
 
-        if self.installOxd.value and 'installOxd' not in self.services_before_this_form:
+        if self.installOxd.value and not 'installOxd' in self.services_before_this_form:
             result = npyscreen.notify_yes_no(msg.ask_use_gluu_storage_oxd, title=msg.ask_use_gluu_storage_oxd_title)
             if result:
                 Config.oxd_use_gluu_storage = True
@@ -422,109 +414,114 @@ def make_title(text):
 
 class DBBackendForm(GluuSetupForm):
     def create(self):
-        self.backends = self.add(npyscreen.TitleSelectOne, max_height=8, value=[0,], name=msg.chose_backend,
+        self.backends = self.add(npyscreen.TitleSelectOne, max_height=8, value = [0,], name=msg.chose_backend,
             values = [], scroll_exit=True)
+        self.beta_warning_label = self.add(npyscreen.TitleFixedText, name=msg.mysql_spanner_beta, relx=23, editable=False, labelColor='WARNING', hidden=True)
+
+        self.backends.value_changed_callback = self.backend_changed
 
     def do_beforeEditing(self):
-        self.backend_types = propertiesUtils.get_backend_list()
+        self.backend_types = ['Local OpenDj',
+                         'Remote OpenDj',
+                         'Remote Couchbase',
+                         'Local MySQL',
+                         'Remote MySQL',
+                         'Cloud Spanner',
+                         'Spanner Emulator',
+                         ]
+
+        if 'couchbase' in propertiesUtils.getBackendTypes():
+            self.backend_types.insert(2, 'Local Couchbase')
+
         self.backends.values = self.backend_types
         self.backends.update()
 
+    def backend_changed(self, widget):
+        self.beta_warning_label.hidden = True if self.backends.value[0] < 3 else False
+        self.beta_warning_label.update()
 
     def nextButtonPressed(self):
         self.parentApp.backend_type_str = self.backend_types[self.backends.value[0]]
 
-        if self.parentApp.backend_type_str == static.BackendStrings.LOCAL_OPENDJ:
-            used_ports = self.parentApp.jettyInstaller.opendj_used_ports()
-            if used_ports:
-                npyscreen.notify_confirm(msg.used_ports.format(','.join(used_ports)), title="Warning")
-                return
-            Config.ldap_install = static.InstallTypes.LOCAL
+
+        if self.parentApp.backend_type_str == 'Local OpenDj':
+            Config.wrends_install = static.InstallTypes.LOCAL
+            Config.cb_install = static.InstallTypes.NONE
+            Config.rdbm_install = False
+            self.parentApp.switchForm('DBLDAPForm')
+        elif self.parentApp.backend_type_str == 'Remote OpenDj':
+            Config.wrends_install = static.InstallTypes.REMOTE
             Config.cb_install = static.InstallTypes.NONE
             Config.rdbm_install = False
             self.parentApp.switchForm('DBLDAPForm')
 
-        elif self.parentApp.backend_type_str == static.BackendStrings.REMOTE_OPENDJ:
-            Config.ldap_install = static.InstallTypes.REMOTE
-            Config.cb_install = static.InstallTypes.NONE
-            Config.rdbm_install = False
-            self.parentApp.switchForm('DBLDAPForm')
-
-        elif self.parentApp.backend_type_str == static.BackendStrings.LOCAL_COUCHBASE:
-            Config.ldap_install = static.InstallTypes.NONE
+        elif self.parentApp.backend_type_str == 'Local Couchbase':
+            Config.wrends_install = static.InstallTypes.NONE
             Config.rdbm_install = False
             Config.cb_install = static.InstallTypes.LOCAL
             self.parentApp.switchForm('DBCBForm')
-        elif self.parentApp.backend_type_str == static.BackendStrings.REMOTE_COUCHBASE:
-            Config.ldap_install = static.InstallTypes.NONE
+        elif self.parentApp.backend_type_str == 'Remote Couchbase':
+            Config.wrends_install = static.InstallTypes.NONE
             Config.rdbm_install = False
             Config.cb_install = static.InstallTypes.REMOTE
             self.parentApp.switchForm('DBCBForm')
 
-        elif self.parentApp.backend_type_str in (static.BackendStrings.LOCAL_MYSQL, static.BackendStrings.LOCAL_PGSQL):
-            Config.ldap_install = static.InstallTypes.NONE
+        elif self.parentApp.backend_type_str == 'Local MySQL':
+            Config.wrends_install = static.InstallTypes.NONE
             Config.rdbm_install_type = static.InstallTypes.LOCAL
             Config.rdbm_install = True
+            Config.rdbm_type = 'mysql'
             if not Config.rdbm_password:
                 Config.rdbm_password = propertiesUtils.getPW(special='.*=+-()[]{}')
             if not Config.rdbm_user:
                 Config.rdbm_user = 'gluu'
             self.parentApp.switchForm('DBRDBMForm')
-
-        elif self.parentApp.backend_type_str in (static.BackendStrings.REMOTE_MYSQL, static.BackendStrings.REMOTE_PGSQL):
-            Config.ldap_install = static.InstallTypes.NONE
+        elif self.parentApp.backend_type_str == 'Remote MySQL':
+            Config.wrends_install = static.InstallTypes.NONE
             Config.rdbm_install_type = static.InstallTypes.REMOTE
             Config.rdbm_install = True
-            Config.rdbm_type = 'mysql' if self.parentApp.backend_type_str == static.BackendStrings.REMOTE_MYSQL else 'pgsql'
+            Config.rdbm_type = 'mysql'
             Config.rdbm_password = ''
             self.parentApp.switchForm('DBRDBMForm')
 
-        elif self.parentApp.backend_type_str in (static.BackendStrings.CLOUD_SPANNER, static.BackendStrings.SAPNNER_EMULATOR):
+        elif self.parentApp.backend_type_str in ('Cloud Spanner', 'Spanner Emulator'):
             if Config.installSaml:
                 npyscreen.notify_confirm(msg.spanner_idp_warning + ' ' + msg.idp_unselect, title="Warning")
                 return
             Config.rdbm_type = 'spanner'
             Config.rdbm_install = True
-            Config.ldap_install = static.InstallTypes.NONE
+            Config.wrends_install = static.InstallTypes.NONE
             Config.rdbm_install_type = static.InstallTypes.REMOTE
             self.parentApp.switchForm('DBSpannerForm')
-
-
-        if self.parentApp.backend_type_str in(static.BackendStrings.LOCAL_MYSQL, static.BackendStrings.REMOTE_MYSQL):
-            Config.rdbm_type = 'mysql'
-            Config.rdbm_port = 3306
-        elif self.parentApp.backend_type_str in( static.BackendStrings.LOCAL_PGSQL, static.BackendStrings.REMOTE_PGSQL):
-            Config.rdbm_type = 'pgsql'
-            Config.rdbm_port = 5432
 
     def backButtonPressed(self):
         self.parentApp.switchForm('ServicesForm')
 
 class DBLDAPForm(GluuSetupForm):
     def create(self):
-        self.ldap_password = self.add(npyscreen.TitleText, name=msg.ldap_admin_password_label, begin_entry_at=22)
-        self.ldap_hosts = self.add(npyscreen.TitleText, name=msg.ldap_remote_label, begin_entry_at=22)
+        self.wrends_password = self.add(npyscreen.TitleText, name=msg.ldap_admin_password_label, begin_entry_at=22)
+        self.wrends_hosts = self.add(npyscreen.TitleText, name=msg.ldap_remote_label, begin_entry_at=22)
 
     def do_beforeEditing(self):
-        if Config.ldap_install == static.InstallTypes.LOCAL:
-            self.ldap_hosts.hidden = True
+        if Config.wrends_install == static.InstallTypes.LOCAL:
+            self.wrends_hosts.hidden = True
         else:
-            self.ldap_hosts.hidden = False
+            self.wrends_hosts.hidden = False
 
-        if Config.ldap_install == static.InstallTypes.LOCAL:
+        if Config.wrends_install == static.InstallTypes.LOCAL:
             if not Config.ldapPass:
-                self.ldap_password.value = Config.oxtrust_admin_password
+                self.wrends_password.value = Config.oxtrust_admin_password
         else:
-            self.ldap_password.value = ''
+            self.wrends_password.value = ''
 
-        self.ldap_password.update()
-        self.ldap_hosts.update()
+        self.wrends_password.update()
+        self.wrends_hosts.update()
 
     def nextButtonPressed(self):
 
-        if Config.ldap_install == static.InstallTypes.LOCAL:
+        if Config.wrends_install == static.InstallTypes.LOCAL:
             Config.ldap_hostname = 'localhost'
-            Config.ldapPass = self.ldap_password.value
+            Config.ldapPass = self.wrends_password.value
 
             # check if opendj ports are available
             used_ports = base.check_port_available((1389, 4444, 1636))
@@ -534,14 +531,14 @@ class DBLDAPForm(GluuSetupForm):
                 npyscreen.notify_confirm(port_msg, title="Warning")
                 return
 
-        elif Config.ldap_install == static.InstallTypes.REMOTE:
-            Config.ldap_hostname = self.ldap_hosts.value
-            Config.ldapPass = self.ldap_password.value
+        elif Config.wrends_install == static.InstallTypes.REMOTE:
+            Config.ldap_hostname = self.wrends_hosts.value
+            Config.ldapPass = self.wrends_password.value
             npyscreen.notify("Please wait while checking remote ldap connection", title="Wait!")
             result = propertiesUtils.check_remote_ldap(
-                        self.ldap_hosts.value, 
+                        self.wrends_hosts.value, 
                         Config.ldap_binddn, 
-                        self.ldap_password.value
+                        self.wrends_password.value
                         )
 
             if not result['result']:
@@ -599,13 +596,6 @@ class DBRDBMForm(GluuSetupForm):
 
 
     def do_beforeEditing(self):
-        self.rdbm_db.label_widget.value = msg.rdbm_db_label.format(Config.rdbm_type.upper())
-        self.rdbm_user.label_widget.value = msg.rdbm_username_label.format(Config.rdbm_type.upper())
-        self.rdbm_password.label_widget.value = msg.rdbm_password_label.format(Config.rdbm_type.upper())
-        self.rdbm_host.label_widget.value = msg.rdbm_host_label.format(Config.rdbm_type.upper())
-        self.rdbm_port.label_widget.value = msg.rdbm_db_port_label.format(Config.rdbm_type.upper())
-
-
         if Config.rdbm_install_type == static.InstallTypes.LOCAL:
             self.rdbm_host.hidden = True
             self.rdbm_port.hidden = True
@@ -627,19 +617,17 @@ class DBRDBMForm(GluuSetupForm):
 
         if Config.rdbm_install_type == static.InstallTypes.LOCAL:
             Config.rdbm_host = 'localhost'
+            Config.rdbm_port = 3306
+
         else:
             Config.rdbm_host = self.rdbm_host.value
             if not self.rdbm_port.value.isnumeric():
                 npyscreen.notify_confirm("Port must be integer", title="Warning")
                 return
             Config.rdbm_port = int(self.rdbm_port.value)
-            npyscreen.notify("Please wait while checking {} connection".format(Config.rdbm_type), title="Wait!")
+            npyscreen.notify("Please wait while checking mysql connection", title="Wait!")
             try:
-                if Config.rdbm_type == 'mysql':
-                    pymysql.connect(host=Config.rdbm_host, user=Config.rdbm_user, password=Config.rdbm_password, database=Config.rdbm_db, port=Config.rdbm_port)
-                else:
-                    psycopg2.connect(dbname=Config.rdbm_db, user=Config.rdbm_user, password=Config.rdbm_password, host=Config.rdbm_host, port=Config.rdbm_port)
-
+                pymysql.connect(host=Config.rdbm_host, user=Config.rdbm_user, password=Config.rdbm_password, database=Config.rdbm_db, port=Config.rdbm_port)
             except Exception as e:
                 npyscreen.notify_confirm(str(e), title="Warning")
                 return
@@ -660,7 +648,8 @@ class DBSpannerForm(GluuSetupForm):
 
 
     def do_beforeEditing(self):
-
+        #self.rdbm_db.value = self.parentApp.backend_type_str
+        #self.rdbm_db.update()
         if self.parentApp.backend_type_str == 'Spanner Emulator':
             self.google_application_credentials.hidden = True
             self.spanner_emulator_host.hidden = False
@@ -701,14 +690,8 @@ class DBSpannerForm(GluuSetupForm):
         npyscreen.notify("Please wait while checking spanner connection", title="Wait!")
 
         try:
-            SpannerClient(
-                            project_id=Config.spanner_project,
-                            instance_id=Config.spanner_instance,
-                            database_id=Config.spanner_database,
-                            google_application_credentials=Config.google_application_credentials,
-                            emulator_host=Config.spanner_emulator_host,
-                            log_dir=os.path.join(Config.install_dir, 'logs')
-                    )
+            spanner = Spanner()
+            spanner.get_session()
         except Exception as e:
             npyscreen.notify_confirm("ERROR getting session from spanner: {}".format(e), title="Warning")
             return
@@ -721,14 +704,14 @@ class DBSpannerForm(GluuSetupForm):
 class DBBackendFormOld(GluuSetupForm):
     def create(self):
         self.editw = 2
-        self.add(npyscreen.FixedText, value=make_title(msg.ask_ldap_install), editable=False)
+        self.add(npyscreen.FixedText, value=make_title(msg.ask_wrends_install), editable=False)
 
-        self.ask_ldap = self.add(npyscreen.SelectOne, max_height=3, 
-                values = msg.ldap_install_options, scroll_exit=True)
-        self.ask_ldap.value_changed_callback = self.ldap_option_changed
-        self.ldap_password = self.add(npyscreen.TitleText, name=msg.password_label)
-        self.ldap_hosts = self.add(npyscreen.TitleText, name=msg.hosts_label)
-        self.ldap_option_changed(self.ask_ldap)
+        self.ask_wrends = self.add(npyscreen.SelectOne, max_height=3, 
+                values = msg.wrends_install_options, scroll_exit=True)
+        self.ask_wrends.value_changed_callback = self.wrends_option_changed
+        self.wrends_password = self.add(npyscreen.TitleText, name=msg.password_label)
+        self.wrends_hosts = self.add(npyscreen.TitleText, name=msg.hosts_label)
+        self.wrends_option_changed(self.ask_wrends)
 
         self.add(npyscreen.FixedText, value=make_title(msg.ask_cb_install), rely=10, editable=False)
 
@@ -741,23 +724,23 @@ class DBBackendFormOld(GluuSetupForm):
         self.cb_option_changed(self.ask_cb)
 
     def do_beforeEditing(self):
-        self.ask_ldap.value = [int(Config.ldap_install)]
+        self.ask_wrends.value = [int(Config.wrends_install)]
 
-        if Config.ldap_install == static.InstallTypes.REMOTE:
-            self.ldap_hosts.hidden = False
+        if Config.wrends_install == static.InstallTypes.REMOTE:
+            self.wrends_hosts.hidden = False
         else:
-            self.ldap_hosts.hidden = True
+            self.wrends_hosts.hidden = True
 
-        if not Config.ldap_install:
-            self.ldap_password.hidden = True
+        if not Config.wrends_install:
+            self.wrends_password.hidden = True
         else:
-            self.ldap_password.hidden = False
+            self.wrends_password.hidden = False
 
-        if Config.ldap_install == static.InstallTypes.LOCAL:
+        if Config.wrends_install == static.InstallTypes.LOCAL:
             if not Config.ldapPass:
-                self.ldap_password.value = Config.oxtrust_admin_password
+                self.wrends_password.value = Config.oxtrust_admin_password
 
-        self.ldap_hosts.value = Config.ldap_hostname
+        self.wrends_hosts.value = Config.ldap_hostname
 
         self.ask_cb.value = [int(Config.cb_install)]
 
@@ -783,10 +766,10 @@ class DBBackendFormOld(GluuSetupForm):
         self.cb_hosts.value = Config.get('couchbase_hostname', '')
         self.cb_admin.value = Config.get('couchebaseClusterAdmin','')
 
-        self.ldap_hosts.update()
-        self.ask_ldap.update()
-        self.ldap_hosts.update()
-        self.ldap_password.update()
+        self.wrends_hosts.update()
+        self.ask_wrends.update()
+        self.wrends_hosts.update()
+        self.wrends_password.update()
 
         self.cb_hosts.update()
         self.ask_cb.update()
@@ -798,11 +781,11 @@ class DBBackendFormOld(GluuSetupForm):
 
         msg.backend_types = []
 
-        Config.ldap_install = str(self.ask_ldap.value[0]) if self.ask_ldap.value[0] else 0
+        Config.wrends_install = str(self.ask_wrends.value[0]) if self.ask_wrends.value[0] else 0
 
-        if Config.ldap_install == static.InstallTypes.LOCAL:
+        if Config.wrends_install == static.InstallTypes.LOCAL:
             Config.ldap_hostname = 'localhost'
-            Config.ldapPass = self.ldap_password.value
+            Config.ldapPass = self.wrends_password.value
 
             # check if opendj ports are available
             used_ports = base.check_port_available((1389, 4444, 1636))
@@ -812,14 +795,14 @@ class DBBackendFormOld(GluuSetupForm):
                 npyscreen.notify_confirm(port_msg, title="Warning")
                 return
 
-        elif Config.ldap_install == static.InstallTypes.REMOTE:
-            Config.ldap_hostname = self.ldap_hosts.value
-            Config.ldapPass = self.ldap_password.value
+        elif Config.wrends_install == static.InstallTypes.REMOTE:
+            Config.ldap_hostname = self.wrends_hosts.value
+            Config.ldapPass = self.wrends_password.value
 
             result = propertiesUtils.check_remote_ldap(
-                        self.ldap_hosts.value, 
+                        self.wrends_hosts.value, 
                         Config.ldap_binddn, 
-                        self.ldap_password.value
+                        self.wrends_password.value
                         )
 
             if not result['result']:
@@ -840,7 +823,7 @@ class DBBackendFormOld(GluuSetupForm):
                 npyscreen.notify_confirm(result['reason'], title="Warning")
                 return
 
-        if Config.ldap_install == static.InstallTypes.LOCAL and not propertiesUtils.checkPassword(Config.ldapPass):
+        if Config.wrends_install == static.InstallTypes.LOCAL and not propertiesUtils.checkPassword(Config.ldapPass):
             npyscreen.notify_confirm(msg.weak_password.format('OpenDj'), title="Warning")
             return
 
@@ -848,8 +831,8 @@ class DBBackendFormOld(GluuSetupForm):
             npyscreen.notify_confirm(msg.weak_password.format('Couchbase Server'), title="Warning")
             return
 
-        if Config.ldap_install or Config.cb_install:
-            if Config.ldap_install and Config.cb_install:
+        if Config.wrends_install or Config.cb_install:
+            if Config.wrends_install and Config.cb_install:
                 Config.persistence_type = 'hybrid'
                 self.parentApp.switchForm('StorageSelectionForm')
             else:
@@ -869,20 +852,20 @@ class DBBackendFormOld(GluuSetupForm):
             npyscreen.notify_confirm(msg.notify_select_backend, title="Warning")
             return
 
-    def ldap_option_changed(self, widget):
-        if self.ask_ldap.value:
-            if not self.ask_ldap.value[0]:
-                self.ldap_password.hidden = True
-                self.ldap_hosts.hidden = True
-            elif str(self.ask_ldap.value[0]) == static.InstallTypes.LOCAL:
-                self.ldap_password.hidden = False
-                self.ldap_hosts.hidden = True
-            elif str(self.ask_ldap.value[0]) == static.InstallTypes.REMOTE:
-                self.ldap_password.hidden = False
-                self.ldap_hosts.hidden = False
+    def wrends_option_changed(self, widget):
+        if self.ask_wrends.value:
+            if not self.ask_wrends.value[0]:
+                self.wrends_password.hidden = True
+                self.wrends_hosts.hidden = True
+            elif str(self.ask_wrends.value[0]) == static.InstallTypes.LOCAL:
+                self.wrends_password.hidden = False
+                self.wrends_hosts.hidden = True
+            elif str(self.ask_wrends.value[0]) == static.InstallTypes.REMOTE:
+                self.wrends_password.hidden = False
+                self.wrends_hosts.hidden = False
 
-            self.ldap_password.update()
-            self.ldap_hosts.update()
+            self.wrends_password.update()
+            self.wrends_hosts.update()
 
     def cb_option_changed(self, widget):
         if self.ask_cb.value:
@@ -911,7 +894,7 @@ class DBBackendFormOld(GluuSetupForm):
 class StorageSelectionForm(GluuSetupForm):
     def create(self):
 
-        self.ldap_storage = self.add(npyscreen.TitleMultiSelect, begin_entry_at=30, max_height=len(Config.couchbaseBucketDict), 
+        self.wrends_storage = self.add(npyscreen.TitleMultiSelect, begin_entry_at=30, max_height=len(Config.couchbaseBucketDict), 
             values=list(Config.couchbaseBucketDict.keys()), name=msg.DBBackendForm_label, scroll_exit=True)
 
         self.add(npyscreen.FixedText, value=msg.unselected_storages, rely=len(Config.couchbaseBucketDict)+4, editable=False, color='STANDOUT')
@@ -920,21 +903,21 @@ class StorageSelectionForm(GluuSetupForm):
         self.parentApp.switchForm('DBBackendForm')
 
     def do_beforeEditing(self):
-        self.ldap_storage.values = list(Config.couchbaseBucketDict.keys())
+        self.wrends_storage.values = list(Config.couchbaseBucketDict.keys())
 
         value = []
         for i, s in enumerate(Config.couchbaseBucketDict.keys()):
             if Config.mappingLocations[s] == 'ldap':
                 value.append(i)
-        self.ldap_storage.value = value
+        self.wrends_storage.value = value
 
-        self.ldap_storage.update()
+        self.wrends_storage.update()
 
     def nextButtonPressed(self):
         storage_list = list(Config.couchbaseBucketDict.keys())
 
         for i, s in enumerate(storage_list):
-            if i in self.ldap_storage.value:
+            if i in self.wrends_storage.value:
                 Config.mappingLocations[s] = 'ldap'
             else:
                 Config.mappingLocations[s] = 'couchbase'
@@ -956,7 +939,7 @@ class DisplaySummaryForm(GluuSetupForm):
                        "installOxd", "installCasa",
                        'installScimServer', 'installFido2']
                     
-    myfields_2 += ["java_type","backend_types", 'ldap_storages']
+    myfields_2 += ["java_type","backend_types", 'wrends_storages']
 
     def create(self):
 
@@ -995,15 +978,16 @@ class DisplaySummaryForm(GluuSetupForm):
 
 
     def do_beforeEditing(self):
+        wrends_storages_widget = getattr(self, 'wrends_storages')
 
         for wn in self.myfields_1+self.myfields_2:
             w = getattr(self, wn)
             if getClassName(w) == 'TitleFixedText':
                 if wn == 'backend_types':
                     bt_ = []
-                    if Config.ldap_install == static.InstallTypes.LOCAL:
+                    if Config.wrends_install == static.InstallTypes.LOCAL:
                         bt_.append('opendj')
-                    elif Config.ldap_install == static.InstallTypes.REMOTE:
+                    elif Config.wrends_install == static.InstallTypes.REMOTE:
                         bt_.append('opendj[R]')
 
                     if Config.cb_install == static.InstallTypes.LOCAL:
@@ -1022,8 +1006,8 @@ class DisplaySummaryForm(GluuSetupForm):
                         else:
                             bt_.append('{}[R]'.format(Config.rdbm_type))
                     w.value = ', '.join(bt_)
-                elif wn == 'ldap_storages':
-                    if Config.ldap_install and Config.cb_install:
+                elif wn == 'wrends_storages':
+                    if Config.wrends_install and Config.cb_install:
                         wds_ = []
                         for k in Config.mappingLocations:
                             if Config.mappingLocations[k] == 'ldap':
@@ -1047,7 +1031,7 @@ class DisplaySummaryForm(GluuSetupForm):
     def backButtonPressed(self):
         if Config.installed_instance:
             self.parentApp.switchForm('MAIN')
-        elif Config.ldap_install and Config.cb_install:
+        elif Config.wrends_install and Config.cb_install:
             self.parentApp.switchForm('StorageSelectionForm')
         else:
             self.parentApp.switchForm('DBBackendForm')

@@ -12,9 +12,7 @@ from setup_app.installers.node import NodeInstaller
 class PassportInstaller(NodeInstaller):
 
     def __init__(self):
-        setattr(base.current_app, self.__class__.__name__, self)
         self.service_name = 'passport'
-        self.service_user = Config.node_user
         self.app_type = AppType.SERVICE
         self.install_type = InstallOption.OPTONAL
         self.install_var = 'installPassport'
@@ -23,7 +21,7 @@ class PassportInstaller(NodeInstaller):
         passport_version = Config.oxVersion.replace('-SNAPSHOT','').replace('.Final','')
         self.source_files = [
                 (os.path.join(Config.distGluuFolder, 'passport.tgz'), Config.maven_root + '/npm/passport/passport-{}.tgz'.format(passport_version)),
-                (os.path.join(Config.distGluuFolder, 'passport-node_modules.tar.gz'), Config.maven_root + '/npm/passport/passport-{}-node_modules.tar.gz'.format(passport_version))
+                (os.path.join(Config.distGluuFolder, 'passport-node_modules.tar.gz'), Config.maven_root + '/npm/passport/passport-version_{}-node_modules.tar.gz'.format(passport_version))
                 ]
 
         self.gluu_passport_base = os.path.join(self.node_base, 'passport')
@@ -62,7 +60,7 @@ class PassportInstaller(NodeInstaller):
         # Install passport system service script
         self.installNodeService('passport')
 
-        self.chown(self.gluu_passport_base, Config.node_user, Config.gluu_group, recursive=True)
+        self.run([paths.cmd_chown, '-R', 'node:node', self.gluu_passport_base])
 
         # enable service at startup
         self.enable()
@@ -113,7 +111,7 @@ class PassportInstaller(NodeInstaller):
             Config.passport_rp_client_cert_alg = 'RS512'
 
         if not Config.get('passport_rp_client_jks_pass'):
-            Config.passport_rp_client_jks_pass = self.getPW()
+            Config.passport_rp_client_jks_pass = 'secret'
 
         if not Config.get('passport_rs_client_jks_pass'):
             Config.passport_rs_client_jks_pass = self.getPW()
@@ -136,10 +134,10 @@ class PassportInstaller(NodeInstaller):
         # create certificates
         self.gen_cert('passport-sp', Config.passportSpKeyPass, 'ldap', Config.ldap_hostname)
 
-        Config.passport_rs_client_jwks = self.gen_openid_data_store_keys(self.passport_rs_client_jks_fn, Config.passport_rs_client_jks_pass)
+        Config.passport_rs_client_jwks = self.gen_openid_jwks_jks_keys(self.passport_rs_client_jks_fn, Config.passport_rs_client_jks_pass)
         Config.templateRenderingDict['passport_rs_client_base64_jwks'] = self.generate_base64_string(Config.passport_rs_client_jwks, 1)
 
-        Config.passport_rp_client_jwks = self.gen_openid_data_store_keys(self.passport_rp_client_jks_fn, Config.passport_rp_client_jks_pass)
+        Config.passport_rp_client_jwks = self.gen_openid_jwks_jks_keys(self.passport_rp_client_jks_fn, Config.passport_rp_client_jks_pass)
         Config.templateRenderingDict['passport_rp_client_base64_jwks'] = self.generate_base64_string(Config.passport_rp_client_jwks, 1)
 
         self.logIt("Preparing Passport OpenID RP certificate...")
@@ -157,7 +155,7 @@ class PassportInstaller(NodeInstaller):
         cert_files = glob.glob(os.path.join(Config.certFolder, 'passport*'))
         for fn in cert_files:
             self.run([paths.cmd_chmod, '440', fn])
-            self.chown(fn, Config.root_user, Config.gluu_user)
+            self.run([paths.cmd_chown, 'root:gluu', fn])
 
     def render_import_templates(self):
 

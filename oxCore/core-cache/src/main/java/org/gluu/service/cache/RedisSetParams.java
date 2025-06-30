@@ -3,7 +3,7 @@ package org.gluu.service.cache;
 import java.util.ArrayList;
 
 import redis.clients.jedis.params.Params;
-import redis.clients.jedis.util.SafeEncoder;
+import redis.clients.util.SafeEncoder;
 
 /**
  * Taken from here

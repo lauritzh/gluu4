@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Yuriy Movchan Date: 01/12/2020
  */
-public class SpannerEntryManager extends BaseEntryManager<SpannerOperationService> implements Serializable {
+public class SpannerEntryManager extends BaseEntryManager implements Serializable {
 
 	private static final long serialVersionUID = 2127241817126412574L;
 
@@ -192,7 +192,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
 
             	// Process userPassword 
                 if (StringHelper.equalsIgnoreCase(SpannerOperationService.USER_PASSWORD, attributeName)) {
-                    realValues = getOperationService().createStoragePassword(StringHelper.toStringArray(attributeValues), attribute);
+                    realValues = getOperationService().createStoragePassword(StringHelper.toStringArray(attributeValues));
                 }
 
                 escapeValues(realValues);
@@ -252,16 +252,16 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
                 AttributeModificationType modificationType = attributeDataModification.getModificationType();
 				if ((AttributeModificationType.ADD == modificationType) ||
                 	(AttributeModificationType.FORCE_UPDATE == modificationType)) {
-                    modification = createModification(attribute, modificationType, toInternalAttribute(attributeName), multiValued, attributeValues, oldAttributeValues);
+                    modification = createModification(modificationType, toInternalAttribute(attributeName), multiValued, attributeValues, oldAttributeValues);
                 } else {
                     if ((AttributeModificationType.REMOVE == modificationType)) {
                 		if ((attribute == null) && isEmptyAttributeValues(oldAttribute)) {
 							// It's RDBS case. We don't need to set null to already empty table cell
                 			continue;
                 		}
-                        modification = createModification(attribute, AttributeModificationType.REMOVE, toInternalAttribute(oldAttributeName), multiValued, oldAttributeValues, null);
+                        modification = createModification(AttributeModificationType.REMOVE, toInternalAttribute(oldAttributeName), multiValued, oldAttributeValues, null);
                     } else if ((AttributeModificationType.REPLACE == modificationType)) {
-                        modification = createModification(attribute, AttributeModificationType.REPLACE, toInternalAttribute(attributeName), multiValued, attributeValues, oldAttributeValues);
+                        modification = createModification(AttributeModificationType.REPLACE, toInternalAttribute(attributeName), multiValued, attributeValues, oldAttributeValues);
                     }
                 }
 
@@ -282,7 +282,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
     }
 
     @Override
-    public <T> void removeByDn(String dn, String[] objectClasses) {
+    protected <T> void removeByDn(String dn, String[] objectClasses) {
     	if (ArrayHelper.isEmpty(objectClasses)) {
     		throw new UnsupportedOperationException("Entry class is manadatory for remove operation!");
     	}
@@ -302,7 +302,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
     }
 
     @Override
-    public <T> void removeRecursivelyFromDn(String dn, String[] objectClasses) {
+    protected <T> void removeRecursivelyFromDn(String dn, String[] objectClasses) {
     	if (ArrayHelper.isEmpty(objectClasses)) {
     		throw new UnsupportedOperationException("Entry class is manadatory for recursive remove operation!");
     	}
@@ -567,7 +567,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
             count++;
             EntryData entryData = searchResultEntries[i];
             
-            AttributeData attributeDataDn = entryData.getAttributeData(SpannerOperationService.DN);
+            AttributeData attributeDataDn = entryData.getAttributeDate(SpannerOperationService.DN);
             if ((attributeDataDn == null) || (attributeDataDn.getValue() == null)) {
                 throw new MappingException("Failed to convert EntryData to Entry because DN is missing");
             }
@@ -631,7 +631,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
                 return false;
             }
 
-            AttributeData attributeData = searchResult.getEntries().get(0).getAttributeData(SpannerOperationService.DN);
+            AttributeData attributeData = searchResult.getEntries().get(0).getAttributeDate(SpannerOperationService.DN);
             if ((attributeData == null) || (attributeData.getValue() == null)) {
                 throw new AuthenticationException("Failed to find user DN in entry: '%s'");
             }
@@ -717,12 +717,12 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
         return searchResult.getTotalEntriesCount();
     }
 
-    private AttributeDataModification createModification(final AttributeData attribute, final AttributeModificationType type, final String attributeName, final Boolean multiValued, final Object[] attributeValues, final Object[] oldAttributeValues) {
+    private AttributeDataModification createModification(final AttributeModificationType type, final String attributeName, final Boolean multiValued, final Object[] attributeValues, final Object[] oldAttributeValues) {
         String realAttributeName = attributeName;
 
         Object[] realValues = attributeValues;
         if (StringHelper.equalsIgnoreCase(SpannerOperationService.USER_PASSWORD, realAttributeName)) {
-            realValues = getOperationService().createStoragePassword(StringHelper.toStringArray(attributeValues), attribute);
+            realValues = getOperationService().createStoragePassword(StringHelper.toStringArray(attributeValues));
         }
 
         escapeValues(realValues);
@@ -811,7 +811,7 @@ public class SpannerEntryManager extends BaseEntryManager<SpannerOperationServic
     	return filterConverter.convertToSqlFilter(tableMapping, excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap, true);
     }
 
-	protected Filter excludeObjectClassFilters(Filter genericFilter) {
+	private Filter excludeObjectClassFilters(Filter genericFilter) {
 		return filterProcessor.excludeFilter(genericFilter, FilterProcessor.OBJECT_CLASS_EQUALITY_FILTER, FilterProcessor.OBJECT_CLASS_PRESENCE_FILTER);
 	}
 

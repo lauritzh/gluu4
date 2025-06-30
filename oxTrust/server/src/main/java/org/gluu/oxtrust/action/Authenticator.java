@@ -16,10 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.Instance;
+import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
-import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -58,6 +56,7 @@ import org.gluu.service.custom.CustomScriptService;
 import org.gluu.util.ArrayHelper;
 import org.gluu.util.StringHelper;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 /**
@@ -67,13 +66,14 @@ import org.slf4j.Logger;
  * @author Yuriy Movchan Date: 02.12.2013
  */
 @Named("authenticator")
-@RequestScoped
+@SessionScoped
 public class Authenticator implements Serializable {
 
     /**
      * 
      */
     private String LOGIN_FAILED_OX_TRUST = "Login failed, oxTrust wasn't allowed to access user data";
+    private static final String CN_OXAUTH_HOST = "CN_OXAUTH_HOST";
 
     private static final long serialVersionUID = -3975272457541385597L;
 
@@ -82,9 +82,6 @@ public class Authenticator implements Serializable {
 
     @Inject
     private Identity identity;
-    
-    @Inject
-    private ExternalContext externalContext;
 
     @Inject
     private FacesService facesService;
@@ -112,9 +109,6 @@ public class Authenticator implements Serializable {
 
     @Inject
     private EncryptionService encryptionService;
-
-    @Inject
-    private Instance<Identity> identityInstance;
 
     public boolean preAuthenticate() throws IOException, Exception {
         boolean result = true;
@@ -168,31 +162,11 @@ public class Authenticator implements Serializable {
      * @throws Exception
      */
     private void postLogin(User user) {
-    	// At the end of this method execution new session and identity objects
-    	// should properly create and initialized
-    	
-    	// Destroy current session and session objects
-    	externalContext.invalidateSession();
-    	
-    	// Force to create new session
-    	externalContext.getSession(true);
-    	
-        // Force to create new identity bean
-        identityInstance.destroy(identityInstance.get());
-
-        // After session end we should get new identity object
-    	Identity newSessionIdentity = identityInstance.get();
-        
-    	log.debug("Old identity hash code '{}', new identity hash code '{}'", System.identityHashCode(identity), System.identityHashCode(newSessionIdentity));
-    	
-    	// We need to copy oauthData/user/sessionMap object from old identity to newSessionIdentity
-    	// Additonal code here
-        
-    	newSessionIdentity.login();
+        identity.login();
         log.debug("Configuring application after user '{}' login", user.getUid());
         GluuCustomPerson person = findPersonByDn(user.getDn());
         identity.setUser(person);
-        
+
         // Set user roles
         UserRole[] userRoles = securityService.getUserRoles(user);
         if (ArrayHelper.isNotEmpty(userRoles)) {
@@ -426,8 +400,14 @@ public class Authenticator implements Serializable {
     private String getAuthorizationUrl() {
         try {
             URL url = new URL(openIdService.getOpenIdConfiguration().getAuthorizationEndpoint());
-            if (CloudEditionUtil.getOxAuthHost().isPresent()) {
-                url = CloudEditionUtil.getOxAuthUrl(url,CloudEditionUtil.getOxAuthHost().get());
+            String oxauth_env_host_port = System.getProperty(CN_OXAUTH_HOST);
+            if (oxauth_env_host_port != null) {
+                String[] values = oxauth_env_host_port.split(":");
+                if (values.length > 1) {
+                    url = new URL(url.getProtocol(), values[0], Integer.valueOf(values[1]), url.getFile());
+                } else {
+                    url = new URL(url.getProtocol(), values[0], url.getPort(), url.getFile());
+                }
             }
             return url.toString();
         } catch (MalformedURLException e) {
@@ -435,7 +415,6 @@ public class Authenticator implements Serializable {
             return openIdService.getOpenIdConfiguration().getAuthorizationEndpoint();
         }
     }
-
 
 
 }

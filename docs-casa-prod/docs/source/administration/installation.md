@@ -5,7 +5,7 @@ View screenshots in the [User Guide](../user-guide.md).
  
 ## Installation via Linux Packages 
 
-Casa is offered as one of the several components of the Gluu Server CE. To include Casa in your instance, just ensure to check it when prompted at [installation](https://gluu.org/docs/gluu-server/4.4/installation-guide/) time.
+Casa is offered as one of the several components of the Gluu Server CE. To include Casa in your instance, just ensure to check it when prompted at [installation](https://gluu.org/docs/ce/4.3/installation-guide/) time.
 
 To add Casa post-install do the following:
 
@@ -16,7 +16,7 @@ To add Casa post-install do the following:
 
 **Important notes:**
 
-- Account for **1GB of additional RAM** than you use in a standard CE installation. See [Gluu Server system requirements](https://gluu.org/docs/gluu-server/4.4/installation-guide/#system-requirements)
+- Account for **1GB of additional RAM** than you use in a standard CE installation. See [Gluu Server system requirements](https://gluu.org/docs/ce/4.3/installation-guide/#system-requirements)
 
 - It is required your installation was configured to use a FQDN for hostname, not an IP address
 
@@ -41,7 +41,6 @@ Recall admin capabilities are disabled by default. To unlock admin features foll
 
 1. Navigate inside chroot to `/opt/gluu/jetty/casa/`
 1. Create an empty file named `.administrable` (ie. `touch .administrable`)
-1. Run `chown casa:casa .administrable` (do this only if you are on FIPS environment)
 1. Logout in case you have an open browser session
 
 !!! Warning

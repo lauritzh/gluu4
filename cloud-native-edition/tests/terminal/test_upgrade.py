@@ -2,8 +2,8 @@ import pytest
 
 
 @pytest.mark.parametrize("given, expected", [
-    ("", "4.5"),
-    ("4.5", "4.5"),
+    ("", "4.3"),
+    ("4.3", "4.3"),
 ])
 def test_upgrade_version(monkeypatch, settings, given, expected):
     from pygluu.kubernetes.terminal.upgrade import PromptUpgrade

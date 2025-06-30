@@ -14,9 +14,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.dbcp2.ConnectionFactory;
 import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
@@ -32,19 +34,15 @@ import org.gluu.orm.util.StringHelper;
 import org.gluu.persist.exception.KeyConversionException;
 import org.gluu.persist.exception.operation.ConfigurationException;
 import org.gluu.persist.exception.operation.ConnectionException;
-import org.gluu.persist.model.AttributeType;
 import org.gluu.persist.operation.auth.PasswordEncryptionMethod;
-import org.gluu.persist.sql.dsl.template.MariaDBJsonTemplates;
-import org.gluu.persist.sql.dsl.template.MySQLJsonTemplates;
-import org.gluu.persist.sql.dsl.template.PostgreSQLJsonTemplates;
+import org.gluu.persist.sql.dsl.template.SqlJsonMySQLTemplates;
 import org.gluu.persist.sql.model.ResultCode;
 import org.gluu.persist.sql.model.TableMapping;
-import org.gluu.persist.sql.operation.SqlOperationService;
-import org.gluu.persist.sql.operation.SupportedDbType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.querydsl.sql.Configuration;
+import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.SQLQueryFactory;
 import com.querydsl.sql.SQLTemplates;
 import com.querydsl.sql.SQLTemplatesRegistry;
@@ -56,11 +54,12 @@ import com.querydsl.sql.SQLTemplatesRegistry;
  */
 public class SqlConnectionProvider {
 
+    private static final String JSON_TYPE_NAME = "json";
+
 	private static final Logger LOG = LoggerFactory.getLogger(SqlConnectionProvider.class);
 
-	private static final String MYSQL_QUERY_ENGINE_TYPE = "SELECT TABLE_NAME, ENGINE FROM information_schema.tables WHERE table_schema = ?";
-
-	private static final String MYSQL_QUERY_CONSTRAINT_CHECK = "SELECT CONSTRAINT_SCHEMA AS TABLE_SCHEMA, TABLE_NAME, CONSTRAINT_NAME, CHECK_CLAUSE AS DEFINITION FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = ? ORDER BY TABLE_SCHEMA, TABLE_NAME";
+    private static final String QUERY_ENGINE_TYPE =
+    		"SELECT TABLE_NAME, ENGINE FROM information_schema.tables WHERE table_schema = ?";
 
     private static final String DRIVER_PROPERTIES_PREFIX = "connection.driver-property";
 
@@ -78,8 +77,10 @@ public class SqlConnectionProvider {
 
     private PasswordEncryptionMethod passwordEncryptionMethod;
 
-	private SupportedDbType dbType;
+	private String dbType;
 	private String dbVersion;
+
+	private boolean mariaDb = false;
 
 	private String schemaName;
 
@@ -87,9 +88,9 @@ public class SqlConnectionProvider {
 
 	private SQLQueryFactory sqlQueryFactory;
 	
-	private Map<String, Map<String, AttributeType>> tableColumnsMap;
+	private Map<String, Map<String, String>> tableColumnsMap;
 	private Map<String, String> tableEnginesMap = new HashMap<>();
-	private Map<String, ArrayList<String>> tableJsonColumnsMap = new HashMap<>();
+
 
     protected SqlConnectionProvider() {
     }
@@ -112,6 +113,7 @@ public class SqlConnectionProvider {
             }
 
             LOG.error("Failed to create connection pool with properties: '{}'. Exception: {}", clonedProperties, ex);
+            ex.printStackTrace();
         }
     }
 
@@ -129,8 +131,7 @@ public class SqlConnectionProvider {
 		Properties filteredDriverProperties = PropertiesHelper.findProperties(props, DRIVER_PROPERTIES_PREFIX, ".");
         this.connectionProperties = new Properties();
 		for (Entry<Object, Object> driverPropertyEntry : filteredDriverProperties.entrySet()) {
-			String key = StringHelper.toString(driverPropertyEntry.getKey())
-					.substring(DRIVER_PROPERTIES_PREFIX.length() + 1);
+			String key = StringHelper.toString(driverPropertyEntry.getKey()).substring(DRIVER_PROPERTIES_PREFIX.length() + 1);
 			String value = StringHelper.toString(driverPropertyEntry.getValue());
 
 			connectionProperties.put(key, value);
@@ -159,34 +160,21 @@ public class SqlConnectionProvider {
         	objectPoolConfig.setMinIdle(cpMinIdle);
         }
 
-		Integer cpMaxWaitTimeMillis = StringHelper.toInteger(props.getProperty("connection.pool.max-wait-time-millis"),
-				null);
+        Integer cpMaxWaitTimeMillis = StringHelper.toInteger(props.getProperty("connection.pool.max-wait-time-millis"), null);
         if (cpMaxWaitTimeMillis != null) {
         	objectPoolConfig.setMaxWaitMillis(cpMaxWaitTimeMillis);
         }
 
-		Integer cpMinEvictableIdleTimeMillis = StringHelper
-				.toInteger(props.getProperty("connection.pool.min-evictable-idle-time-millis"), null);
+        Integer cpMinEvictableIdleTimeMillis = StringHelper.toInteger(props.getProperty("connection.pool.min-evictable-idle-time-millis"), null);
         if (cpMaxWaitTimeMillis != null) {
         	objectPoolConfig.setMinEvictableIdleTimeMillis(cpMinEvictableIdleTimeMillis);
         }
-
-        Boolean testOnCreate = StringHelper.toBoolean(props.getProperty("connection.pool.test-on-create"), null);
-		if (testOnCreate != null) {
-			objectPoolConfig.setTestOnCreate(testOnCreate);
-		}
-
-		Boolean testOnReturn = StringHelper.toBoolean(props.getProperty("connection.pool.test-on-return"), null);
-		if (testOnReturn != null) {
-			objectPoolConfig.setTestOnReturn(testOnReturn);
-		}
 
         openWithWaitImpl();
         LOG.info("Created connection pool");
 
         if (props.containsKey("password.encryption.method")) {
-			this.passwordEncryptionMethod = PasswordEncryptionMethod
-					.getMethod(props.getProperty("password.encryption.method"));
+            this.passwordEncryptionMethod = PasswordEncryptionMethod.getMethod(props.getProperty("password.encryption.method"));
         } else {
             this.passwordEncryptionMethod = PasswordEncryptionMethod.HASH_METHOD_SHA256;
         }
@@ -207,16 +195,10 @@ public class SqlConnectionProvider {
 
         try (Connection con = this.poolingDataSource.getConnection()) {
         	DatabaseMetaData databaseMetaData = con.getMetaData();
-        	String dbTypeString = databaseMetaData.getDatabaseProductName();
-        	this.dbType = SupportedDbType.resolveDbType(dbTypeString.toLowerCase());
-        	
-        	if (this.dbType == null) {
-                throw new ConnectionException(String.format("Database type '%s' is not supported", dbTypeString));
-        	}
-        	
+        	this.dbType = databaseMetaData.getDatabaseProductName().toLowerCase();
         	this.dbVersion = databaseMetaData.getDatabaseProductVersion().toLowerCase();
         	if ((this.dbVersion != null) && this.dbVersion.toLowerCase().contains("mariadb")) {
-            	this.dbType = SupportedDbType.MARIADB;
+        		this.mariaDb = true;
         	}
             LOG.debug("Database product name: '{}'", dbType);
             loadTableMetaData(databaseMetaData, con);
@@ -230,88 +212,41 @@ public class SqlConnectionProvider {
     private void loadTableMetaData(DatabaseMetaData databaseMetaData, Connection con) throws SQLException {
         long takes = System.currentTimeMillis();
 
-        if (SupportedDbType.MYSQL == dbType) {
-	        LOG.info("Detecting engine types...");
-	    	PreparedStatement preparedStatement = con.prepareStatement(MYSQL_QUERY_ENGINE_TYPE);
-	    	preparedStatement.setString(1, schemaName);
-	
-	    	try (ResultSet tableEnginesResultSet = preparedStatement.executeQuery()) {
-		    	while (tableEnginesResultSet.next()) {
-		    		String tableName = tableEnginesResultSet.getString("TABLE_NAME");
-		    		String engineName = tableEnginesResultSet.getString("ENGINE");
-		
-		        	tableEnginesMap.put(tableName, engineName);
-		    	}
-	    	}
-        }
-	
-		if (SupportedDbType.MARIADB == dbType) {
-			LOG.info("Loading contrains to identify JSON columns ...");
-			PreparedStatement preparedStatement = con.prepareStatement(MYSQL_QUERY_CONSTRAINT_CHECK);
-			preparedStatement.setString(1, schemaName);
+        LOG.info("Detecting engine types...");
+    	PreparedStatement preparedStatement = con.prepareStatement(QUERY_ENGINE_TYPE);
+    	preparedStatement.setString(1, schemaName);
 
-			try (ResultSet tableEnginesResultSet = preparedStatement.executeQuery()) {
-				while (tableEnginesResultSet.next()) {
-					String tableName = tableEnginesResultSet.getString("TABLE_NAME");
-					String constraintName = tableEnginesResultSet.getString("CONSTRAINT_NAME");
-					String definition = tableEnginesResultSet.getString("DEFINITION");
+    	ResultSet tableEnginesResultSet = preparedStatement.executeQuery();
+    	while (tableEnginesResultSet.next()) {
+    		String tableName = tableEnginesResultSet.getString("TABLE_NAME");
+    		String engineName = tableEnginesResultSet.getString("ENGINE");
 
-					ArrayList<String> tableJsonColumns = tableJsonColumnsMap.get(tableName);
-					if (tableJsonColumns == null) {
-						tableJsonColumns = new ArrayList<>();
-						tableJsonColumnsMap.put(tableName, tableJsonColumns);
-					}
-
-					if ((definition != null) && definition.toLowerCase().contains("json_valid")) { // Example:
-																									// json_valid(`memberOf`)
-						tableJsonColumns.add(constraintName.toLowerCase());
-					}
-				}
-			}
-			LOG.debug("Found JSON constrains: '{}'.", tableJsonColumnsMap);
-		}
+        	tableEnginesMap.put(tableName, engineName);
+    	}
 
         LOG.info("Scanning DB metadata...");
-        try (ResultSet tableResultSet = databaseMetaData.getTables(null, schemaName, null, new String[]{"TABLE"})) {
-	    	while (tableResultSet.next()) {
-	    		String tableName = tableResultSet.getString("TABLE_NAME");
-	    		Map<String, AttributeType> tableColumns = new HashMap<>();
-	    		
-	//    		String engineType = tableEnginesMap.get(tableName);
-	    		
-	            LOG.debug("Found table: '{}'.", tableName);
-	            try (ResultSet columnResultSet = databaseMetaData.getColumns(null, schemaName, tableName, null)) {
-		        	while (columnResultSet.next()) {
-		        		String columnName = columnResultSet.getString("COLUMN_NAME").toLowerCase();
-						String columnTypeName = columnResultSet.getString("TYPE_NAME").toLowerCase();
-		
-						if ((SupportedDbType.MARIADB == dbType) && SqlOperationService.LONGTEXT_TYPE_NAME.equalsIgnoreCase(columnTypeName)) {
-							String remark = columnResultSet.getString("REMARKS");
-			        		if (SqlOperationService.JSON_TYPE_NAME.equalsIgnoreCase(remark)) {
-								columnTypeName = SqlOperationService.JSON_TYPE_NAME;
-			        		} else {
-			        			ArrayList<String> tableJsonColumns = tableJsonColumnsMap.get(tableName);
-								if ((tableJsonColumns != null) && tableJsonColumns.contains(columnName)) {
-									columnTypeName = SqlOperationService.JSON_TYPE_NAME;
-								}
-			        		}
-						}
+        ResultSet tableResultSet = databaseMetaData.getTables(null, schemaName, null, new String[]{"TABLE"});
+    	while (tableResultSet.next()) {
+    		String tableName = tableResultSet.getString("TABLE_NAME");
+    		Map<String, String> tableColumns = new HashMap<>();
+    		
+    		String engineType = tableEnginesMap.get(tableName);
+    		
+            LOG.debug("Found table: '{}'.", tableName);
+            ResultSet columnResultSet = databaseMetaData.getColumns(null, schemaName, tableName, null);
+        	while (columnResultSet.next()) {
+        		String columnName = columnResultSet.getString("COLUMN_NAME").toLowerCase();
+				String columTypeName = columnResultSet.getString("TYPE_NAME").toLowerCase();
 
-		        		if (SqlOperationService.JSONB_TYPE_NAME.equalsIgnoreCase(columnTypeName)) {
-		        			columnTypeName = SqlOperationService.JSONB_TYPE_NAME;
-		        		}
-		
-						boolean multiValued = SqlOperationService.JSON_TYPE_NAME.equals(columnTypeName)
-								|| SqlOperationService.JSONB_TYPE_NAME.equals(columnTypeName);
-		
-		        		AttributeType attributeType = new AttributeType(columnName, columnTypeName, multiValued);
-		        		tableColumns.put(columnName, attributeType);
-		        	}
-	            }
-	
-	        	tableColumnsMap.put(StringHelper.toLowerCase(tableName), tableColumns);
-	    	}
-        }
+				String remark = columnResultSet.getString("REMARKS");
+        		if (mariaDb && "longtext".equalsIgnoreCase(columTypeName) && "json".equalsIgnoreCase(remark)) {
+        			columTypeName = JSON_TYPE_NAME;
+        		}
+				tableColumns.put(columnName, columTypeName);
+        	}
+
+        	tableColumnsMap.put(tableName, tableColumns);
+    	}
 
     	takes = System.currentTimeMillis() - takes;
         LOG.info("Metadata scan finisehd in {} milliseconds", takes);
@@ -322,12 +257,8 @@ public class SqlConnectionProvider {
 		try (Connection con = poolingDataSource.getConnection()) {
 			DatabaseMetaData databaseMetaData = con.getMetaData();
 			SQLTemplates.Builder sqlBuilder = templatesRegistry.getBuilder(databaseMetaData);
-			if (SupportedDbType.MYSQL == dbType) {
-				sqlBuilder = MySQLJsonTemplates.builder();
-			} else if (SupportedDbType.MARIADB == dbType) {
-				sqlBuilder = MariaDBJsonTemplates.builder();
-			} else if (SupportedDbType.POSTGRESQL == dbType) {
-				sqlBuilder = PostgreSQLJsonTemplates.builder().quote();
+			if (sqlBuilder instanceof MySQLTemplates.Builder) {
+				sqlBuilder = SqlJsonMySQLTemplates.builder();
 			}
 			this.sqlTemplates = sqlBuilder.printSchema().build();
 			Configuration configuration = new Configuration(sqlTemplates);
@@ -337,8 +268,7 @@ public class SqlConnectionProvider {
 	}
 
     private void openWithWaitImpl() throws Exception {
-		long connectionMaxWaitTimeMillis = StringHelper
-				.toLong(props.getProperty("connection.pool.create-max-wait-time-millis"), 30 * 1000L);
+    	long connectionMaxWaitTimeMillis = StringHelper.toLong(props.getProperty("connection.pool.create-max-wait-time-millis"), 30 * 1000L);
         LOG.debug("Using connection timeout: '{}'", connectionMaxWaitTimeMillis);
 
         Exception lastException = null;
@@ -382,8 +312,7 @@ public class SqlConnectionProvider {
     private void open() {
 		ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(connectionUri, connectionProperties);
 		PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
-		ObjectPool<PoolableConnection> objectPool = new GenericObjectPool<>(poolableConnectionFactory,
-				objectPoolConfig);
+		ObjectPool<PoolableConnection> objectPool = new GenericObjectPool<>(poolableConnectionFactory, objectPoolConfig);
 
 		this.poolingDataSource = new PoolingDataSource<>(objectPool);
 		poolableConnectionFactory.setPool(objectPool);
@@ -468,7 +397,7 @@ public class SqlConnectionProvider {
 
 	public TableMapping getTableMappingByKey(String key, String objectClass) {
 		String tableName = objectClass;
-		Map<String, AttributeType> columTypes = tableColumnsMap.get(StringHelper.toLowerCase(tableName));
+		Map<String, String> columTypes = tableColumnsMap.get(tableName);
 		if ("_".equals(key)) {
 			return new TableMapping("", tableName, objectClass, columTypes);
 		}
@@ -505,9 +434,5 @@ public class SqlConnectionProvider {
         	throw new ConnectionException("Failed to get database metadata", ex);
         }
 	}
-
-	public SupportedDbType getDbType() {
-		return dbType;
-	}
-
+	
 }

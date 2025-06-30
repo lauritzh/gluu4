@@ -150,7 +150,7 @@ def get_as_bool(val):
 
 class GluuUpdater:
     def __init__(self):
-        self.keep_user_inum = False
+
         self.update_dir = cur_dir
         self.app_dir = os.path.join(self.update_dir,'app')
         self.war_dir = os.path.join(self.update_dir,'war')
@@ -379,11 +379,11 @@ class GluuUpdater:
     def download_apps(self):
 
         for download_link, out_file in (
-                        ('https://ox.gluu.org/icrby8xcvbcv/maven/oxshibbolethIdp-{0}.war'.format(self.current_version), os.path.join(self.war_dir, 'idp.war')),
+                        ('https://ox.gluu.org/maven/org/gluu/oxshibbolethIdp/{0}/oxshibbolethIdp-{0}.war'.format(self.current_version), os.path.join(self.war_dir, 'idp.war')),
                         ('https://ox.gluu.org/maven/org/gluu/oxtrust-server/{0}/oxtrust-server-{0}.war'.format(self.current_version), os.path.join(self.war_dir, 'identity.war')),
                         ('https://ox.gluu.org/maven/org/gluu/oxauth-server/{0}/oxauth-server-{0}.war'.format(self.current_version), os.path.join(self.war_dir, 'oxauth.war')),
-                        ('https://ox.gluu.org/icrby8xcvbcv/maven/oxShibbolethStatic-{0}.jar'.format(self.current_version), os.path.join(self.war_dir, 'shibboleth-idp.jar')),
-                        ('https://ox.gluu.org/icrby8xcvbcv/maven/oxShibbolethKeyGenerator-{0}.jar'.format(self.current_version), os.path.join(self.war_dir, 'idp3_cml_keygenerator.jar')),
+                        ('https://ox.gluu.org/maven/org/gluu/oxShibbolethStatic/{0}/oxShibbolethStatic-{0}.jar'.format(self.current_version), os.path.join(self.war_dir, 'shibboleth-idp.jar')),
+                        ('https://ox.gluu.org/maven/org/gluu/oxShibbolethKeyGenerator/{0}/oxShibbolethKeyGenerator-{0}.jar'.format(self.current_version), os.path.join(self.war_dir, 'idp3_cml_keygenerator.jar')),
                         ('https://ox.gluu.org/npm/passport/passport-4.0.0.tgz', os.path.join(self.app_dir, 'passport.tgz')),
                         ('https://ox.gluu.org/npm/passport/passport-version_4.0-node_modules.tar.gz', os.path.join(self.app_dir, 'passport-node_modules.tar.gz')),
                         ('https://d3pxv6yz143wms.cloudfront.net/{0}/amazon-corretto-{0}-linux-x64.tar.gz'.format(setupObject.jre_version), os.path.join(self.app_dir, 'amazon-corretto-{0}-linux-x64.tar.gz'.format(setupObject.jre_version))),
@@ -396,7 +396,7 @@ class GluuUpdater:
                     ):
 
             print "Downloading", download_link
-            setupObject.run(['wget', '--no-check-certificate', '--user', argsp.maven_user, '--password', argsp.maven_password, '-nv', download_link, '-O', out_file])
+            setupObject.run(['wget', '-nv', download_link, '-O', out_file])
 
         setupObject.run(['chmod', '+x', self.update_casa_script])
 
@@ -565,9 +565,6 @@ class GluuUpdater:
 
     def inum2uuid(self, s, oxAuthClient=False):
 
-        if self.keep_user_inum and ('ou=groups' in s or 'ou=people' in s):
-            return s
-
         tmps = s
 
         if self.ldif_parser.inumApllience:
@@ -722,10 +719,8 @@ class GluuUpdater:
             if 'oxClientAuthorizations' in new_entry['objectClass']:
                 new_entry['objectClass'].remove('oxClientAuthorizations')
                 new_entry['objectClass'].append('oxClientAuthorization')
-
+                
                 if dn.startswith('oxId'):
-                    if not 'oxAuthScope' in new_entry:
-                        new_entry['oxAuthScope'] = []
                     new_entry['oxAuthScope'].append('oxd')
 
                 #if 'oxAuthClientId' in new_entry:
@@ -1188,20 +1183,20 @@ class GluuUpdater:
                     for i, oac in enumerate(new_entry[p][:]):
                         new_entry[p][i] = oac.replace(self.inumOrg_ou+',','')
 
-            for e in new_entry:
-                if e == 'oxAssociatedClient':
-                     continue
 
+            for e in new_entry:
                 for i, se in enumerate(new_entry[e][:]):
                     if 'inum=' in se:
                         new_entry[e][i] = self.inum2uuid(se)
 
+
             if 'inum' in new_entry:
 
-                if not oxAuthClient:
-                    if not (self.keep_user_inum and ('ou=groups' in dn or 'ou=people' in dn)):
-                        new_entry['inum'] = [self.inum2uuid(new_entry['inum'][0])]
+                
 
+                if not oxAuthClient:
+                    new_entry['inum'] = [self.inum2uuid(new_entry['inum'][0])]
+                
                 new_dn = self.inum2uuid(new_dn, oxAuthClient)
 
                 if new_entry['inum'][0] in ['8CAD-B06D', '8CAD-B06E']:
@@ -1308,9 +1303,11 @@ class GluuUpdater:
                                     new_entry['gluuPassportConfiguration'][0]
                                 )
                 try:
+                
                     self.fix_passport_config(new_dn, new_entry)
+                
                 except Exception as e:
-                    err_str = "ERROR fixing passport: " + str(e)
+                    err_str = "ERROR fixing passport: " + e
                     print err_str
                     setupObject.logIt(err_str, True)
                     
@@ -1972,8 +1969,6 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--online', help="online installation", action='store_true')
     parser.add_argument('--cluster-node', help="Use this if you are upgrading non-primary cluster node", action='store_true')
     parser.add_argument('--remote-couchbase', help="Enables using remote couchbase server", action='store_true')
-    parser.add_argument('-maven-user', help="Gluu Maven username", required=True)
-    parser.add_argument('-maven-password', help="Gluu Maven password", required=True)
     argsp = parser.parse_args()
 
     start_upgrade = raw_input('Ready to upgrade Gluu Server. Start now (y|N) ')
@@ -1989,12 +1984,6 @@ if __name__ == '__main__':
     if result.strip() and result.strip().lower()[0] == 'n':
         print "Can't continue wtihout replacing custom scripts. Exiting ..."
         sys.exit()
-
-    keep_user_inum = False
-    ask_keep_user_inum = raw_input("Keep users' inum as it is? (y|N) ")
-    if ask_keep_user_inum and ask_keep_user_inum[0].lower() == 'y':
-        keep_user_inum = True
-
 
     from setup.pylib.ldif import LDIFParser, LDIFWriter, ParseLDIF
     from setup.pylib.cbm import CBM
@@ -2019,8 +2008,6 @@ if __name__ == '__main__':
         setup_porperties['encode_salt'] = str(setup_porperties['encode_salt'])
 
     updaterObj = GluuUpdater()
-    updaterObj.keep_user_inum = keep_user_inum
-    
     updaterObj.determine_ldap_type()
 
     setup_install_dir = os.path.join(cur_dir,'setup')
@@ -2036,7 +2023,7 @@ if __name__ == '__main__':
             setup_val = str(setup_val)
         setattr(setupObject, setup_key, setup_val)
 
-    if argsp.online or not os.path.exists(os.path.join(cur_dir, 'setup')):
+    if argsp.online or not os.path.exists('setup'):
         updaterObj.download_apps()
 
     sdb_files = []

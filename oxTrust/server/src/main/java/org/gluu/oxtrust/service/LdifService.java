@@ -130,12 +130,12 @@ public class LdifService implements Serializable {
 		});
 	}
 
-	public void exportLDIFFile(List<String> checkedItems, OutputStream output, String objectClass) throws LDAPException {
+	public void exportLDIFFile(List<String> checkedItems, OutputStream output) throws LDAPException {
 		try {
 			StringBuilder builder = new StringBuilder();
 			if (checkedItems != null && checkedItems.size() > 0) {
 				checkedItems.stream().forEach(e -> {
-					List<AttributeData> exportEntry = persistenceManager.exportEntry(e, objectClass);
+					List<AttributeData> exportEntry = persistenceManager.exportEntry(e);
 					if (exportEntry != null && exportEntry.size() >= 0) {
 						builder.append("dn: " + e + System.getProperty(LINE_SEPARATOR));
 						exportEntry.forEach(v -> {

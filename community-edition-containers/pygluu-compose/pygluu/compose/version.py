@@ -1,4 +1,6 @@
-"""Contains metadata for versioning."""
+"""
+ License terms and conditions for Gluu Cloud Native Edition:
+ https://www.apache.org/licenses/LICENSE-2.0
+"""
 
-__version__ = "1.24.0"
-__gluu_version__ = "4.5.11"
+__version__ = "1.10.0"

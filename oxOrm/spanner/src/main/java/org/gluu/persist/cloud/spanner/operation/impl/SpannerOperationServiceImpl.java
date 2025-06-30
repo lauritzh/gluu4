@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,8 +25,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.codec.binary.Hex;
-import org.gluu.orm.util.ArrayHelper;
-import org.gluu.orm.util.StringHelper;
 import org.gluu.persist.cloud.spanner.impl.SpannerBatchOperationWraper;
 import org.gluu.persist.cloud.spanner.model.ConvertedExpression;
 import org.gluu.persist.cloud.spanner.model.SearchReturnDataType;
@@ -36,6 +33,7 @@ import org.gluu.persist.cloud.spanner.model.ValueWithStructField;
 import org.gluu.persist.cloud.spanner.operation.SpannerOperationService;
 import org.gluu.persist.cloud.spanner.operation.watch.OperationDurationUtil;
 import org.gluu.persist.cloud.spanner.util.SpannerValueHelper;
+import org.gluu.persist.exception.extension.PersistenceExtension;
 import org.gluu.persist.exception.operation.DeleteException;
 import org.gluu.persist.exception.operation.DuplicateEntryException;
 import org.gluu.persist.exception.operation.EntryConvertationException;
@@ -43,18 +41,18 @@ import org.gluu.persist.exception.operation.EntryNotFoundException;
 import org.gluu.persist.exception.operation.IncompatibleTypeException;
 import org.gluu.persist.exception.operation.PersistenceException;
 import org.gluu.persist.exception.operation.SearchException;
-import org.gluu.persist.extension.PersistenceExtension;
 import org.gluu.persist.model.AttributeData;
 import org.gluu.persist.model.AttributeDataModification;
-import org.gluu.persist.model.AttributeDataModification.AttributeModificationType;
 import org.gluu.persist.model.BatchOperation;
 import org.gluu.persist.model.EntryData;
 import org.gluu.persist.model.PagedResult;
-import org.gluu.persist.model.PasswordAttributeData;
 import org.gluu.persist.model.SearchScope;
 import org.gluu.persist.model.Sort;
 import org.gluu.persist.model.SortOrder;
+import org.gluu.persist.model.AttributeDataModification.AttributeModificationType;
 import org.gluu.persist.operation.auth.PasswordEncryptionHelper;
+import org.gluu.orm.util.ArrayHelper;
+import org.gluu.orm.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -625,7 +623,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
 	                    // Change limit and offset
 	    	    		limit.setRowCount(new LongValue(currentLimit));
-	    	    		offset.setOffset(new LongValue(start + resultCount));
+	    	    		offset.setOffset(start + resultCount);
 	                    
 	    				Statement.Builder statementBuilder = Statement.newBuilder(sqlSelectQuery.toString());
 	    				applyParametersBinding(statementBuilder, expression);
@@ -653,7 +651,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	
 	                    resultCount += lastCountRows;
 	
-	                    if ((count > 0) && (resultCount >= count) || (lastCountRows < currentLimit)) {
+	                    if ((count > 0) && (resultCount >= count)) {
 	                        break;
 	                    }
 	                } while (lastCountRows > 0);
@@ -674,7 +672,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
     	    		if (start > 0) {
 	    	    		Offset offset = new Offset();
-	    	    		offset.setOffset(new LongValue(start));
+	    	    		offset.setOffset(start);
 	    	    		sqlSelectQuery.setOffset(offset);
 	                }
 	
@@ -706,7 +704,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
     		Function countFunction = new Function();
     		countFunction.setName("COUNT");
-    		countFunction.setParameters(new ExpressionList(Collections.<Expression>singletonList(new Column("*"))));
+    		countFunction.setAllColumns(true);
 
     		SelectExpressionItem selectCountItem = new SelectExpressionItem(countFunction);
     		selectCountItem.setAlias(new Alias("TOTAL", false));
@@ -740,21 +738,13 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
         return result;
     }
 
-	public String[] createStoragePassword(String[] passwords, AttributeData attributeData) {
+	public String[] createStoragePassword(String[] passwords) {
         if (ArrayHelper.isEmpty(passwords)) {
             return passwords;
         }
 
-        boolean isSkipHashed = (attributeData instanceof PasswordAttributeData) && ((PasswordAttributeData) attributeData).isSkipHashed();
-
         String[] results = new String[passwords.length];
         for (int i = 0; i < passwords.length; i++) {
-			if (isSkipHashed && (PasswordEncryptionHelper.findAlgorithmString(passwords[i]) != null)) {
-				// Skip password hashing only if password has prefix {alg} and defined with @Password(skipHashed = false)
-				results[i] = passwords[i];
-				continue;
-			}
-
 			if (persistenceExtension == null) {
 				results[i] = PasswordEncryptionHelper.createStoragePassword(passwords[i], connectionProvider.getPasswordEncryptionMethod());
 			} else {

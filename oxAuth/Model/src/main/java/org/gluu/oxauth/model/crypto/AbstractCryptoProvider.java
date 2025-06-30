@@ -16,11 +16,14 @@ import org.gluu.oxauth.model.jwk.JSONWebKey;
 import org.gluu.oxauth.model.jwk.JSONWebKeySet;
 import org.gluu.oxauth.model.jwk.Use;
 import org.gluu.oxauth.model.util.Base64Util;
+import org.gluu.oxeleven.model.JwksRequestParam;
+import org.gluu.oxeleven.model.KeyRequestParam;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
-import java.security.*;
+import java.security.AlgorithmParameters;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -45,8 +48,6 @@ public abstract class AbstractCryptoProvider {
     }
 
     public abstract JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use) throws Exception;
-
-    public abstract JSONObject generateKey(Algorithm algorithm, Long expirationTime, Use use, int keyLength) throws Exception;
 
     public abstract String sign(String signingInput, String keyId, String sharedSecret, SignatureAlgorithm signatureAlgorithm) throws Exception;
 
@@ -73,6 +74,28 @@ public abstract class AbstractCryptoProvider {
         }
 
         return null;
+    }
+
+    public JwksRequestParam getJwksRequestParam(JSONObject jwkJsonObject) throws JSONException {
+        JwksRequestParam jwks = new JwksRequestParam();
+        jwks.setKeyRequestParams(new ArrayList<>());
+
+        KeyRequestParam key = new KeyRequestParam();
+        key.setAlg(jwkJsonObject.getString(ALGORITHM));
+        key.setKid(jwkJsonObject.getString(KEY_ID));
+        key.setUse(jwkJsonObject.getString(KEY_USE));
+        key.setKty(jwkJsonObject.getString(KEY_TYPE));
+
+        key.setN(jwkJsonObject.optString(MODULUS));
+        key.setE(jwkJsonObject.optString(EXPONENT));
+
+        key.setCrv(jwkJsonObject.optString(CURVE));
+        key.setX(jwkJsonObject.optString(X));
+        key.setY(jwkJsonObject.optString(Y));
+
+        jwks.getKeyRequestParams().add(key);
+
+        return jwks;
     }
 
     public static JSONObject generateJwks(AbstractCryptoProvider cryptoProvider, AppConfiguration configuration) {
@@ -104,82 +127,48 @@ public abstract class AbstractCryptoProvider {
     }
 
     public PublicKey getPublicKey(String alias, JSONObject jwks, Algorithm requestedAlgorithm) throws Exception {
+        java.security.PublicKey publicKey = null;
+
         JSONArray webKeys = jwks.getJSONArray(JSON_WEB_KEY_SET);
+        for (int i = 0; i < webKeys.length(); i++) {
+            JSONObject key = webKeys.getJSONObject(i);
+            if (alias.equals(key.getString(KEY_ID))) {
+                AlgorithmFamily family = null;
+                if (key.has(ALGORITHM)) {
+                    Algorithm algorithm = Algorithm.fromString(key.optString(ALGORITHM));
 
-        try {
-            if (alias == null) {
-                if (webKeys.length() == 1) {
-                    JSONObject key = webKeys.getJSONObject(0);
-                    return processKey(requestedAlgorithm, alias, key);
-                } else {
-                    return null;
-                }
-            }
-            for (int i = 0; i < webKeys.length(); i++) {
-                JSONObject key = webKeys.getJSONObject(i);
-                if (alias.equals(key.getString(KEY_ID))) {
-                    PublicKey publicKey = processKey(requestedAlgorithm, alias, key);
-                    if (publicKey != null) {
-                        return publicKey;
+                    if (requestedAlgorithm != null && algorithm != requestedAlgorithm) {
+                        LOG.trace("kid matched but algorithm does not match. kid algorithm:" + algorithm + ", requestedAlgorithm:" + requestedAlgorithm + ", kid:" + alias);
+                        continue;
                     }
+                    family = algorithm.getFamily();
+                } else if (key.has(KEY_TYPE)) {
+                    family = AlgorithmFamily.fromString(key.getString(KEY_TYPE));
+                }
+
+                if (AlgorithmFamily.RSA.equals(family)) {
+                    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                    RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(
+                            new BigInteger(1, Base64Util.base64urldecode(key.getString(MODULUS))),
+                            new BigInteger(1, Base64Util.base64urldecode(key.getString(EXPONENT))));
+                    publicKey = keyFactory.generatePublic(pubKeySpec);
+                } else if (AlgorithmFamily.EC.equals(family)) {
+                    ECEllipticCurve curve = ECEllipticCurve.fromString(key.optString(CURVE));
+                    AlgorithmParameters parameters = AlgorithmParameters.getInstance(AlgorithmFamily.EC.toString());
+                    parameters.init(new ECGenParameterSpec(curve.getAlias()));
+                    ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
+
+                    publicKey = KeyFactory.getInstance(AlgorithmFamily.EC.toString()).generatePublic(new ECPublicKeySpec(
+                            new ECPoint(
+                                    new BigInteger(1, Base64Util.base64urldecode(key.getString(X))),
+                                    new BigInteger(1, Base64Util.base64urldecode(key.getString(Y)))
+                            ), ecParameters));
+                }
+
+                if (key.has(EXPIRATION_TIME)) {
+                    checkKeyExpiration(alias, key.getLong(EXPIRATION_TIME));
                 }
             }
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException |
-                 InvalidParameterException e) {
-            throw new Exception(e);
-        }
-
-        return null;
-    }
-
-    private PublicKey processKey(Algorithm requestedAlgorithm, String alias, JSONObject key) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidParameterSpecException, InvalidParameterException {
-        PublicKey publicKey = null;
-        AlgorithmFamily algorithmFamily = null;
-
-        if (key.has(ALGORITHM)) {
-            Algorithm algorithm = Algorithm.fromString(key.optString(ALGORITHM));
-
-            if (requestedAlgorithm != null && !requestedAlgorithm.equals(algorithm)) {
-                LOG.trace("kid matched but algorithm does not match. kid algorithm:" + algorithm
-                        + ", requestedAlgorithm:" + requestedAlgorithm + ", kid:" + alias);
-                return null;
-            }
-            algorithmFamily = algorithm.getFamily();
-        } else if (key.has(KEY_TYPE)) {
-            algorithmFamily = AlgorithmFamily.fromString(key.getString(KEY_TYPE));
-        } else {
-            throw new InvalidParameterException("Wrong key (JSONObject): doesn't contain 'alg' and 'kty' properties");
-        }
-
-        switch (algorithmFamily) {
-            case RSA: {
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(
-                        new BigInteger(1, Base64Util.base64urldecode(key.getString(MODULUS))),
-                        new BigInteger(1, Base64Util.base64urldecode(key.getString(EXPONENT))));
-                publicKey = keyFactory.generatePublic(pubKeySpec);
-                break;
-            }
-            case EC: {
-                ECEllipticCurve curve = ECEllipticCurve.fromString(key.optString(CURVE));
-                AlgorithmParameters parameters = AlgorithmParameters.getInstance(AlgorithmFamily.EC.toString());
-                parameters.init(new ECGenParameterSpec(curve.getAlias()));
-                ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
-                publicKey = KeyFactory.getInstance(AlgorithmFamily.EC.toString())
-                        .generatePublic(new ECPublicKeySpec(
-                                new ECPoint(
-                                        new BigInteger(1, Base64Util.base64urldecode(key.getString(X))),
-                                        new BigInteger(1, Base64Util.base64urldecode(key.getString(Y)))),
-                                ecParameters));
-                break;
-            }
-            default: {
-                throw new InvalidParameterException(String.format("Wrong AlgorithmFamily value: %s", algorithmFamily));
-            }
-        }
-
-        if (key.has(EXPIRATION_TIME)) {
-            checkKeyExpiration(alias, key.getLong(EXPIRATION_TIME));
         }
 
         return publicKey;

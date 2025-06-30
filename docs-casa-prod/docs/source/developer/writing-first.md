@@ -14,9 +14,9 @@ Hello world is minimalistic plugin that showcases very basic aspects of plugin d
 
 ### Download project
 
-Let's start by downloading the code. Hello World plugin is found in the [sample plugins folder](https://github.com/GluuFederation/casa/tree/version_4.4.0/plugins/samples).
+Let's start by downloading the code. Hello World plugin is found in the [sample plugins folder](https://github.com/GluuFederation/casa/tree/version_4.3.0/plugins/samples).
 
-If you have `git` installed in your machine, issue the following command. Replace the content in the angle brackets with your Gluu Casa version (e.g. "version_4.4.0"):
+If you have `git` installed in your machine, issue the following command. Replace the content in the angle brackets with your Gluu Casa version (e.g. "version_4.3.0"):
 
 ```
 $ git clone https://github.com/GluuFederation/casa.git

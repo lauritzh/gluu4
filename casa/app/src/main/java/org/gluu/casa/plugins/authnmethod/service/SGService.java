@@ -2,6 +2,16 @@ package org.gluu.casa.plugins.authnmethod.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.NameValuePair;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
 import org.gluu.casa.core.ConfigurationHandler;
 import org.gluu.casa.core.pojo.SuperGluuDevice;
 import org.gluu.casa.plugins.authnmethod.SuperGluuExtension;
@@ -14,7 +24,6 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -179,11 +188,14 @@ public class SGService extends FidoService {
 
         JsonNode node = null;
         try {
-            node = mapper.readTree(new URL(MessageFormat.format(urlPattern, ip)));            
-            logger.debug("Response from ip-api.com was: {}", node);
+            String ipApiResponse = getUrlContents(MessageFormat.format(urlPattern, ip), timeout);
+            logger.debug("Response from ip-api.com was: {}", ipApiResponse);
 
-            if (!node.get("status").asText().equals("success")) {
-                node = null;
+            if (ipApiResponse != null) {
+                node = mapper.readTree(ipApiResponse);
+                if (!node.get("status").asText().equals("success")) {
+                    node = null;
+                }
             }
         } catch (Exception e) {
             node = null;
@@ -191,6 +203,38 @@ public class SGService extends FidoService {
             logger.error(e.getMessage(), e);
         }
         return node;
+
+    }
+
+    private String getUrlContents(String url, int timeout) throws Exception{
+        return getUrlContents(url, Collections.emptyList(), timeout);
+    }
+
+    private String getUrlContents(String url, List<NameValuePair> nvPairList, int timeout) throws Exception {
+
+        String contents = null;
+
+        DefaultHttpClient client = new DefaultHttpClient();
+        HttpParams params = client.getParams();
+        HttpConnectionParams.setConnectionTimeout(params, timeout);
+        HttpConnectionParams.setSoTimeout(params, timeout);
+
+        HttpGet httpGet = new HttpGet(url);
+        URIBuilder uribe = new URIBuilder(httpGet.getURI());
+        nvPairList.forEach(pair -> uribe.addParameter(pair.getName(), pair.getValue()));
+
+        httpGet.setURI(uribe.build());
+        httpGet.setHeader("Accept", "application/json");
+        HttpResponse response = client.execute(httpGet);
+        HttpEntity entity = response.getEntity();
+
+        logger.debug("GET request is {}", httpGet.getURI());
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            contents = EntityUtils.toString(entity);
+        }
+        EntityUtils.consume(entity);
+
+        return contents;
 
     }
 

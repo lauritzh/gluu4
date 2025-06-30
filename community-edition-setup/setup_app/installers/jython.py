@@ -12,12 +12,12 @@ from setup_app.installers.base import BaseInstaller
 class JythonInstaller(BaseInstaller, SetupUtils):
 
     def __init__(self):
-        setattr(base.current_app, self.__class__.__name__, self)
         self.service_name = 'jython'
         self.install_var = 'installJython'
         self.app_type = AppType.APPLICATION
-        self.install_type = InstallOption.MANDATORY
-        self.register_progess()
+        self.install_type = InstallOption.MONDATORY
+        if not base.snap:
+            self.register_progess()
 
         self.needdb = False # we don't need backend connection in this class
 
@@ -29,7 +29,7 @@ class JythonInstaller(BaseInstaller, SetupUtils):
             self.logIt("Jython installer not found in. Exiting...", True, True)
 
         jython_installer = max(jython_installer_list)
-        jython_version_regex = re.search(r'jython-installer-(.*)\.jar', jython_installer)
+        jython_version_regex = re.search('jython-installer-(.*)\.jar', jython_installer)
         
         if not jython_version_regex:
             self.logIt("Jython installer not found in. Exiting...", True, True)

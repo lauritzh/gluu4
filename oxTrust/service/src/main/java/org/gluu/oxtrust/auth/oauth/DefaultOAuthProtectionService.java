@@ -54,7 +54,7 @@ public class DefaultOAuthProtectionService extends BaseOAuthProtectionService {
     }
 
     private List<String> getScopesFromAnnotation(AnnotatedElement elem) {		
-        return optAnnnotation(elem, ProtectedApi.class).map(ProtectedApi::scopes)
+        return optAnnnotation(elem, ProtectedApi.class).map(ProtectedApi::oauthScopes)
             .map(Arrays::asList).orElse(Collections.emptyList());
     }	
 

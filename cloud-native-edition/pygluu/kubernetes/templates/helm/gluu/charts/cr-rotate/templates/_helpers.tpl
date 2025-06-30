@@ -50,7 +50,7 @@ Create user custom defined  envs
 {{- define "cr-rotate.usr-envs"}}
 {{- range $key, $val := .Values.usrEnvs.normal }}
 - name: {{ $key }}
-  value: {{ $val | quote }}
+  value: {{ $val }}
 {{- end }}
 {{- end }}
 
@@ -63,7 +63,7 @@ Create user custom defined secret envs
   valueFrom:
     secretKeyRef:
       name: {{ $.Release.Name }}-{{ $.Chart.Name }}-user-custom-envs
-      key: {{ $key | quote }}
+      key: {{ $key }}
 {{- end }}
 {{- end }}
 

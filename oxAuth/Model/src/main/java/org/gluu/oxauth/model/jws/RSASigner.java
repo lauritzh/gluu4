@@ -16,7 +16,6 @@ import org.gluu.oxauth.model.crypto.signature.RSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.Util;
-import org.gluu.util.security.SecurityProviderUtility;
 
 /**
  * @author Javier Rojas Blum
@@ -59,10 +58,10 @@ public class RSASigner extends AbstractJwsSigner {
                     rsaPrivateKey.getModulus(),
                     rsaPrivateKey.getPrivateExponent());
 
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA", SecurityProviderUtility.getBCProvider());
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");
             PrivateKey privateKey = keyFactory.generatePrivate(rsaPrivateKeySpec);
 
-            Signature signature = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider());
+            Signature signature = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), "BC");
             signature.initSign(privateKey);
             signature.update(signingInput.getBytes(Util.UTF8_STRING_ENCODING));
 
@@ -92,10 +91,10 @@ public class RSASigner extends AbstractJwsSigner {
                     rsaPublicKey.getModulus(),
                     rsaPublicKey.getPublicExponent());
 
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA", SecurityProviderUtility.getBCProvider());
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");
             PublicKey publicKey = keyFactory.generatePublic(rsaPublicKeySpec);
 
-            Signature sign = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider());
+            Signature sign = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), "BC");
             sign.initVerify(publicKey);
             sign.update(sigInBytes);
 

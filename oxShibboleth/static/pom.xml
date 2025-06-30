@@ -6,11 +6,11 @@
 	<name>OX Shibboleth IDP static resources</name>
 	<url>https://www.gluu.org</url>
 	<packaging>jar</packaging>
-	<version>4.5.11-SNAPSHOT</version>
+	<version>4.3.2-SNAPSHOT</version>
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>oxShibboleth</artifactId>
-		<version>4.5.11-SNAPSHOT</version>
+		<version>4.3.2-SNAPSHOT</version>
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -35,7 +35,7 @@
 							<goal>wget</goal>
 						</goals>
 						<configuration>
-							<url>https://shibboleth.net/downloads/identity-provider/latest4/shibboleth-identity-provider-${shibboleth.version}.tar.gz</url>
+							<url>https://shibboleth.net/downloads/identity-provider/${shibboleth.version}/shibboleth-identity-provider-${shibboleth.version}.tar.gz</url>
 							<unpack>true</unpack>
 							<outputDirectory>${project.build.directory}/classes</outputDirectory>
 							<sha256>${shibboleth.dist.sha256}</sha256>
@@ -93,41 +93,6 @@
 						<goals>
 							<goal>run</goal>
 						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>shibboleth-idp/bin/lib/commons-compress-1.22.jar</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.apache.commons</groupId>
-									<artifactId>commons-compress</artifactId>
-									<version>1.26.0</version>
-									<type>jar</type>
-									<overWrite>true</overWrite>
-									<outputDirectory>${project.build.directory}/classes/shibboleth-idp/bin/lib</outputDirectory>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>

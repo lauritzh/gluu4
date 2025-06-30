@@ -19,19 +19,11 @@ image:
   # -- Image  to use for deploying.
   repository: gluufederation/certmanager
   # -- Image  tag to use for deploying.
-  tag: 4.5.11_dev
+  tag: 4.3.1_01
   # -- Image Pull Secrets
   pullSecrets: [ ]
-# -- Auth server key rotation job schedule. It accepts any Cron syntax supported by Kubernetes. If empty, the schedule will run based on keysLife value.
-cronJobSchedule: ""
-# -- Auth server key rotation keys life in hours.
+# -- Auth server key rotation keys life in hours
 keysLife: 48
-# -- Set key selection strategy used by Auth server
-keysStrategy: NEWER
-# -- Delay (in seconds) before pushing private keys to Auth server
-keysPushDelay: 0
-# -- Set key selection strategy after pushing private keys to Auth server (only takes effect when keysPushDelay value is greater than 0)
-keysPushStrategy: NEWER
 # -- Resource specs.
 resources:
   limits:
@@ -48,14 +40,7 @@ resources:
 volumes: []
 # -- Configure any additional volumesMounts that need to be attached to the containers
 volumeMounts: []
-# Actions on lifecycle events such as postStart and preStop
-# Example postStop: https://github.com/GluuFederation/cloud-native-edition/discussions/516
-# Example postStart:
-# lifecycle:
-#   postStart:
-#     exec:
-#       command: ["sh", "-c", "mkdir /opt/gluu/jetty/oxauth/custom/static/stylesheet/"]
-lifecycle: {}
+
 nodeSelector: {}
 
 tolerations: []
@@ -66,5 +51,3 @@ affinity: {}
 additionalLabels: { }
 # -- Additional annotations that will be added across all resources  in the format of {cert-manager.io/issuer: "letsencrypt-prod"}. key app is taken
 additionalAnnotations: { }
-# -- Add custom scripts that have been mounted to run before the entrypoint.
-customScripts: []

@@ -2,7 +2,7 @@ package org.gluu.oxd.server.service;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import io.dropwizard.logback.shaded.guava.base.Strings;
+import io.dropwizard.util.Strings;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
@@ -18,7 +18,6 @@ import org.gluu.oxd.common.ExpiredObjectType;
 import org.gluu.oxd.server.HttpException;
 import org.gluu.oxd.server.OxdServerConfiguration;
 import org.gluu.oxd.server.persistence.service.PersistenceService;
-import org.gluu.util.security.SecurityProviderUtility;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -46,7 +45,6 @@ public class KeyGeneratorService {
         this.keys = new JSONWebKeySet();
         this.persistenceService = persistenceService;
         try {
-            SecurityProviderUtility.installBCProvider();
             this.cryptoProvider = new OxAuthCryptoProvider(configuration.getCryptProviderKeyStorePath(), configuration.getCryptProviderKeyStorePassword(), configuration.getCryptProviderDnName());
         } catch (Exception e) {
             LOG.error("Failed to create CryptoProvider.", e);

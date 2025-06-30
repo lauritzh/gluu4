@@ -39,35 +39,29 @@ import org.gluu.model.GluuStatus;
 import org.gluu.model.SchemaEntry;
 import org.gluu.model.custom.script.model.bind.BindCredentials;
 import org.gluu.model.ldap.GluuLdapConfiguration;
+import org.gluu.oxtrust.service.config.ConfigurationFactory;
 import org.gluu.oxtrust.ldap.cache.model.CacheCompoundKey;
 import org.gluu.oxtrust.ldap.cache.model.GluuInumMap;
 import org.gluu.oxtrust.ldap.cache.model.GluuSimplePerson;
 import org.gluu.oxtrust.model.GluuConfiguration;
 import org.gluu.oxtrust.model.GluuCustomAttribute;
 import org.gluu.oxtrust.model.GluuCustomPerson;
-import org.gluu.oxtrust.model.GluuFido2Device;
-import org.gluu.oxtrust.model.GluuUserPairwiseIdentifier;
-import org.gluu.oxtrust.model.fido.GluuCustomFidoDevice;
 import org.gluu.oxtrust.service.ApplicationFactory;
 import org.gluu.oxtrust.service.AttributeService;
 import org.gluu.oxtrust.service.ConfigurationService;
 import org.gluu.oxtrust.service.EncryptionService;
-import org.gluu.oxtrust.service.Fido2DeviceService;
-import org.gluu.oxtrust.service.FidoDeviceService;
 import org.gluu.oxtrust.service.InumService;
-import org.gluu.oxtrust.service.PairwiseIdService;
 import org.gluu.oxtrust.service.PersonService;
 import org.gluu.oxtrust.service.cdi.event.CacheRefreshEvent;
-import org.gluu.oxtrust.service.config.ConfigurationFactory;
 import org.gluu.oxtrust.service.external.ExternalCacheRefreshService;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.oxtrust.util.PropertyUtil;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.PersistenceEntryManagerFactory;
-import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.exception.BasePersistenceException;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.exception.operation.SearchException;
+import org.gluu.persist.ldap.impl.LdapEntryManager;
 import org.gluu.persist.ldap.impl.LdapEntryManagerFactory;
 import org.gluu.persist.ldap.operation.LdapOperationService;
 import org.gluu.persist.model.SearchScope;
@@ -146,15 +140,6 @@ public class CacheRefreshTimer {
 
 	@Inject
 	private EncryptionService encryptionService;
-	
-	@Inject
-	private PairwiseIdService pairwiseIdService;
-	
-	@Inject
-	private FidoDeviceService fidoDeviceService;
-	
-	@Inject
-	private Fido2DeviceService fido2DeviceService;
 
 	@Inject
 	private ObjectSerializationService objectSerializationService;
@@ -466,7 +451,7 @@ public class CacheRefreshTimer {
 			// Process entries which don't exist in source server
 
 			// Load all entries from Target server
-			List<TypedGluuSimplePerson> targetPersons = loadTargetServerEntries(cacheRefreshConfiguration, ldapEntryManager);
+			List<GluuSimplePerson> targetPersons = loadTargetServerEntries(cacheRefreshConfiguration, ldapEntryManager);
 			log.info("Found '{}' entries in target server", targetPersons.size());
 
 			// Detect entries which need to remove
@@ -697,8 +682,8 @@ public class CacheRefreshTimer {
 			return true;
 		}
 
-		log.error("Skipping target entries update. Destination server schema doesn't has next attributes: '{}', target OC: '{}', target OC attributes: '{}'",
-				targetAttributesSet, targetObjectClasses.toArray(new String[0]), objectClassesAttributesSet);
+		log.error("Skipping target entries update. Destination server schema doesn't has next attributes: '{}'",
+				targetAttributesSet);
 
 		return false;
 	}
@@ -724,10 +709,7 @@ public class CacheRefreshTimer {
 			targetPerson.setStatus(appConfiguration.getSupportedUserStatus().get(0));
 			updatePerson = false;
 		}
-
-		if (PersistenceEntryManager.PERSITENCE_TYPES.ldap.name().equals(ldapEntryManager.getPersistenceType())) {
-			targetPerson.setCustomObjectClasses(targetCustomObjectClasses);
-		}
+		targetPerson.setCustomObjectClasses(targetCustomObjectClasses);
 
 		targetPerson.setSourceServerName(sourcePerson.getSourceServerName());
 		targetPerson.setSourceServerUserDn(sourcePerson.getDn());
@@ -743,10 +725,10 @@ public class CacheRefreshTimer {
 
 		try {
 			if (updatePerson) {
-				personService.updatePersonWithoutCheck(targetPerson);
+				personService.updatePerson(targetPerson);
 				log.debug("Updated person '{}'", targetInum);
 			} else {
-				personService.addPersonWithoutCheck(targetPerson);
+				personService.addPerson(targetPerson);
 				log.debug("Added new person '{}'", targetInum);
 			}
 		} catch (Exception ex) {
@@ -780,7 +762,7 @@ public class CacheRefreshTimer {
 		List<String> result2 = new ArrayList<String>();
 
 		for (GluuSimplePerson removedPerson : removedPersons) {
-			String inum = removedPerson.getStringAttribute(OxTrustConstants.inum);
+			String inum = removedPerson.getAttribute(OxTrustConstants.inum);
 
 			// Update GluuInumMap if it exist
 			GluuInumMap currentInumMap = inumInumMap.get(inum);
@@ -800,24 +782,8 @@ public class CacheRefreshTimer {
 			}
 
 			// Remove person from target server
-			try {				
-				//ldap ORM
-				if(targetPersistenceEntryManager.hasBranchesSupport(removedPerson.getDn())){					
-					targetPersistenceEntryManager.removeRecursively(removedPerson.getDn(), GluuCustomPerson.class);
-					
-				}else {
-					//other ORM
-					targetPersistenceEntryManager.remove(removedPerson.getDn(), GluuCustomPerson.class);
-					 
-					Filter pairwiseIdentifiersFilter = Filter.createEqualityFilter(OxTrustConstants.oxAuthUserId, removedPerson.getDn());
-					targetPersistenceEntryManager.remove(pairwiseIdService.getDnForPairWiseIdentifier(null, removedPerson.getDn()), GluuUserPairwiseIdentifier.class, pairwiseIdentifiersFilter,0);
-				
-					Filter equalityFilter = Filter.createEqualityFilter("personInum", removedPerson.getDn());
-					targetPersistenceEntryManager.remove(fidoDeviceService.getDnForFidoDevice(removedPerson.getDn(),null), GluuCustomFidoDevice.class, equalityFilter,0);
-					
-					Filter equalityFido2DeviceFilter = Filter.createEqualityFilter("personInum", removedPerson.getDn());
-					targetPersistenceEntryManager.remove(fido2DeviceService.getDnForFido2Device(null, removedPerson.getDn()), GluuFido2Device.class, equalityFido2DeviceFilter,0);
-				}
+			try {
+				targetPersistenceEntryManager.removeRecursively(removedPerson.getDn());
 				result1.add(inum);
 			} catch (BasePersistenceException ex) {
 				log.error("Failed to remove person entry with inum '{}' and DN: {}", inum, removedPerson.getDn(), ex);
@@ -919,7 +885,6 @@ public class CacheRefreshTimer {
 				// Add to result and ignore root entry if needed
 				for (GluuSimplePerson currentSourcePerson : currentSourcePersons) {
 					currentSourcePerson.setSourceServerName(sourceServerName);
-					externalCacheRefreshService.executeExternalUpdateSourceUserMethods(currentSourcePerson);
 					// if (!StringHelper.equalsIgnoreCase(baseDn,
 					// currentSourcePerson.getDn())) {
 					String currentSourcePersonDn = currentSourcePerson.getDn().toLowerCase();
@@ -969,7 +934,6 @@ public class CacheRefreshTimer {
 					// Add to result and ignore root entry if needed
 					for (GluuSimplePerson currentSourcePerson : currentSourcePersons) {
 						currentSourcePerson.setSourceServerName(sourceServerName);
-						externalCacheRefreshService.executeExternalUpdateSourceUserMethods(currentSourcePerson);
 						// if (!StringHelper.equalsIgnoreCase(baseDn,
 						// currentSourcePerson.getDn())) {
 						String currentSourcePersonDn = currentSourcePerson.getDn().toLowerCase();
@@ -986,11 +950,11 @@ public class CacheRefreshTimer {
 		return sourcePersons;
 	}
 
-	private List<TypedGluuSimplePerson> loadTargetServerEntries(CacheRefreshConfiguration cacheRefreshConfiguration,
+	private List<GluuSimplePerson> loadTargetServerEntries(CacheRefreshConfiguration cacheRefreshConfiguration,
 			PersistenceEntryManager targetPersistenceEntryManager) {
 		Filter filter = Filter.createEqualityFilter(OxConstants.OBJECT_CLASS, OxTrustConstants.objectClassPerson);
 
-		return targetPersistenceEntryManager.findEntries(personService.getDnForPerson(null), TypedGluuSimplePerson.class,
+		return targetPersistenceEntryManager.findEntries(personService.getDnForPerson(null), GluuSimplePerson.class,
 				filter, SearchScope.SUB, TARGET_PERSON_RETURN_ATTRIBUTES, null, 0, 0,
 				cacheRefreshConfiguration.getLdapSearchSizeLimit());
 	}
@@ -1084,12 +1048,12 @@ public class CacheRefreshTimer {
 		return result;
 	}
 
-	private List<GluuSimplePerson> processTargetPersons(List<TypedGluuSimplePerson> targetPersons,
+	private List<GluuSimplePerson> processTargetPersons(List<GluuSimplePerson> targetPersons,
 			HashMap<String, Integer> currInumWithEntryHashCodeMap) {
 		List<GluuSimplePerson> result = new ArrayList<GluuSimplePerson>();
 
 		for (GluuSimplePerson targetPerson : targetPersons) {
-			String personInum = targetPerson.getStringAttribute(OxTrustConstants.inum);
+			String personInum = targetPerson.getAttribute(OxTrustConstants.inum);
 			if (!currInumWithEntryHashCodeMap.containsKey(personInum)) {
 				log.debug("Person with such DN: '{}' isn't present on source server", targetPerson.getDn());
 				result.add(targetPerson);
@@ -1233,7 +1197,7 @@ public class CacheRefreshTimer {
 	private String[][] getKeyAttributesValues(String[] attrs, GluuSimplePerson person) {
 		String[][] result = new String[attrs.length][];
 		for (int i = 0; i < attrs.length; i++) {
-			result[i] = person.getStringAttributes(attrs[i]);
+			result[i] = person.getAttributes(attrs[i]);
 		}
 
 		return result;
@@ -1290,12 +1254,12 @@ public class CacheRefreshTimer {
 		return cacheRefreshConfiguration.getSourceAttributes().toArray(new String[0]);
 	}
 
-	private String[] getCompoundKeyObjectClasses(CacheRefreshConfiguration cacheRefreshConfiguration) {
-		return cacheRefreshConfiguration.getKeyObjectClasses().toArray(new String[0]);
-	}
-
 	private String[] getCompoundKeyAttributes(CacheRefreshConfiguration cacheRefreshConfiguration) {
 		return cacheRefreshConfiguration.getKeyAttributes().toArray(new String[0]);
+	}
+
+	private String[] getCompoundKeyObjectClasses(CacheRefreshConfiguration cacheRefreshConfiguration) {
+		return cacheRefreshConfiguration.getKeyObjectClasses().toArray(new String[0]);
 	}
 
 	private String[] getCompoundKeyAttributesWithoutValues(CacheRefreshConfiguration cacheRefreshConfiguration) {
@@ -1344,13 +1308,6 @@ public class CacheRefreshTimer {
 
 	private String[] getBaseDNs(GluuLdapConfiguration ldapConfiguration) {
 		return ldapConfiguration.getBaseDNsStringsList().toArray(new String[0]);
-	}
-
-	@ObjectClass(value = "gluuPerson")
-	class TypedGluuSimplePerson extends GluuSimplePerson {
-		public TypedGluuSimplePerson() {
-			super();
-		}
 	}
 
 }

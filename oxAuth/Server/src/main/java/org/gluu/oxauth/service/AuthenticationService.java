@@ -6,29 +6,6 @@
 
 package org.gluu.oxauth.service;
 
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
-import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
-
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.enterprise.context.RequestScoped;
-import javax.faces.context.ExternalContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringUtils;
 import org.gluu.jsf2.service.FacesService;
 import org.gluu.model.GluuStatus;
@@ -37,13 +14,13 @@ import org.gluu.model.ldap.GluuLdapConfiguration;
 import org.gluu.model.metric.MetricType;
 import org.gluu.model.security.Credentials;
 import org.gluu.model.security.SimplePrincipal;
+import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.common.SimpleUser;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.SessionClient;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.common.ApplicationFactory;
@@ -59,6 +36,21 @@ import org.gluu.util.Pair;
 import org.gluu.util.StringHelper;
 import org.json.JSONException;
 import org.slf4j.Logger;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Named;
+
+import javax.faces.context.ExternalContext;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.*;
+
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
+import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
 
 /**
  * Authentication service methods
@@ -447,8 +439,7 @@ public class AuthenticationService {
 							log.debug("User authenticated: {}", userDn);
 
 							log.debug("Attempting to find userDN by local primary key: {}", localPrimaryKey);
-							String lowerKeyValue = StringHelper.toLowerCase(keyValue);
-							User localUser = userService.getUserByAttributes(lowerKeyValue, new String[] {localPrimaryKey}, new String[] {"uid", "gluuStatus"});
+							User localUser = userService.getUserByAttribute(localPrimaryKey, keyValue);
 							if (localUser != null) {
 								if (!checkUserStatus(localUser)) {
 									return false;
@@ -856,14 +847,6 @@ public class AuthenticationService {
 
 		    setExternalScriptExtraParameters(newSessionIdAttributes, authExternalAttributes);
 		}
-	}
-
-	public List<GluuLdapConfiguration> getLdapAuthConfigs() {
-		return ldapAuthConfigs;
-	}
-
-	public List<PersistenceEntryManager> getLdapAuthEntryManagers() {
-		return ldapAuthEntryManagers;
 	}
 
 }

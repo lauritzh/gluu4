@@ -21,7 +21,6 @@ import org.zkoss.zk.au.out.AuInvoke;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.Event;
-import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.select.Selectors;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.WireVariable;
@@ -293,12 +292,9 @@ public class InweboVM {
 	    }
 
 	    @NotifyChange({"editingId", "newDevice"})
-	    public void cancelUpdate(Event event) {
+	    public void cancelUpdate() {
 	        newDevice.setCredentialId(0);
 	        editingId = null;
-            if (event != null && event.getName().equals(Events.ON_CLOSE)) {
-                event.stopPropagation();
-            }
 	    }
 
 	    @NotifyChange({"devices", "editingId", "newDevice"})
@@ -310,7 +306,7 @@ public class InweboVM {
 	            int i = Utils.firstTrue(devices, dev -> String.valueOf(dev.getCredentialId()).equalsIgnoreCase(editingId));
 	            InweboCredential dev = devices.get(i);
 	            dev.setCredentialName(newName);
-	            cancelUpdate(null);     //This doesn't undo anything we already did (just controls UI aspects)
+	            cancelUpdate();     //This doesn't undo anything we already did (just controls UI aspects)
 
 	            try {
 	                boolean result = InweboService.getInstance().updateInWeboDevice(sessionContext.getLoggedUser().getUserName(), dev.getCredentialId(), dev.getCredentialType(), newName);

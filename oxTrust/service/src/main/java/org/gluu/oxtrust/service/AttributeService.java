@@ -636,10 +636,5 @@ public class AttributeService extends org.gluu.service.AttributeService {
     protected BaseCacheService getCacheService() {
         return cacheService;
     }
-    
-    public String getPersistenceType() {
-		return persistenceEntryManager.getPersistenceType();
-	}
-
 
 }

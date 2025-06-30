@@ -156,8 +156,8 @@ public class PasswordResetAction implements Serializable {
 		if (person != null) {
 			question = person.getGluuCustomAttribute(SECRET_QUESTION);
 			this.setAnswer(person.getGluuCustomAttribute(SECRET_ANSWER));
-			if (question != null && question.getValue() != null && !question.getStringValue().isEmpty()) {
-				this.securityQuestion = (String) question.getValue();
+			if (question != null && question.getValue() != null && !question.getValue().isEmpty()) {
+				this.securityQuestion = question.getValue();
 				this.hasSecurityQuestion = true;
 				hasSecurityQuestion(true);
 			}
@@ -178,10 +178,9 @@ public class PasswordResetAction implements Serializable {
 		String outcome = updateImpl();
 		if (OxTrustConstants.RESULT_SUCCESS.equals(outcome)) {
 			facesMessages.add(FacesMessage.SEVERITY_INFO, "Password reset successful.");
-			redirect();
-			conversationService.endConversation();
 		}
-		
+		redirect();
+		conversationService.endConversation();
 	}
 
 	public String updateImpl() {
@@ -224,7 +223,7 @@ public class PasswordResetAction implements Serializable {
 				removeRequest.setBaseDn(request.getBaseDn());
 				if (this.securityQuestion != null && this.answer != null) {
 					Boolean securityQuestionAnswered = (this.securityAnswer != null)
-							&& this.securityAnswer.equalsIgnoreCase(answer.getStringValue());
+							&& this.securityAnswer.equalsIgnoreCase(answer.getValue());
 					if (securityQuestionAnswered) {
 						person.setUserPassword(password);
 						try {

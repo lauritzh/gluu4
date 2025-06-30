@@ -8,25 +8,20 @@ import urllib
 import ssl
 import re
 import inspect
-
+import pymysql
 import ldap3
 
 from setup_app import paths
 from setup_app.utils import base
 from setup_app.utils.cbm import CBM
-from setup_app.static import InstallTypes, SetupProfiles, BackendStrings, colors
+from setup_app.static import InstallTypes, colors
 from setup_app.messages import msg
 
 from setup_app.config import Config
 from setup_app.utils.setup_utils import SetupUtils
-
+from setup_app.utils.spanner import Spanner
 from setup_app.utils.db_utils import dbUtils
 from setup_app.pylib.jproperties import Properties
-
-if Config.profile != SetupProfiles.DISA_STIG:
-    import pymysql
-    import psycopg2
-    from setup_app.utils.spanner_rest_client import SpannerClient
 
 class PropertiesUtils(SetupUtils):
 
@@ -115,23 +110,17 @@ class PropertiesUtils(SetupUtils):
         if Config.cb_install and not Config.get('cb_password'):
             Config.cb_password = Config.oxtrust_admin_password
 
-        if not Config.ldap_install:
+        if not Config.wrends_install:
             if Config.cb_install:
                 Config.mappingLocations = { group: 'couchbase' for group in Config.couchbaseBucketDict }
 
             if Config.rdbm_install:
                 Config.mappingLocations = { group: 'rdbm' for group in Config.couchbaseBucketDict }
 
-        if Config.ldap_install == InstallTypes.LOCAL and not Config.installed_instance:
-            used_ports = self.opendj_used_ports()
-            if used_ports:
-                print(msg.used_ports.format(','.join(used_ports)))
-                sys.exit(1)
-
         self.set_persistence_type()
 
-        if not Config.opendj_truststore_pass:
-            Config.opendj_truststore_pass = self.getPW()
+        if not Config.opendj_p12_pass:
+            Config.opendj_p12_pass = self.getPW()
 
         if not Config.encode_salt:
             Config.encode_salt = self.getPW() + self.getPW()
@@ -141,15 +130,11 @@ class PropertiesUtils(SetupUtils):
 
         self.check_oxd_server_https()
 
-        if Config.profile != SetupProfiles.CE:
-            Config.install_node_app = False
-
-
     def check_oxd_server_https(self):
 
         if Config.get('oxd_server_https'):
             Config.templateRenderingDict['oxd_hostname'], Config.templateRenderingDict['oxd_port'] = self.parse_url(Config.oxd_server_https)
-            if not Config.templateRenderingDict['oxd_port']:
+            if not Config.templateRenderingDict['oxd_port']: 
                 Config.templateRenderingDict['oxd_port'] = 8443
         else:
             Config.templateRenderingDict['oxd_hostname'] = Config.hostname
@@ -199,23 +184,16 @@ class PropertiesUtils(SetupUtils):
         if p.get('cb_install') == '0':
            p['cb_install'] = InstallTypes.NONE
 
-        if p.get('ldap_install') == '0':
-            p['ldap_install'] = InstallTypes.NONE
-
-        if p.get('enable-script'):
-            base.argsp.enable_script = p['enable-script'].split()
-
-        base.argsp.ox_authentication_mode = p.get('ox-authentication-mode')
-        base.argsp.ox_trust_authentication_mode = p.get('ox-trust-authentication-mode')
-        base.argsp.gluu_passwurd_cert = True if p.get('gluu-passwurd-cert','').lower() == 'true' else False
+        if p.get('wrends_install') == '0':
+            p['wrends_install'] = InstallTypes.NONE
 
         properties_list = list(p.keys())
 
-        if 'oxtrust_admin_password' not in p:
+        if not 'oxtrust_admin_password' in p:
             p['oxtrust_admin_password'] = p['ldapPass']
 
-        if not (Config.cb_install or Config.rdbm_install or Config.ldap_install):
-            p['ldap_install'] = InstallTypes.LOCAL
+        if not (Config.cb_install or Config.rdbm_install or Config.wrends_install):
+            p['wrends_install'] = InstallTypes.LOCAL
 
         for prop in properties_list:
             if prop in ('opendj_ram', 'application_max_ram'):
@@ -229,7 +207,7 @@ class PropertiesUtils(SetupUtils):
                     mappingLocations = json.loads(p[prop])
                     setattr(Config, prop, mappingLocations)
                     for l in mappingLocations:
-                        if mappingLocations[l] not in map_db:
+                        if not mappingLocations[l] in map_db:
                             map_db.append(mappingLocations[l])
 
                 if p[prop] == 'True':
@@ -242,21 +220,21 @@ class PropertiesUtils(SetupUtils):
         if prop_file.endswith('-DEC~'):
             self.run(['rm', '-f', prop_file])
 
-        if 'oxtrust_admin_password' not in properties_list:
+        if not 'oxtrust_admin_password' in properties_list:
             Config.oxtrust_admin_password = p['ldapPass']
 
         if p.get('ldap_hostname') != 'localhost':
             if p.get('remoteLdap','').lower() == 'true':
-                Config.ldap_install = InstallTypes.REMOTE
+                Config.wrends_install = InstallTypes.REMOTE
             elif p.get('installLdap','').lower() == 'true':
-                Config.ldap_install = InstallTypes.LOCAL
-            elif p.get('ldap_install'):
-                Config.ldap_install = p['ldap_install']
+                Config.wrends_install = InstallTypes.LOCAL
+            elif p.get('wrends_install'):
+                Config.wrends_install = p['wrends_install']
             else:
-                Config.ldap_install = InstallTypes.NONE
+                Config.wrends_install = InstallTypes.NONE
 
-        if map_db and 'ldap' not in map_db:
-            Config.ldap_install = InstallTypes.NONE
+        if map_db and not 'ldap' in map_db:
+            Config.wrends_install = InstallTypes.NONE
 
         if 'couchbase' in map_db:
             if 'remoteCouchbase' in properties_list and p.get('remoteCouchbase','').lower() == 'true':
@@ -270,12 +248,12 @@ class PropertiesUtils(SetupUtils):
 
         if Config.cb_install == InstallTypes.LOCAL:
             available_backends = self.getBackendTypes()
-            if 'couchbase' not in available_backends:
+            if not 'couchbase' in available_backends:
                 print("Couchbase package is not available exiting.")
                 sys.exit(1)
 
 
-        if ('cb_password' not in properties_list) and Config.cb_install:
+        if (not 'cb_password' in properties_list) and Config.cb_install:
             Config.cb_password = p.get('ldapPass')
 
         if Config.cb_install == InstallTypes.REMOTE:
@@ -284,7 +262,7 @@ class PropertiesUtils(SetupUtils):
                 print("Can't connect to remote Couchbase Server with credentials found in setup.properties.")
                 sys.exit(1)
 
-        if Config.ldap_install == InstallTypes.REMOTE:
+        if Config.wrends_install == InstallTypes.REMOTE:
             conn_check = self.check_remote_ldap(Config.ldap_hostname, Config.ldap_binddn, Config.ldapPass)
             if not conn_check['result']:
                 print("Can't connect to remote LDAP Server with credentials found in setup.properties.")
@@ -344,7 +322,7 @@ class PropertiesUtils(SetupUtils):
 
             if not Config.installed_instance:
                 Config.post_messages.append(
-                    "Encrypted properties file saved to {0}.enc with password {1}\nDecrypt the file with the following command if you want to re-use:\nopenssl enc -d -aes-256-cbc -in {2}.enc -out {3}\nPlease remove the whole setup directory /install post-installation for a production deployment.".format(
+                    "Encrypted properties file saved to {0}.enc with password {1}\nDecrypt the file with the following command if you want to re-use:\nopenssl enc -d -aes-256-cbc -in {2}.enc -out {3}".format(
                     prop_fn,  Config.oxtrust_admin_password, os.path.basename(prop_fn), os.path.basename(Config.setup_properties_fn)))
 
             self.run(['rm', '-f', prop_fn])
@@ -357,7 +335,7 @@ class PropertiesUtils(SetupUtils):
         backend_types = []
 
         if glob.glob(Config.distFolder+'/app/opendj-server-*4*.zip'):
-            backend_types.append('ldap')
+            backend_types.append('wrends')
 
         if glob.glob(Config.distFolder+'/couchbase/couchbase-server-enterprise*.' + base.clone_type):
             backend_types.append('couchbase')
@@ -436,7 +414,6 @@ class PropertiesUtils(SetupUtils):
     def check_oxd_server(self, oxd_url, error_out=True, log_error=True):
 
         oxd_url = os.path.join(oxd_url, 'health-check')
-        self.logIt("Trying to connect {}".format(oxd_url))
         try:
             result = urllib.request.urlopen(
                         oxd_url,
@@ -448,7 +425,6 @@ class PropertiesUtils(SetupUtils):
                 if oxd_status['status'] == 'running':
                     return True
         except Exception as e:
-            self.logIt("Connection to {} failed: {}".format(oxd_url, e))
             if log_error:
                 if Config.thread_queue:
                     return str(e)
@@ -533,8 +509,8 @@ class PropertiesUtils(SetupUtils):
                         oxd_crt_fn = '/tmp/oxd_{}.crt'.format(str(uuid.uuid4()))
                         self.writeFile(oxd_crt_fn, oxd_cert)
                         ssl_subjects = self.get_ssl_subject(oxd_crt_fn)
-
-                        if ssl_subjects['CN'] != oxd_hostname:
+                        
+                        if not ssl_subjects['CN'] == oxd_hostname:
                             print (('Hostname of oxd ssl certificate is {0}{1}{2} '
                                     'which does not match {0}{3}{2}, \ncasa won\'t start '
                                     'properly').format(
@@ -551,15 +527,15 @@ class PropertiesUtils(SetupUtils):
             Config.addPostSetupService.append('installCasa')
 
     def set_persistence_type(self):
-        if Config.ldap_install and (not Config.cb_install) and (not Config.rdbm_install):
+        if Config.wrends_install and (not Config.cb_install) and (not Config.rdbm_install):
             Config.persistence_type = 'ldap'
-        elif (not Config.ldap_install) and (not Config.rdbm_install) and Config.cb_install:
+        elif (not Config.wrends_install) and (not Config.rdbm_install) and Config.cb_install:
             Config.persistence_type = 'couchbase'
         elif Config.rdbm_type == 'spanner':
             Config.persistence_type = 'spanner'
-        elif (not Config.ldap_install) and Config.rdbm_install and (not Config.cb_install):
+        elif (not Config.wrends_install) and Config.rdbm_install and (not Config.cb_install):
             Config.persistence_type = 'sql'
-        elif Config.ldap_install and Config.cb_install:
+        elif Config.wrends_install and Config.cb_install:
             Config.persistence_type = 'hybrid'
 
 
@@ -673,41 +649,19 @@ class PropertiesUtils(SetupUtils):
             Config.addPostSetupService.append('installGluuRadius')
 
 
-    def promptForPasswurdApiKeystore(self):
-
-        generate_passwurd_api_keystore = self.getPrompt("Generate Gluu Passwurd API keystore?", 'No')[0].lower()
-        Config.generate_passwurd_api_keystore = True if generate_passwurd_api_keystore == 'y' else False
-
-        if Config.installed_instance and Config.generate_passwurd_api_keystore:
-            Config.addPostSetupService.append('generate_passwurd_api_keystore')
-
-
-    def get_backend_list(self):
-
-        backend_list = [
-                BackendStrings.LOCAL_OPENDJ,
-                ]
-
-        if Config.profile != SetupProfiles.DISA_STIG:
-            backend_list += [
-                         BackendStrings.REMOTE_OPENDJ,
-                         BackendStrings.REMOTE_COUCHBASE,
-                         BackendStrings.LOCAL_MYSQL,
-                         BackendStrings.REMOTE_MYSQL,
-                         BackendStrings.LOCAL_PGSQL,
-                         BackendStrings.REMOTE_PGSQL,
-                         BackendStrings.CLOUD_SPANNER,
-                         BackendStrings.SAPNNER_EMULATOR,
-                        ]
-            if 'couchbase' in self.getBackendTypes():
-                backend_list.insert(2, BackendStrings.LOCAL_COUCHBASE)
-
-        return backend_list
-
     def prompt_for_backend(self):
         print('Chose Backend Type:')
+        
+        backend_types = ['Local OpenDj',
+                         'Remote OpenDj',
+                         'Remote Couchbase',
+                         'Local MySQL',
+                         'Remote MySQL',
+                         'Cloud Spanner',
+                         ]
 
-        backend_types = self.get_backend_list()
+        if 'couchbase' in self.getBackendTypes():
+            backend_types.insert(2, 'Local Couchbase')
 
         nlist = []
         for i, btype in enumerate(backend_types):
@@ -720,7 +674,7 @@ class PropertiesUtils(SetupUtils):
             choice = None
             if not n:
                 choice = 1
-            elif n not in nlist:
+            elif not n in nlist:
                 print("Please enter one of {}".format(', '.join(nlist)))
             else:
                 choice = n
@@ -730,14 +684,11 @@ class PropertiesUtils(SetupUtils):
 
         backend_type_str = backend_types[int(choice)-1]
 
-        if backend_type_str == BackendStrings.LOCAL_OPENDJ:
+        if 'mysql' in backend_type_str.lower() or 'spanner' in backend_type_str.lower():
+            print("{}{}{}".format(colors.WARNING, msg.mysql_spanner_beta, colors.ENDC))
 
-            used_ports = self.opendj_used_ports()
-            if used_ports:
-                print(msg.used_ports.format(','.join(used_ports)))
-                sys.exit(1)
-
-            Config.ldap_install = InstallTypes.LOCAL
+        if backend_type_str == 'Local OpenDj':
+            Config.wrends_install = InstallTypes.LOCAL
             ldapPass = Config.ldapPass if Config.ldapPass else Config.oxtrust_admin_password
 
             while True:
@@ -751,8 +702,8 @@ class PropertiesUtils(SetupUtils):
             Config.ldapPass = ldapPass
 
 
-        elif backend_type_str == BackendStrings.REMOTE_OPENDJ:
-            Config.ldap_install = InstallTypes.REMOTE
+        elif backend_type_str == 'Remote OpenDj':
+            Config.wrends_install = InstallTypes.REMOTE
             while True:
                 ldapHost = self.getPrompt("    LDAP hostname")
                 ldapPass = self.getPrompt("    Password for '{0}'".format(Config.ldap_binddn))
@@ -765,8 +716,8 @@ class PropertiesUtils(SetupUtils):
             Config.ldapPass = ldapPass
             Config.ldap_hostname = ldapHost
 
-        elif backend_type_str == BackendStrings.LOCAL_COUCHBASE:
-            Config.ldap_install = InstallTypes.NONE
+        elif backend_type_str == 'Local Couchbase':
+            Config.wrends_install = InstallTypes.NONE
             Config.cb_install = InstallTypes.LOCAL
             Config.isCouchbaseUserAdmin = True
 
@@ -781,8 +732,8 @@ class PropertiesUtils(SetupUtils):
             Config.cb_password = cbPass
             Config.mappingLocations = { group: 'couchbase' for group in Config.couchbaseBucketDict }
 
-        elif backend_type_str == BackendStrings.REMOTE_COUCHBASE:
-            Config.ldap_install = InstallTypes.NONE
+        elif backend_type_str == 'Remote Couchbase':
+            Config.wrends_install = InstallTypes.NONE
             Config.cb_install = InstallTypes.REMOTE
 
             while True:
@@ -795,8 +746,8 @@ class PropertiesUtils(SetupUtils):
 
             Config.mappingLocations = { group: 'couchbase' for group in Config.couchbaseBucketDict }
 
-        elif backend_type_str == BackendStrings.LOCAL_MYSQL:
-            Config.ldap_install = InstallTypes.NONE
+        elif backend_type_str == 'Local MySQL':
+            Config.wrends_install = InstallTypes.NONE
             Config.rdbm_install = True
             Config.rdbm_install_type = InstallTypes.LOCAL
             Config.rdbm_type = 'mysql'
@@ -806,8 +757,8 @@ class PropertiesUtils(SetupUtils):
             Config.rdbm_port = 3306
             Config.rdbm_db = 'gluudb'
 
-        elif backend_type_str == BackendStrings.REMOTE_MYSQL:
-            Config.ldap_install = InstallTypes.NONE
+        elif backend_type_str == 'Remote MySQL':
+            Config.wrends_install = InstallTypes.NONE
             Config.rdbm_install = True
             Config.rdbm_install_type = InstallTypes.REMOTE
             Config.rdbm_type = 'mysql'
@@ -826,51 +777,20 @@ class PropertiesUtils(SetupUtils):
                 except Exception as e:
                     print("  {}Can't connect to MySQL: {}{}".format(colors.DANGER, e, colors.ENDC))
 
-        elif backend_type_str == BackendStrings.LOCAL_PGSQL:
-            Config.ldap_install = InstallTypes.NONE
-            Config.rdbm_install = True
-            Config.rdbm_install_type = InstallTypes.LOCAL
-            Config.rdbm_type = 'pgsql'
-            Config.rdbm_host = 'localhost'
-            Config.rdbm_user = 'gluu'
-            Config.rdbm_password = self.getPW(special='.*=+-()[]{}')
-            Config.rdbm_port = 5432
-            Config.rdbm_db = 'gluudb'
-
-        elif backend_type_str == BackendStrings.REMOTE_PGSQL:
-            Config.ldap_install = InstallTypes.NONE
-            Config.rdbm_install = True
-            Config.rdbm_install_type = InstallTypes.REMOTE
-            Config.rdbm_type = 'pgsql'
-
-            while True:
-                Config.rdbm_host = self.getPrompt("  PgSQL host", Config.get('rdbm_host'))
-                Config.rdbm_port = self.getPrompt("  PgSQL port", 5432, itype=int, indent=1)
-                Config.rdbm_user = self.getPrompt("  PgSQL user", Config.get('rdbm_user'))
-                Config.rdbm_password = self.getPrompt("  PgSQL password")
-                Config.rdbm_db = self.getPrompt("  PgSQL database", Config.get('rdbm_db'))
-
-                try:
-                    psycopg2.connect(dbname=Config.rdbm_db, user=Config.rdbm_user, password=Config.rdbm_password, host=Config.rdbm_host, port=Config.rdbm_port)
-                    print("  {}PgSQL connection was successfull{}".format(colors.OKGREEN, colors.ENDC))
-                    break
-                except Exception as e:
-                    print("  {}Can't connect to PgSQL: {}{}".format(colors.DANGER, e, colors.ENDC))
-
-
-        elif backend_type_str in (BackendStrings.CLOUD_SPANNER, BackendStrings.SAPNNER_EMULATOR):
-            Config.ldap_install = InstallTypes.NONE
+        elif backend_type_str == 'Cloud Spanner':
+            Config.wrends_install = InstallTypes.NONE
             Config.rdbm_type = 'spanner'
             Config.rdbm_install = True
             Config.rdbm_install_type = InstallTypes.REMOTE
 
-            if backend_type_str == BackendStrings.SAPNNER_EMULATOR:
+            emulator = self.getPrompt("Is it emulator?", "N|y")[0].lower()
+            if emulator == 'y':
                 Config.spanner_emulator_host = self.getPrompt("  Emulator host", Config.get('spanner_emulator_host'))
 
             Config.spanner_project = self.getPrompt("  Spanner project", Config.get('spanner_project'))
             Config.spanner_instance = self.getPrompt("  Spanner instance", Config.get('spanner_instance'))
             Config.spanner_database = self.getPrompt("  Spanner database", Config.get('spanner_database'))
-            if backend_type_str == BackendStrings.CLOUD_SPANNER and not Config.get('spanner_emulator_host'):
+            if not Config.get('spanner_emulator_host'):
                 while True:
                     cred_fn = self.getPrompt("  Google application creditentals file", Config.get('google_application_credentials'))
                     if os.path.exists(cred_fn):
@@ -885,14 +805,8 @@ class PropertiesUtils(SetupUtils):
 
             print("  Checking spanner connection")
             try:
-                SpannerClient(
-                            project_id=Config.spanner_project,
-                            instance_id=Config.spanner_instance,
-                            database_id=Config.spanner_database,
-                            google_application_credentials=Config.google_application_credentials,
-                            emulator_host=Config.spanner_emulator_host,
-                            log_dir=os.path.join(Config.install_dir, 'logs')
-                    )
+                spanner = Spanner()
+                spanner.get_session()
                 print("  {}Spanner connection was successfull{}".format(colors.OKGREEN, colors.ENDC))
             except Exception as e:
                 print("{}ERROR getting session from spanner: {}{}".format(colors.DANGER, e, colors.ENDC))
@@ -916,7 +830,7 @@ class PropertiesUtils(SetupUtils):
             if Config.installHttpd:
                 Config.ip = self.get_ip()
 
-            detectedHostname = Config.hostname or self.detect_hostname()
+            detectedHostname = self.detect_hostname()
 
             if detectedHostname == 'localhost':
                 detectedHostname = None
@@ -956,10 +870,10 @@ class PropertiesUtils(SetupUtils):
                     break
                 else:
                     print("Please enter valid email address")
-
+            
             Config.application_max_ram = self.getPrompt("Enter maximum RAM for applications in MB", str(Config.application_max_ram))
 
-            oxtrust_admin_password = Config.oxtrust_admin_password or self.getPW(special='.*=!%&+/-')
+            oxtrust_admin_password = Config.oxtrust_admin_password if Config.oxtrust_admin_password else self.getPW(special='.*=!%&+/-')
 
             while True:
                 oxtrust_admin_password = self.getPrompt("Enter oxTrust Admin Password", oxtrust_admin_password)
@@ -967,12 +881,12 @@ class PropertiesUtils(SetupUtils):
                     break
                 else:
                     print("Password must be at least 6 characters")
-
+            
             Config.oxtrust_admin_password = oxtrust_admin_password
 
             self.prompt_for_backend()
 
-            if Config.profile != SetupProfiles.DISA_STIG and Config.allowPreReleasedFeatures:
+            if Config.allowPreReleasedFeatures:
                 while True:
                     java_type = self.getPrompt("Select Java type: 1.Jre-1.8   2.OpenJDK-11", '1')
                     if not java_type:
@@ -987,7 +901,10 @@ class PropertiesUtils(SetupUtils):
                     Config.java_type = 'jre'
                 else:
                     Config.java_type = 'jdk'
-                    Config.default_trust_store_fn = os.path.join(self.jre_home, 'jre/lib/security/cacerts')
+                    if base.snap:
+                        Config.defaultTrustStoreFN = os.path.join(self.certFolder, 'java-cacerts')
+                    else:
+                        Config.defaultTrustStoreFN = os.path.join(self.jre_home, 'jre/lib/security/cacerts')
 
             promptForOxAuth = self.getPrompt("Install oxAuth OAuth2 Authorization Server?", 
                                             self.getDefaultOption(Config.installOxAuth)
@@ -1020,23 +937,20 @@ class PropertiesUtils(SetupUtils):
 
 
         self.promptForHTTPD()
-
-        if Config.profile != SetupProfiles.DISA_STIG and Config.rdbm_type != 'spanner':
-            self.promptForShibIDP()
-
         self.promptForScimServer()
         self.promptForFido2Server()
+        if Config.rdbm_type != 'spanner':
+            self.promptForShibIDP()
+        self.promptForPassport()
 
-        if Config.profile != SetupProfiles.DISA_STIG:
-            self.promptForPassport()
 
         if os.path.exists(os.path.join(Config.distGluuFolder, 'casa.war')):
             self.promptForCasaInstallation()
 
         if (not Config.installOxd) and Config.oxd_package:
             self.promptForOxd()
+            
+        self.promptForGluuRadius()
 
-        if Config.profile != SetupProfiles.DISA_STIG:
-            self.promptForGluuRadius()
 
 propertiesUtils = PropertiesUtils()

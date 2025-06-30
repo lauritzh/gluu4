@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Yuriy Movchan Date: 07/10/2019
  */
-public class HybridEntryManager extends BaseEntryManager<HybridPersistenceOperationService> implements Serializable {
+public class HybridEntryManager extends BaseEntryManager implements Serializable {
 
     private static final long serialVersionUID = -1544664410881103105L;
 
@@ -383,7 +383,7 @@ public class HybridEntryManager extends BaseEntryManager<HybridPersistenceOperat
 	@Override
 	public <T> void removeByDn(String primaryKey, String[] objectClasses) {
 		PersistenceEntryManager persistenceEntryManager = getEntryManagerForDn(primaryKey);
-    	persistenceEntryManager.removeByDn(primaryKey, objectClasses);
+    	persistenceEntryManager.remove(primaryKey);
 	}
 
 	@Override
@@ -406,7 +406,7 @@ public class HybridEntryManager extends BaseEntryManager<HybridPersistenceOperat
 	@Override
     public <T> void removeRecursivelyFromDn(String dn, String[] objectClasses) {
     	PersistenceEntryManager persistenceEntryManager = getEntryManagerForDn(dn);
-    	persistenceEntryManager.removeRecursivelyFromDn(dn, objectClasses);
+    	persistenceEntryManager.removeRecursively(dn);
     }
 
     //*************************************************************************

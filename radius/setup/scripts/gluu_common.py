@@ -1,5 +1,6 @@
 
 from com.google.android.gcm.server import Sender, Message
+from com.notnoop.apns import APNS
 
 from java.time import ZonedDateTime
 from java.time.format import DateTimeFormatter
@@ -18,13 +19,6 @@ from org.gluu.util import StringHelper
 
 import json
 import sys
-
-try:
-    from com.notnoop.apns import APNS
-    has_apns = True
-except ImportError:
-    print "Super-Gluu. Load. Native APNS will be disabled. There are missing libs needed to enable it"
-    has_apns = False
 
 #
 # PushNotificationContext Class

@@ -28,8 +28,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static org.apache.commons.lang3.BooleanUtils.isFalse;
-
 /**
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
@@ -65,11 +63,7 @@ public class UmaScopeService {
             return fromLdap;
         }
 
-        if (isFalse(appConfiguration.getAllowSpontaneousScopes())) {
-            return null;
-        }
-
-        if (isFalse(client.getAttributes().getAllowSpontaneousScopes())) {
+        if (!client.getAttributes().getAllowSpontaneousScopes()) {
             return null;
         }
 

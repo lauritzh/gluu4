@@ -20,7 +20,6 @@ import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.ciba.CibaRequestService;
 import org.gluu.oxauth.util.RedirectUri;
@@ -34,6 +33,7 @@ import javax.faces.context.ExternalContext;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -178,22 +178,12 @@ public class AuthorizeService {
                 }
             }
             facesService.redirectToExternalURL(uri);
-        } catch (Exception e) {
-            log.error("Unable to perform grant permission", e);
-            showErrorPage("login.failedToGrantPermission");
+        } catch (UnsupportedEncodingException e) {
+            log.trace(e.getMessage(), e);
         }
     }
 
     public void permissionDenied(final SessionId session) {
-        try {
-            permissionDeniedInternal(session);
-        } catch (Exception e) {
-            log.error("Unable to perform permission deny", e);
-            showErrorPage("login.failedToDeny");
-        }
-    }
-
-    public void permissionDeniedInternal(final SessionId session) {
         log.trace("permissionDenied");
         invalidateSessionCookiesIfNeeded();
 
@@ -256,12 +246,7 @@ public class AuthorizeService {
     }
 
     private void authenticationFailedSessionInvalid() {
-        showErrorPage("login.errorSessionInvalidMessage");
-    }
-
-    private void showErrorPage(String errorCode) {
-        log.debug("Redirect to /error.xhtml page with {} error code.", errorCode);
-        facesMessages.add(FacesMessage.SEVERITY_ERROR, errorCode);
+        facesMessages.add(FacesMessage.SEVERITY_ERROR, "login.errorSessionInvalidMessage");
         facesService.redirect("/error.xhtml");
     }
 

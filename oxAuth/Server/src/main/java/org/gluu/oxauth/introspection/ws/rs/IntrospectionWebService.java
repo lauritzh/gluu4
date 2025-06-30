@@ -11,7 +11,12 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.claims.Audience;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
-import org.gluu.oxauth.model.common.*;
+import org.gluu.oxauth.model.common.AbstractToken;
+import org.gluu.oxauth.model.common.AccessToken;
+import org.gluu.oxauth.model.common.AuthorizationGrant;
+import org.gluu.oxauth.model.common.AuthorizationGrantList;
+import org.gluu.oxauth.model.common.IntrospectionResponse;
+import org.gluu.oxauth.model.common.TokenType;
 import org.gluu.oxauth.model.config.WebKeysConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
@@ -33,7 +38,14 @@ import org.slf4j.Logger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -42,8 +54,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
-
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -96,7 +106,7 @@ public class IntrospectionWebService {
         return introspect(p_authorization, p_token, tokenTypeHint, responseAsJwt, httpRequest, httpResponse);
     }
 
-    private AuthorizationGrant validateAuthorization(String p_authorization, String p_token) throws IOException {
+    private AuthorizationGrant validateAuthorization(String p_authorization, String p_token) throws UnsupportedEncodingException {
         final boolean skipAuthorization = ServerUtil.isTrue(appConfiguration.getIntrospectionSkipAuthorization());
         log.trace("skipAuthorization: {}", skipAuthorization);
         if (skipAuthorization) {
@@ -111,18 +121,8 @@ public class IntrospectionWebService {
         final Pair<AuthorizationGrant, Boolean> pair = getAuthorizationGrant(p_authorization, p_token);
         final AuthorizationGrant authorizationGrant = pair.getFirst();
         if (authorizationGrant == null) {
-            log.debug("Authorization grant is null.");
-            if (isTrue(pair.getSecond())) {
-                log.debug("Returned {\"active\":false}.");
-                throw new WebApplicationException(Response.status(Response.Status.OK)
-                        .entity("{\"active\":false}")
-                        .type(MediaType.APPLICATION_JSON_TYPE)
-                        .build());
-            }
-            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED)
-                    .type(MediaType.APPLICATION_JSON_TYPE)
-                    .entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Authorization grant is null."))
-                    .build());
+            log.error("Authorization grant is null.");
+            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Authorization grant is null.")).build());
         }
 
         final AbstractToken authorizationAccessToken = authorizationGrant.getAccessToken(tokenService.getToken(p_authorization));
@@ -178,14 +178,14 @@ public class IntrospectionWebService {
             } else {
                 log.debug("Failed to find grant for access_token: " + p_token + ". Return 200 with active=false.");
             }
-            JSONObject responseAsJsonObject = createResponseAsJsonObject(response, grantOfIntrospectionToken);
+            JSONObject responseAsJsonObject = createResponseAsJsonObject(response, tokenToIntrospect);
 
             ExternalIntrospectionContext context = new ExternalIntrospectionContext(authorizationGrant, httpRequest, httpResponse, appConfiguration, attributeService);
             context.setGrantOfIntrospectionToken(grantOfIntrospectionToken);
             if (externalIntrospectionService.executeExternalModifyResponse(responseAsJsonObject, context)) {
                 log.trace("Successfully run extenal introspection scripts.");
             } else {
-                responseAsJsonObject = createResponseAsJsonObject(response, grantOfIntrospectionToken);
+                responseAsJsonObject = createResponseAsJsonObject(response, tokenToIntrospect);
                 log.trace("Canceled changes made by external introspection script since method returned `false`.");
             }
 
@@ -198,11 +198,7 @@ public class IntrospectionWebService {
                 return Response.status(Response.Status.OK).entity(createResponseAsJwt(responseAsJsonObject, grantOfIntrospectionToken)).build();
             }
 
-            final String entity = responseAsJsonObject.toString();
-            if (log.isTraceEnabled()) {
-                log.trace("Response entity: {}", entity);
-            }
-            return Response.status(Response.Status.OK).entity(entity).type(MediaType.APPLICATION_JSON_TYPE).build();
+            return Response.status(Response.Status.OK).entity(responseAsJsonObject.toString()).type(MediaType.APPLICATION_JSON_TYPE).build();
 
         } catch (WebApplicationException e) {
             log.error(e.getMessage(), e);
@@ -231,27 +227,15 @@ public class IntrospectionWebService {
             }
         }
 
-        if (log.isTraceEnabled()) {
-            log.trace("Response before signing: {}", jwt.getClaims().toJsonString());
-        }
         return jwtSigner.sign().toString();
     }
 
-    private JSONObject createResponseAsJsonObject(IntrospectionResponse response, AuthorizationGrant grantOfIntrospectionToken) throws JSONException, IOException {
+    private static JSONObject createResponseAsJsonObject(IntrospectionResponse response, AbstractToken tokenToIntrospect) throws JSONException, IOException {
         final JSONObject result = new JSONObject(ServerUtil.asJson(response));
-
-        if (log.isTraceEnabled()) {
-            log.trace("grantOfIntrospectionToken: {}, x5ts256: {}", (grantOfIntrospectionToken != null), (grantOfIntrospectionToken != null ? grantOfIntrospectionToken.getX5ts256() : ""));
-        }
-
-        if (grantOfIntrospectionToken != null && StringUtils.isNotBlank(grantOfIntrospectionToken.getX5ts256())) {
-            JSONObject cnf = result.optJSONObject("cnf");
-            if (cnf == null) {
-                cnf = new JSONObject();
-                result.put("cnf", cnf);
-            }
-
-            cnf.put("x5t#S256", grantOfIntrospectionToken.getX5ts256());
+        if (tokenToIntrospect != null && StringUtils.isNotBlank(tokenToIntrospect.getX5ts256())) {
+            final JSONObject cnf = new JSONObject();
+            cnf.put("x5t#S256", tokenToIntrospect.getX5ts256());
+            result.put("cnf", cnf);
         }
 
         return result;
@@ -291,13 +275,13 @@ public class IntrospectionWebService {
                 String password = URLDecoder.decode(token.substring(delim + 1), Util.UTF8_STRING_ENCODING);
                 if (clientService.authenticate(clientId, password)) {
                     grant = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
-                    if (isTrue(appConfiguration.getIntrospectionRestrictBasicAuthnToOwnTokens()) && grant != null && !grant.getClientId().equals(clientId)) {
+                    if (grant != null && !grant.getClientId().equals(clientId)) {
                         log.trace("Failed to match grant object clientId and client id provided during authentication.");
                         return EMPTY;
                     }
                     return new Pair<>(grant, true);
                 } else {
-                    log.trace("Failed to perform basic authentication for client: {}", clientId);
+                    log.trace("Failed to perform basic authentication for client: " + clientId);
                 }
             }
         }

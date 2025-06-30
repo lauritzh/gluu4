@@ -20,7 +20,7 @@
         "gluuPerson",
         "eduPerson"
     ],
-    "adminUiLocaleSupported": %(adminUiLocaleSupported)s,
+
     "svnConfigurationStoreRoot":"unused",
     "svnConfigurationStorePassword":"unused",
     "persistSVN": false,
@@ -66,10 +66,9 @@
     "idpUserFields":"",
 
     "ldifStore":"/var/gluu/identity/removed",
-    "keepLdifStoreHistoryDays":30,
 
-    "caCertsLocation":"%(default_trust_store_fn)s",
-    "caCertsPassphrase":"%(defaultTrustStorePW)s",
+    "caCertsLocation":"/usr/java/latest/jre/lib/security/cacerts",
+    "caCertsPassphrase":"",
 
     "certDir":"/etc/certs/",
     "tempCertDir":"/etc/certs/temp",
@@ -95,7 +94,7 @@
     "apiUmaClientId":"%(oxtrust_resource_server_client_id)s",
     "apiUmaClientKeyId":"",
     "apiUmaResourceId":"%(oxtrust_resource_id)s",
-    "apiUmaScope":"https://%(hostname)s/oxauth/restv1/uma/scopes/config_api_access",
+    "apiUmaScope":"https://%(hostname)s/oxauth/restv1/uma/scopes/oxtrust-api-read",
     "apiUmaClientKeyStoreFile":"%(api_rs_client_jks_fn)s",
     "apiUmaClientKeyStorePassword":"%(api_rs_client_jks_pass_encoded)s",
 
@@ -114,7 +113,6 @@
     "clientBlackList": ["*.attacker.com/*"],
 
     "oxTrustApiTestMode": false,
-    "oxTrustProtectionMode": "OAUTH",
 
     "cleanServiceInterval":300,
     "loggingLevel": "INFO",

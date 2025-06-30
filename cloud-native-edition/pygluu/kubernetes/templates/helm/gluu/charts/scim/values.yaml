@@ -29,7 +29,7 @@ image:
   # -- Image  to use for deploying.
   repository: gluufederation/scim
   # -- Image  tag to use for deploying.
-  tag: 4.5.11_dev
+  tag: 4.3.1_01
   # -- Image Pull Secrets
   pullSecrets: [ ]
 # -- Service replica number.
@@ -60,19 +60,19 @@ service:
       timeoutSeconds: 10800
 # -- Configure the liveness healthcheck for SCIM if needed.
 livenessProbe:
-  exec:
-    command:
-      - python3
-      - /app/scripts/healthcheck.py
+  httpGet:
+    # -- http liveness probe endpoint
+    path: /scim/restv1/scim/v2/ServiceProviderConfig
+    port: 8080
   initialDelaySeconds: 30
   periodSeconds: 30
   timeoutSeconds: 5
 # -- Configure the readiness healthcheck for the SCIM if needed.
 readinessProbe:
-  exec:
-    command:
-      - python3
-      - /app/scripts/healthcheck.py
+  httpGet:
+    # -- http readiness probe endpoint
+    path:  /scim/restv1/scim/v2/ServiceProviderConfig
+    port: 8080
   initialDelaySeconds: 25
   periodSeconds: 25
   timeoutSeconds: 5
@@ -80,22 +80,8 @@ readinessProbe:
 volumes: []
 # -- Configure any additional volumesMounts that need to be attached to the containers
 volumeMounts: []
-# Actions on lifecycle events such as postStart and preStop
-# Example postStop: https://github.com/GluuFederation/cloud-native-edition/discussions/516
-# Example postStart:
-# lifecycle:
-#   postStart:
-#     exec:
-#       command: ["sh", "-c", "mkdir /opt/gluu/jetty/oxauth/custom/static/stylesheet/"]
-lifecycle: {}
+
 # -- Additional labels that will be added across all resources definitions in the format of {mylabel: "myapp"}
 additionalLabels: { }
 # -- Additional annotations that will be added across all resources  in the format of {cert-manager.io/issuer: "letsencrypt-prod"}. key app is taken
 additionalAnnotations: { }
-# -- https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
-tolerations: []
-# -- https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
-affinity: {}
-nodeSelector: {}
-# -- Add custom scripts that have been mounted to run before the entrypoint.
-customScripts: []

@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>oxd-common</artifactId>
     <packaging>jar</packaging>
-    <version>4.5.11-SNAPSHOT</version>
+    <version>4.3.2-SNAPSHOT</version>
     <name>oxD Common</name>
     <url>https://www.gluu.org</url>
 
     <parent>
         <groupId>org.gluu</groupId>
         <artifactId>oxd</artifactId>
-        <version>4.5.11-SNAPSHOT</version>
+        <version>4.3.2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -161,29 +161,22 @@
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <scope>test</scope>
-            <exclusions>
-            	<exclusion>
-            		<groupId>org.seleniumhq.selenium</groupId>
-            		<artifactId>selenium-api</artifactId>
-            	</exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-remote-driver</artifactId>
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-support</artifactId>
-            <scope>test</scope>
-            <exclusions>
-            	<exclusion>
-            		<groupId>org.seleniumhq.selenium</groupId>
-            		<artifactId>selenium-api</artifactId>
-            	</exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>htmlunit3-driver</artifactId>
-            <scope>test</scope>
+            <artifactId>htmlunit-driver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.htmlunit</groupId>
+            <artifactId>htmlunit-cssparser</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>

@@ -6,7 +6,6 @@
 
 package org.gluu.oxauth.service.fido.u2f.util;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
@@ -18,7 +17,8 @@ import org.gluu.oxauth.model.crypto.signature.ECDSAPrivateKey;
 import org.gluu.oxauth.model.crypto.signature.ECDSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.jwk.Use;
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
+import org.python.icu.util.Calendar;
 
 /**
  * @author Yuriy Movchan

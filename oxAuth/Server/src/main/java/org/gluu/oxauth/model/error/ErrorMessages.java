@@ -9,9 +9,6 @@ package org.gluu.oxauth.model.error;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.xml.bind.annotation.*;
-
-import org.gluu.model.error.ErrorMessage;
-
 import java.util.List;
 
 /**

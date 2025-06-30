@@ -1,6 +1,6 @@
 package org.gluu.idp.utilities.java.support.security.impl;
 
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 
 /**
  * Init BC/BCFIPS before invoking key storage strategy

@@ -10,13 +10,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.ResultCode;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
 import org.gluu.oxauth.model.audit.Action;
 import org.gluu.oxauth.model.audit.OAuth2AuditLog;
 import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
 import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.config.StaticConfiguration;
@@ -28,8 +29,6 @@ import org.gluu.oxauth.model.exception.InvalidSessionStateException;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.jwt.JwtSubClaimObject;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.model.token.JwtSigner;
 import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.model.util.Pair;
@@ -290,16 +289,9 @@ public class SessionIdService {
             currentStep = StringHelper.toInteger(sessionAttributes.get("auth_step"), currentStep);
         }
 
-        if (resetToStep <= currentStep) {
-	        for (int i = resetToStep; i <= currentStep; i++) {
-	            String key = String.format("auth_step_passed_%d", i);
-	            sessionAttributes.remove(key);
-	        }
-        } else {
-        	// Scenario when we sckip steps. In this case we need to mark all previous steps as passed
-	        for (int i = currentStep + 1; i < resetToStep; i++) {
-	            sessionAttributes.put(String.format("auth_step_passed_%d", i), Boolean.TRUE.toString());
-	        }
+        for (int i = resetToStep; i <= currentStep; i++) {
+            String key = String.format("auth_step_passed_%d", i);
+            sessionAttributes.remove(key);
         }
 
         sessionAttributes.put("auth_step", String.valueOf(resetToStep));
@@ -601,7 +593,7 @@ public class SessionIdService {
                 sessionId.setPersisted(true);
                 sessionId.setExpirationDate(expiration.getFirst());
                 sessionId.setTtl(expiration.getSecond());
-                log.trace("sessionIdAttributes: {}", sessionId.getPermissionGrantedMap());
+                log.trace("sessionIdAttributes: " + sessionId.getPermissionGrantedMap());
                 if (appConfiguration.getSessionIdPersistInCache()) {
                     cacheService.put(expiration.getSecond(), sessionId.getDn(), sessionId);
                 } else {
@@ -611,8 +603,7 @@ public class SessionIdService {
                 return true;
             }
         } catch (Exception e) {
-            // log exception in TRACE by intention because this method can be called over existing session by design, #213
-            log.trace(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
 
         return false;
@@ -811,11 +802,7 @@ public class SessionIdService {
             return sessionId;
         } catch (Exception e) {
             if (!silently) {
-                if (BooleanUtils.isTrue(appConfiguration.getLogNotFoundEntityAsError())) {
-                    log.error("Failed to get session by dn: " + dn, e);
-                } else {
-                    log.trace("Failed to get session by dn: " + dn, e);
-                }
+                log.error("Failed to get session by dn: " + dn, e);
             }
         }
         return null;
@@ -853,7 +840,7 @@ public class SessionIdService {
             }
         } catch (Exception ex) {
             if (!silently) {
-                log.trace(ex.getMessage());
+                log.trace(ex.getMessage(), ex);
             }
         }
 
@@ -931,9 +918,9 @@ public class SessionIdService {
         } catch (JSONException ex) {
             acrs = Util.splittedStringAsList(acrValues, " ");
         }
-
-
-        LinkedHashSet<String> resultAcrs = new LinkedHashSet<String>();
+        
+        
+        HashSet<String> resultAcrs = new HashSet<String>();
         for (String acr : acrs) {
         	resultAcrs.add(externalAuthenticationService.scriptName(acr));
         }

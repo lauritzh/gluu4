@@ -10,8 +10,6 @@ import javax.inject.Inject;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxtrust.model.fido.GluuCustomFidoDevice;
 import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.persist.exception.operation.SearchException;
-import org.gluu.persist.model.base.SimpleBranch;
 import org.gluu.search.filter.Filter;
 import org.slf4j.Logger;
 
@@ -48,7 +46,7 @@ public class FidoDeviceService implements IFidoDeviceService, Serializable {
 	}
 
 	@Override
-	public GluuCustomFidoDevice getGluuCustomFidoDeviceById(String userId, String id) throws Exception {
+	public GluuCustomFidoDevice getGluuCustomFidoDeviceById(String userId, String id) {
 		GluuCustomFidoDevice gluuCustomFidoDevice = null;
 
 		try {
@@ -60,11 +58,7 @@ public class FidoDeviceService implements IFidoDeviceService, Serializable {
 				gluuCustomFidoDevice = ldapEntryManager.findEntries(dn, GluuCustomFidoDevice.class, filter).get(0);
 			}
 		} catch (Exception e) {
-            if (!SearchException.class.isInstance(e.getCause())) {
-                log.error(e.getMessage(), e.getCause());
-                throw e;
-            }
-            log.debug("Failed to find device by id {}", id);
+			log.error("Failed to find device by id " + id, e);
 		}
 
 		return gluuCustomFidoDevice;
@@ -89,26 +83,18 @@ public class FidoDeviceService implements IFidoDeviceService, Serializable {
 
 	@Override
 	public void removeGluuCustomFidoDevice(GluuCustomFidoDevice gluuCustomFidoDevice) {
-		ldapEntryManager.removeRecursively(gluuCustomFidoDevice.getDn(), GluuCustomFidoDevice.class);
+		ldapEntryManager.removeRecursively(gluuCustomFidoDevice.getDn());
 	}
 
 	@Override
 	public List<GluuCustomFidoDevice> searchFidoDevices(String userInum, String... returnAttributes) {
 		try {
-			String dnForFidoDevice = getDnForFidoDevice(userInum, null);
-			if (ldapEntryManager.hasBranchesSupport(dnForFidoDevice)) {
-				if (!ldapEntryManager.contains(dnForFidoDevice, SimpleBranch.class)) {
-					return new ArrayList<>();
-				}
-			}
-
 			Filter equalityFilter = Filter.createEqualityFilter("personInum", userInum);
-			return ldapEntryManager.findEntries(dnForFidoDevice, GluuCustomFidoDevice.class,
+			return ldapEntryManager.findEntries(getDnForFidoDevice(userInum, null), GluuCustomFidoDevice.class,
 					equalityFilter, returnAttributes);
 		} catch (Exception e) {
-			log.warn("Failed to load fido2 devices enrolled for {}", userInum, e);
+			log.warn("", e);
+			return new ArrayList<>();
 		}
-
-		return new ArrayList<>();
 	}
 }

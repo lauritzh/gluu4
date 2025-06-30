@@ -50,7 +50,7 @@ Create user custom defined  envs
 {{- define "fido2.usr-envs"}}
 {{- range $key, $val := .Values.usrEnvs.normal }}
 - name: {{ $key }}
-  value: {{ $val | quote }}
+  value: {{ $val }}
 {{- end }}
 {{- end }}
 
@@ -63,49 +63,6 @@ Create user custom defined secret envs
   valueFrom:
     secretKeyRef:
       name: {{ $.Release.Name }}-{{ $.Chart.Name }}-user-custom-envs
-      key: {{ $key | quote }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create GLUU_JAVA_OPTIONS ENV for passing custom work and detailed logs
-*/}}
-{{- define "fido2.customJavaOptions"}}
-{{ $custom := "" }}
-{{ $custom = printf "%s" .Values.global.fido2.gluuCustomJavaOptions }}
-{{ $memory := .Values.resources.limits.memory | replace "Mi" "" | int -}}
-{{- $maxDirectMemory := printf "-XX:MaxDirectMemorySize=%dm" $memory -}}
-{{- $xmx := printf "-Xmx%dm" (sub $memory 300) -}}
-{{- $customJavaOptions := printf "%s %s -DCN_IDP_HOST=http://oxshibboleth:8080" $custom (printf "%s %s" $maxDirectMemory $xmx) -}}
-{{ $customJavaOptions | trimSuffix " " | quote }}
-{{- end }}
-
-{{/*
-Create topologySpreadConstraints lists
-*/}}
-{{- define "fido2.topology-spread-constraints"}}
-{{- range $key, $val := .Values.topologySpreadConstraints }}
-- maxSkew: {{ $val.maxSkew }}
-  {{- if $val.minDomains }}
-  minDomains: {{ $val.minDomains }} # optional; beta since v1.25
-  {{- end}}
-  {{- if $val.topologyKey }}
-  topologyKey: {{ $val.topologyKey }}
-  {{- end}}
-  {{- if $val.whenUnsatisfiable }}
-  whenUnsatisfiable: {{ $val.whenUnsatisfiable }}
-  {{- end}}
-  labelSelector:
-    matchLabels:
-      app: {{ include "fido2.name" $ }}
-  {{- if $val.matchLabelKeys }}
-  matchLabelKeys: {{ $val.matchLabelKeys }} # optional; alpha since v1.25
-  {{- end}}
-  {{- if $val.nodeAffinityPolicy }}
-  nodeAffinityPolicy: {{ $val.nodeAffinityPolicy }} # optional; alpha since v1.25
-  {{- end}}
-  {{- if $val.nodeTaintsPolicy }}
-  nodeTaintsPolicy: {{ $val.nodeTaintsPolicy }} # optional; alpha since v1.25
-  {{- end}}
+      key: {{ $key }}
 {{- end }}
 {{- end }}

@@ -21,10 +21,4 @@ spec:
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
-    loadBalancer:
-      consistentHash:
-        httpCookie:
-          name: shib-stateful-route
-          ttl: {{ .Values.istioDestinationRuleCookieTTL }}
-          path: /idp
 {{- end }}

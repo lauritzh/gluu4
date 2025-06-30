@@ -3,8 +3,6 @@ package org.gluu.idp.consent.processor;
 import java.io.Serializable;
 import java.util.Map;
 
-import org.opensaml.profile.context.ProfileRequestContext;
-
 import net.shibboleth.idp.attribute.IdPAttribute;
 
 /**
@@ -17,19 +15,10 @@ public class PostProcessAttributesContext implements Serializable {
 
 	private static final long serialVersionUID = 1822377169827670256L;
 
-	private ProfileRequestContext profileRequestContext;
 	private GluuReleaseAttributesPostProcessor releaseAttributesPostProcessor;
 	private Map<String,IdPAttribute> idpAttributeMap;
 
 	
-	public ProfileRequestContext getProfileRequestContext() {
-		return profileRequestContext;
-	}
-
-	public void setProfileRequestContext(ProfileRequestContext profileRequestContext) {
-		this.profileRequestContext = profileRequestContext;
-	}
-
 	public void setAttributeReleaseAction(GluuReleaseAttributesPostProcessor releaseAttributesPostProcessor) {
 		this.releaseAttributesPostProcessor = releaseAttributesPostProcessor;
 	}

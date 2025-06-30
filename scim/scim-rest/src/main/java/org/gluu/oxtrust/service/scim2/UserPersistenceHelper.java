@@ -12,7 +12,6 @@ import org.gluu.oxtrust.service.IGroupService;
 import org.gluu.oxtrust.service.IPersonService;
 import org.gluu.oxtrust.util.ServiceUtil;
 import org.gluu.model.GluuAttribute;
-import org.gluu.persist.exception.operation.SearchException;
 import org.gluu.persist.ldap.impl.LdapEntryManagerFactory;
 import org.gluu.persist.PersistenceEntryManager;
 import org.slf4j.Logger;
@@ -67,17 +66,13 @@ public class UserPersistenceHelper {
         persistenceEntryManager.persist(person);
     }
 
-    public ScimCustomPerson getPersonByInum(String inum) throws Exception {
+    public ScimCustomPerson getPersonByInum(String inum) {
 
         ScimCustomPerson person = null;
         try {
             person = persistenceEntryManager.find(ScimCustomPerson.class, personService.getDnForPerson(inum));
         } catch (Exception e) {
-            if (!SearchException.class.isInstance(e.getCause())) {
-                log.error(e.getMessage(), e.getCause());
-                throw e;
-            }
-            log.debug("Failed to find Person by Inum {}", inum);
+            log.error("Failed to find Person by Inum " + inum, e);
         }
         return person;
 
@@ -138,25 +133,15 @@ public class UserPersistenceHelper {
 
         log.info("syncing email ...");
         List<String> oxTrustEmails = customPerson.getAttributeList("oxTrustEmail");
-        int len = oxTrustEmails.size();
 
-        if (len > 0) {
+        if (!oxTrustEmails.isEmpty()) {
             ObjectMapper mapper = ServiceUtil.getObjectMapper();
-            List<String> newMails = new ArrayList<>(len);
-            int prima = -1;
-            
-            for (int i = 0; i < len; i++) {
-                Email email = mapper.readValue(oxTrustEmails.get(i), Email.class);
-                newMails.add(email.getValue());
-                
-                if (prima == -1 && Optional.ofNullable(email.getPrimary()).orElse(false)) {
-                    prima = i;
-                }
+            String[] newMails = new String[oxTrustEmails.size()];
+
+            for (int i = 0; i < newMails.length; i++) {
+                newMails[i] = mapper.readValue(oxTrustEmails.get(i), Email.class).getValue();
             }
-            if (prima >= 1) {
-                newMails.add(0, newMails.remove(prima));
-            }
-            customPerson.setAttribute("mail", newMails.toArray(new String[0]));
+            customPerson.setAttribute("mail", newMails);
         } else {
             customPerson.setAttribute("mail", new String[0]);
         }

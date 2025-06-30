@@ -6,17 +6,17 @@ import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.jwk.JSONWebKey;
 import org.gluu.oxauth.model.jwk.JSONWebKeySet;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.model.token.TokenErrorResponseType;
 import org.gluu.oxauth.model.util.CertUtils;
+import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.SessionIdService;
-import org.gluu.oxauth.util.ServerUtil;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
@@ -96,7 +96,9 @@ public class MTLSService {
             final PublicKey publicKey = cert.getPublicKey();
             final byte[] encodedKey = publicKey.getEncoded();
 
-            JSONObject jsonWebKeys = ServerUtil.getJwks(client);
+            JSONObject jsonWebKeys = Strings.isNullOrEmpty(client.getJwks())
+                    ? JwtUtil.getJSONWebKeys(client.getJwksUri())
+                    : new JSONObject(client.getJwks());
 
             if (jsonWebKeys == null) {
                 log.debug("Unable to load json web keys for client: {}, jwks_uri: {}, jks: {}", client.getClientId(),

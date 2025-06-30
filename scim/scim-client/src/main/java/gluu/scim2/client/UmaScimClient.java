@@ -1,12 +1,12 @@
 package gluu.scim2.client;
 
-import gluu.scim2.client.exception.ScimInitializationException;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.gluu.oxauth.client.TokenRequest;
-import org.gluu.oxauth.client.uma.UmaClientFactory;
-import org.gluu.oxauth.client.uma.UmaTokenService;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
@@ -14,8 +14,11 @@ import org.gluu.oxauth.model.token.ClientAssertionType;
 import org.gluu.oxauth.model.uma.UmaMetadata;
 import org.gluu.oxauth.model.uma.UmaTokenResponse;
 import org.gluu.util.StringHelper;
+import org.gluu.oxauth.client.TokenRequest;
+import org.gluu.oxauth.client.uma.UmaClientFactory;
+import org.gluu.oxauth.client.uma.UmaTokenService;
 
-import javax.ws.rs.core.Response;
+import gluu.scim2.client.exception.ScimInitializationException;
 
 /**
  * Instances of this class contain the necessary logic to handle the authorization processes required by a client of SCIM
@@ -131,14 +134,9 @@ public class UmaScimClient<T> extends AbstractScimClient<T> {
         	TokenRequest tokenRequest = getAuthorizationTokenRequest(umaMetadata);
             //No need for claims token. See comments on issue https://github.com/GluuFederation/SCIM-Client/issues/22
 
-            final String clientAssertion = tokenRequest.getClientAssertion();
-            if (logger.isTraceEnabled()) {
-                logger.trace("Requesting RPT with client_assertion: {}", clientAssertion);
-            }
-
             UmaTokenService tokenService = UmaClientFactory.instance().createTokenService(umaMetadata);
             UmaTokenResponse rptResponse = tokenService.requestJwtAuthorizationRpt(ClientAssertionType.JWT_BEARER.toString(),
-                    clientAssertion, GrantType.OXAUTH_UMA_TICKET.getValue(), ticket, null, null, null, null, null); //ClaimTokenFormatType.ID_TOKEN.getValue()
+                    tokenRequest.getClientAssertion(), GrantType.OXAUTH_UMA_TICKET.getValue(), ticket, null, null, null, null, null); //ClaimTokenFormatType.ID_TOKEN.getValue()
 
             if (rptResponse == null) {
                 throw new ScimInitializationException("UMA RPT token response is invalid");
@@ -174,15 +172,15 @@ public class UmaScimClient<T> extends AbstractScimClient<T> {
             String keyId = umaAatClientKeyId;
             if (StringHelper.isEmpty(keyId)) {
                 // Get first key
-                keyId = cryptoProvider.getKeys().stream().filter(k -> k.contains("_sig_")).findFirst().orElse(null);
-                
-                if (keyId == null)
-                    throw new ScimInitializationException("Unable to find a key in the keystore with use = sig");
-                
-            } else if (keyId.contains("_enc_")) {
-                throw new ScimInitializationException("Encryption keys not allowed. Supply a key having use = sig");
+                List<String> aliases = cryptoProvider.getKeys();
+                if (aliases.size() > 0) {
+                    keyId = aliases.get(0);
+                }
             }
-            logger.info("Using keyId={}", keyId);
+
+            if (StringHelper.isEmpty(keyId)) {
+                throw new ScimInitializationException("UMA keyId is empty");
+            }
 
             TokenRequest tokenRequest = new TokenRequest(GrantType.CLIENT_CREDENTIALS);
             tokenRequest.setAuthenticationMethod(AuthenticationMethod.PRIVATE_KEY_JWT);

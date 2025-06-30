@@ -22,9 +22,6 @@ def arg_parser():
     parser.add_argument('-t', help="Load test data", action='store_true')
     parser.add_argument('-x', help="Load test data and exit", action='store_true')
     parser.add_argument('-csx', help="Collect setup properties, save and exit", action='store_true')
-    parser.add_argument('-j', help="Use Java existing on system", action='store_true')
-    parser.add_argument('-profile', help="Setup profile", choices=['CE', 'DISA-STIG'], default='CE')
-    parser.add_argument('-opendj-keystore-type', help="OpenDj keystore type (Ony for DISA-STIG profile)", choices=['pkcs11', 'bcfks'], default='bcfks')
 
     scim_mode_group = parser.add_mutually_exclusive_group()
     scim_mode_group.add_argument('-stm', '--enable-scim-test-mode', help="Enable Scim Test Mode", action='store_true')
@@ -36,19 +33,18 @@ def arg_parser():
 
     ldap_group = parser.add_mutually_exclusive_group()
     ldap_group.add_argument('--remote-ldap', help="Enables using remote LDAP server", action='store_true')
-    ldap_group.add_argument('--install-local-ldap', help="Installs local LDAP Server", action='store_true')
+    ldap_group.add_argument('--install-local-wrends', help="Installs local WrenDS", action='store_true')
     ldap_group.add_argument('--disable-local-ldap', help="Disables installing local LDAP server", action='store_true')
 
     rdbm_group = parser.add_mutually_exclusive_group()
-    rdbm_group.add_argument('-remote-rdbm', choices=['mysql', 'pgsql', 'spanner'], help="Enables using remote RDBM server")
-    rdbm_group.add_argument('-local-rdbm', choices=['mysql', 'pgsql'], help="Enables installing/configuring local RDBM server")
+    rdbm_group.add_argument('-remote-rdbm', choices=['mysql', 'spanner'], help="Enables using remote RDBM server")
+    rdbm_group.add_argument('-local-rdbm', choices=['mysql'], help="Enables installing/configuring local RDBM server")
 
     parser.add_argument('-rdbm-user', help="RDBM username")
     parser.add_argument('-rdbm-password', help="RDBM password")
     parser.add_argument('-rdbm-port', help="RDBM port")
     parser.add_argument('-rdbm-db', help="RDBM database")
     parser.add_argument('-rdbm-host', help="RDBM host")
-    parser.add_argument('--reset-rdbm-db', help="Deletes all table on target database. Warning! You will lose all data on target database.", action='store_true')
 
     parser.add_argument('--remote-couchbase', help="Enables using remote couchbase server", action='store_true')
     parser.add_argument('--local-couchbase', help="Enables installing couchbase server", action='store_true')
@@ -70,7 +66,6 @@ def arg_parser():
     parser.add_argument('-state', help="State field used for generating X.509 certificates")
     parser.add_argument('-country', help="Two letters country coude used for generating X.509 certificates")
     parser.add_argument('-oxtrust-admin-password', help="Used as the default admin user for oxTrust")
-    parser.add_argument('-testadmin-password', help="Used as password for testadmin for oxTrust")
     parser.add_argument('-ldap-admin-password', help="Used as the LDAP directory manager password")
     parser.add_argument('-application-max-ram', help="Application max ram")
     parser.add_argument('-properties-password', help="Encoded setup.properties file password")
@@ -82,11 +77,6 @@ def arg_parser():
     parser.add_argument('--generate-oxd-certificate', help="Generate certificate for oxd based on hostname", action='store_true')
     parser.add_argument('--shell', help="Drop into interactive shell before starting installation", action='store_true')
     parser.add_argument('--no-progress', help="Use simple progress", action='store_true')
-    parser.add_argument('-enable-script', action='append', help="inum of script to enable", required=False)
-    parser.add_argument('-ox-authentication-mode', help="Sets oxAuthenticationMode")
-    parser.add_argument('-ox-trust-authentication-mode', help="Sets oxTrustAuthenticationMode")
-    parser.add_argument('--gluu-passwurd-cert', help="Creates Gluu Passwurd API keystore", action='store_true')
-    parser.add_argument('-properties', help="Other properties. Example: encode_salt:Y83EBo94vj9b4iyKDX2drmZk,default_store_type:JKS")
 
     # spanner options
     parser.add_argument('-spanner-project', help="Spanner project name")

@@ -42,9 +42,6 @@ class CollectProperties(SetupUtils, BaseInstaller):
         oxidp_ConfigurationEntryDN = gluu_prop['oxidp_ConfigurationEntryDN']
         gluu_ConfigurationDN = 'ou=configuration,o=gluu'
 
-        if Config.persistence_type in ('sql', 'spanner'):
-            Config.rdbm_install = True
-
         if Config.persistence_type in ('couchbase', 'sql', 'spanner'):
             ptype = 'rdbm' if Config.persistence_type in ('sql', 'spanner') else 'couchbase'
             Config.mappingLocations = { group: ptype for group in Config.couchbaseBucketDict }
@@ -77,21 +74,16 @@ class CollectProperties(SetupUtils, BaseInstaller):
             gluu_sql_prop = base.read_properties_file(Config.gluuRDBMProperties)
 
             uri_re = re.match('jdbc:(.*?)://(.*?):(.*?)/(.*)', gluu_sql_prop['connection.uri'])
-            Config.rdbm_type, Config.rdbm_host, Config.rdbm_port, Config.rdbm_db = uri_re.groups()
-            if '?' in Config.rdbm_db:
-                Config.rdbm_db = Config.rdbm_db.split('?')[0]
-            Config.rdbm_port = int(Config.rdbm_port)
+            Config.rdbm_type, Config.rdbm_host, self.rdbm_port, self.rdbm_db = uri_re.groups()
+            Config.rdbm_port = int(self.rdbm_port)
             Config.rdbm_install_type = static.InstallTypes.LOCAL if Config.rdbm_host == 'localhost' else static.InstallTypes.REMOTE
             Config.rdbm_user = gluu_sql_prop['auth.userName']
             Config.rdbm_password_enc = gluu_sql_prop['auth.userPassword']
             Config.rdbm_password = self.unobscure(Config.rdbm_password_enc)
-            if Config.rdbm_type == 'postgresql':
-                Config.rdbm_type = 'pgsql'
-
+            Config.rdbm_db = gluu_sql_prop['db.schema.name']
 
         if not Config.persistence_type in ('couchbase', 'ldap') and os.path.exists(Config.gluuSpannerProperties):
             Config.rdbm_type = 'spanner'
-            Config.rdbm_install_type = static.InstallTypes.REMOTE
             gluu_spanner_prop = base.read_properties_file(Config.gluuSpannerProperties)
 
             Config.spanner_project = gluu_spanner_prop['connection.project']
@@ -140,7 +132,7 @@ class CollectProperties(SetupUtils, BaseInstaller):
         admin_dn = None
         result = dbUtils.search('o=gluu', search_filter='(&(gluuGroupType=gluuManagerGroup)(objectClass=gluuGroup))', search_scope=ldap3.SUBTREE)
         if result:
-            if Config.persistence_type in ('sql',) and Config.rdbm_type != 'pgsql':
+            if Config.persistence_type in ('sql',):
                 admin_dn = result['member']['v'][0]
             else:
                 admin_dn = result['member'][0]
@@ -192,7 +184,7 @@ class CollectProperties(SetupUtils, BaseInstaller):
 
         if 'idpSecurityKeyPassword' in oxTrustConfApplication:
             Config.encoded_shib_jks_pw = oxTrustConfApplication['idpSecurityKeyPassword']
-            Config.shibJksPass =  self.unobscure(Config.encoded_shib_jks_pw) if Config.encoded_shib_jks_pw else None
+            Config.shibJksPass =  self.unobscure(Config.encoded_shib_jks_pw)
 
         Config.admin_email =  oxTrustConfApplication['orgSupportEmail']
 
@@ -203,9 +195,7 @@ class CollectProperties(SetupUtils, BaseInstaller):
         Config.oxauthClient_pw = self.unobscure(oxTrustConfApplication['oxAuthClientPassword'])
         Config.oxauthClient_encoded_pw = oxTrustConfApplication['oxAuthClientPassword']
 
-        if 'scimUmaClientKeyStorePassword' in oxTrustConfApplication:
-            Config.scim_rs_client_jks_pass_encoded = oxTrustConfApplication['scimUmaClientKeyStorePassword']
-            Config.scim_rp_client_jks_pass = self.unobscure(Config.scim_rs_client_jks_pass_encoded)
+        Config.scim_rp_client_jks_pass = 'secret' # this is static
 
         if 'scimUmaClientId' in oxTrustConfApplication:
             Config.scim_rs_client_id =  oxTrustConfApplication['scimUmaClientId']
@@ -213,7 +203,7 @@ class CollectProperties(SetupUtils, BaseInstaller):
         if 'scimUmaResourceId' in oxTrustConfApplication:
             Config.scim_resource_oxid =  oxTrustConfApplication['scimUmaResourceId']
 
-        if 'ScimProperties' in oxTrustConfApplication and oxTrustConfApplication['ScimProperties'] and 'protectionMode' in oxTrustConfApplication['ScimProperties']:
+        if 'ScimProperties' in oxTrustConfApplication and 'protectionMode' in oxTrustConfApplication['ScimProperties']:
             Config.scim_protection_mode = oxTrustConfApplication['ScimProperties']['protectionMode']
         else:
             Config.scim_protection_mode = 'OAUTH'
@@ -223,8 +213,8 @@ class CollectProperties(SetupUtils, BaseInstaller):
             Config.api_rs_client_jks_fn = oxTrustConfApplication['apiUmaClientKeyStoreFile']
 
         if 'scimUmaClientKeyStorePassword' in oxTrustConfApplication:
-            Config.scim_rs_client_jks_pass = self.unobscure(oxTrustConfApplication['scimUmaClientKeyStorePassword']) if oxTrustConfApplication['scimUmaClientKeyStorePassword'] else None
-            Config.scim_rs_client_jks_fn = str(oxTrustConfApplication['scimUmaClientKeyStoreFile']) if oxTrustConfApplication['scimUmaClientKeyStoreFile'] else ''
+            Config.scim_rs_client_jks_pass = self.unobscure(oxTrustConfApplication['scimUmaClientKeyStorePassword'])
+            Config.scim_rs_client_jks_fn = str(oxTrustConfApplication['scimUmaClientKeyStoreFile'])
 
         # Other clients
         client_var_id_list = (
@@ -253,11 +243,13 @@ class CollectProperties(SetupUtils, BaseInstaller):
         if 'keyStoreSecret' in oxAuthConfDynamic:
             Config.oxauth_openid_jks_pass = oxAuthConfDynamic['keyStoreSecret']
 
+
         ssl_subj = self.get_ssl_subject('/etc/certs/httpd.crt')
         Config.countryCode = ssl_subj['C']
         Config.state = ssl_subj['ST']
         Config.city = ssl_subj['L']
-
+        Config.city = ssl_subj['L']
+         
          #this is not good, but there is no way to retreive password from ldap
         if not Config.get('oxtrust_admin_password'):
             if Config.get('ldapPass'):
@@ -289,7 +281,7 @@ class CollectProperties(SetupUtils, BaseInstaller):
                 usedRatio += jetty_services[service]['memory']['ratio']
                 if service == 'oxauth':
                     service_prop = base.read_properties_file(service_default_fn)
-                    m = re.search(r'-Xmx(\d*)m', service_prop['JAVA_OPTIONS'])
+                    m = re.search('-Xmx(\d*)m', service_prop['JAVA_OPTIONS'])
                     oxauth_max_heap_mem = int(m.groups()[0])
 
         if oxauth_max_heap_mem:

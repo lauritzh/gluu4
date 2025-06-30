@@ -78,12 +78,11 @@
 				<ox:selectSelectableEntityDialog
 					acceptMethod="#{updateClientAction.acceptSelectScopes()}"
 					cancelMethod="#{updateClientAction.cancelSelectScopes()}"
-					displayNameProperty="entity.description" displaySearchForm="true"
+					displayNameProperty="entity.description" displaySearchForm="false"
 					id="scope" label="#{msgs['client.scopes']}"
 					nameProperty="entity.id" render="selectedScopesId"
 					searchMethod="#{updateClientAction.searchAvailableScopes}"
-					searchResult="#{updateClientAction.availableScopes}" 
-					searchPattern="#{updateClientAction.scopePattern}"/>
+					searchResult="#{updateClientAction.availableScopes}" />
 
 				<ox:selectSelectableEntityDialog
 					acceptMethod="#{updateClientAction.acceptSelectResponseTypes}"
@@ -152,26 +151,6 @@
 					queue="clientQueue" render="selectedClientUrisId"
 					text="#{updateClientAction.availableClientlogoutUri}"
 					textId="clientLogoutTextId" />
-					
-				<ox:inputTextDialog
-					acceptMethod="#{updateClientAction.acceptSelectRedirectLogoutUrl()}"
-					cancelMethod="#{updateClientAction.cancelRedirectLogoutUrl()}"
-					dialogWidth="600" id="redirectLogoutUrlsId"
-					inputLabel="Add #{msgs['clientForm.redirectLogoutURIs']}" inputWidth="80"
-					label="#{msgs['clientForm.redirectLogoutURIs']}" maxLength="256"
-					queue="clientQueue" render="selectedRedirectLogoutUrlId"
-					text="#{updateClientAction.availableRedirectLogoutUrl}"
-					textId="redirectLogoutURIstextId" />
-				
-				<ox:inputTextDialog
-					acceptMethod="#{updateClientAction.acceptSelectClientBackLogoutUri()}"
-					cancelMethod="#{updateClientAction.cancelClientBackLogoutUri()}"
-					dialogWidth="600" id="backchannelLogoutUris"
-					inputLabel="#{msgs['client.logoutURI']}" inputWidth="80"
-					label="#{msgs['client.logoutURI']}" maxLength="256"
-					queue="clientQueue" render="selectedClientBackLogoutUrisId"
-					text="#{updateClientAction.availableClientBacklogoutUri}"
-					textId="clientBackLogoutTextId" />
 
 				<ox:inputTextDialog
 					acceptMethod="#{updateClientAction.acceptSelectClaimRedirectUri()}"
@@ -182,16 +161,6 @@
 					queue="clientQueue" render="selectedClaimRedirectURIIsId"
 					text="#{updateClientAction.availableClaimRedirectUri}"
 					textId="claimRedirectTextId" />
-					
-				<ox:inputTextDialog
-					acceptMethod="#{updateClientAction.acceptselectedAdditionalAudiences()}"
-					cancelMethod="#{updateClientAction.cancelAdditionalAudience()}"
-					dialogWidth="600" id="AdditionalAudience"
-					inputLabel="#{msgs['client.AdditionalAudience']}" inputWidth="80"
-					label="#{msgs['client.AdditionalAudience']}" maxLength="256"
-					queue="audienceQueue" render="selectedAdditionalAudiencesId"
-					text="#{updateClientAction.availableAdditionalAudience}"
-					textId="additionalAudienceTextId" />
 
 			</div>
 		</section>

@@ -44,7 +44,7 @@ public final class LdapUserFieldRemove {
 
         // Add dummy oxEnrollmentCode attribute
         SimpleUser user = users.get(0);
-        user.setAttributeValue("oxEnrollmentCode", "test-enrollment-code", false);
+        user.setAttribute("oxEnrollmentCode", "test-enrollment-code", false);
         ldapEntryManager.merge(user);
 
         // Reload user by DN
@@ -55,7 +55,7 @@ public final class LdapUserFieldRemove {
         }
 
         // Clean dummy oxEnrollmentCode attribute
-        userWithEnrollment.setAttributeValue("oxEnrollmentCode", "", false);
+        userWithEnrollment.setAttribute("oxEnrollmentCode", "", false);
         ldapEntryManager.merge(userWithEnrollment);
 
         // Reload user by DN
@@ -65,7 +65,7 @@ public final class LdapUserFieldRemove {
             return;
         }
         
-        Object enrollmentCode = userWithoutEnrollment.getAttribute("oxEnrollmentCode");
+        String enrollmentCode = userWithoutEnrollment.getAttribute("oxEnrollmentCode");
         LOG.debug("oxEnrollmentCode: " + enrollmentCode);
     }
 

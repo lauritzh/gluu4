@@ -1,16 +1,19 @@
 package org.gluu.service.cache;
 
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Important : keep it weld free. It's reused by oxd !
@@ -63,34 +66,23 @@ public final class RedisProviderFactory {
         }
     }
 
-    public static SSLSocketFactory createSslSocketFactory(RedisConfiguration redisConfiguration) throws Exception {
+    public static SSLSocketFactory createTrustStoreSslSocketFactory(File keystoreFile) throws Exception {
+
         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        trustStore.load(new FileInputStream(redisConfiguration.getSslTrustStoreFilePath()),
-                redisConfiguration.getSslTrustStorePassword().toCharArray());
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(keystoreFile);
+            trustStore.load(inputStream, null);
+        } finally {
+            IOUtils.closeQuietly(inputStream);
+        }
+
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(trustStore);
-
-        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keyStore.load(new FileInputStream(redisConfiguration.getSslKeyStoreFilePath()),
-                redisConfiguration.getSslKeyStorePassword().toCharArray());
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, redisConfiguration.getSslKeyStorePassword().toCharArray());
+        TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
 
         SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
-
+        sslContext.init(null, trustManagers, new SecureRandom());
         return sslContext.getSocketFactory();
-    }
-
-    public static void setSSLSystemProperties(RedisConfiguration redisConfiguration) {
-        if (StringUtils.isNotBlank(redisConfiguration.getSslKeyStoreFilePath())) {
-            System.setProperty("javax.net.ssl.keyStore", redisConfiguration.getSslKeyStoreFilePath());
-            System.setProperty("javax.net.ssl.keyStorePassword", redisConfiguration.getSslKeyStorePassword());
-        }
-
-        if (StringUtils.isNotBlank(redisConfiguration.getSslTrustStoreFilePath())) {
-            System.setProperty("javax.net.ssl.trustStore", redisConfiguration.getSslTrustStoreFilePath());
-            System.setProperty("javax.net.ssl.trustStorePassword", redisConfiguration.getSslTrustStorePassword());
-        }
     }
 }

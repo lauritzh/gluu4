@@ -38,12 +38,12 @@ public abstract class CustomEntry extends Entry implements Serializable, Cloneab
 		this.customObjectClasses = customObjectClasses;
 	}
 
-	public Object[] getAttributes(String attributeName) {
+	public String[] getAttributes(String attributeName) {
 		if (StringHelper.isEmpty(attributeName)) {
 			return null;
 		}
 
-		Object[] values = null;
+		String[] values = null;
 		for (GluuCustomAttribute attribute : getCustomAttributes()) {
 			if (StringHelper.equalsIgnoreCase(attribute.getName(), attributeName)) {
 				values = attribute.getValues();
@@ -53,12 +53,12 @@ public abstract class CustomEntry extends Entry implements Serializable, Cloneab
 		return values;
 	}
 
-	public Object getAttribute(String attributeName) {
+	public String getAttribute(String attributeName) {
 		if (StringHelper.isEmpty(attributeName)) {
 			return null;
 		}
 
-		Object value = null;
+		String value = null;
 		for (GluuCustomAttribute attribute : getCustomAttributes()) {
 			if (StringHelper.equalsIgnoreCase(attribute.getName(), attributeName)) {
 				value = attribute.getValue();
@@ -68,67 +68,14 @@ public abstract class CustomEntry extends Entry implements Serializable, Cloneab
 		return value;
 	}
 
-	public Object getAttribute(String attributeName, Object defaultValue) {
-		Object result = getAttribute(attributeName);
-		if (StringHelper.isEmptyString(result)) {
+	public String getAttribute(String attributeName, String defaultValue) {
+		String result = getAttribute(attributeName);
+		if (StringHelper.isEmpty(result)) {
 			result = defaultValue;
 		}
 
 		return result;
 	}
-
-	public String[] getStringAttributes(String attributeName) {
-		if (StringHelper.isEmpty(attributeName)) {
-			return null;
-		}
-
-		String[] values = null;
-		for (GluuCustomAttribute attribute : getCustomAttributes()) {
-			if (StringHelper.equalsIgnoreCase(attribute.getName(), attributeName)) {
-				values = attribute.getStringValues();
-				break;
-			}
-		}
-		return values;
-	}
-
-	public String getStringAttribute(String attributeName) {
-		if (StringHelper.isEmpty(attributeName)) {
-			return null;
-		}
-
-		String value = null;
-		for (GluuCustomAttribute attribute : getCustomAttributes()) {
-			if (StringHelper.equalsIgnoreCase(attribute.getName(), attributeName)) {
-				value = attribute.getStringValue();
-				break;
-			}
-		}
-		return value;
-	}
-
-	public GluuCustomAttribute getCustomAttribute(String attributeName) {
-		if (StringHelper.isEmpty(attributeName)) {
-			return null;
-		}
-
-		for (GluuCustomAttribute attribute : getCustomAttributes()) {
-			if (StringHelper.equalsIgnoreCase(attribute.getName(), attributeName)) {
-				return attribute;
-			}
-		}
-		
-		return null;
-	}
-
-    public String[] getAttributeStringValues(String attributeName) {
-    	GluuCustomAttribute customAttribute = getCustomAttribute(attributeName);
-    	if (customAttribute == null) {
-    		return null;
-    	}
-    	
-    	return customAttribute.getStringValues();
-    }
 
 	public void setAttribute(String attributeName, String attributeValue) {
 		setAttribute(new GluuCustomAttribute(attributeName, attributeValue));

@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.oxtrust.api.server.model.OxTrustJsonSetting;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.api.server.util.Constants;
 import org.gluu.oxtrust.service.JsonConfigurationService;
 import org.gluu.oxtrust.service.filter.ProtectedApi;
@@ -33,13 +32,13 @@ public class OxTrustJsonSettingWebResource extends BaseWebResource {
 	private JsonConfigurationService jsonConfigurationService;
 
 	private AppConfiguration oxTrustappConfiguration;
-	
+
 	@GET
 	@Operation(summary="Get json oxtrust settings",description = "Get json oxtrust settings")
 	@ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = OxTrustJsonSetting.class)), description = Constants.RESULT_SUCCESS),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_OXTRUST_JSON_SETTING_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response getOxtrustJsonSettings() {
 		try {
 			log(logger, "Processing oxtrust json settings retrival");
@@ -65,7 +64,7 @@ public class OxTrustJsonSettingWebResource extends BaseWebResource {
 	@ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = OxTrustJsonSetting.class)), description = Constants.RESULT_SUCCESS),
 			@ApiResponse(responseCode = "404", description = "Not found"), @ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_OXTRUST_JSON_SETTING_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response updateOxtrustJsonSetting(OxTrustJsonSetting oxtrustJsonSetting) {
 		try {
 			log(logger, "Processing oxtrust json update request");

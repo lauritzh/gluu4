@@ -6,11 +6,13 @@
 
 package org.gluu.persist.ldap.impl;
 
+import com.unboundid.ldap.sdk.SearchResult;
+import com.unboundid.ldap.sdk.SearchResultEntry;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.gluu.persist.model.BatchOperation;
-import org.gluu.persist.model.EntryData;
 import org.gluu.persist.reflect.property.PropertyAnnotation;
 
 /**
@@ -42,12 +44,14 @@ public class LdapBatchOperationWraper<T> {
         return batchOperation;
     }
 
-    public List<T> createEntities(List<EntryData> entryDataList) {
+    public List<T> createEntities(SearchResult searchResult) {
         if (ldapEntryManager == null) {
             return new ArrayList<T>(0);
         }
+        SearchResultEntry[] searchResultEntry = searchResult.getSearchEntries()
+                .toArray(new SearchResultEntry[searchResult.getSearchEntries().size()]);
 
-        return ldapEntryManager.createEntities(entryClass, propertiesAnnotations, entryDataList);
+        return ldapEntryManager.createEntities(entryClass, propertiesAnnotations, searchResultEntry);
     }
 
 }

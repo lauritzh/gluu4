@@ -1,10 +1,3 @@
-!!! Attention
-    All Linux assets, packages, and binaries require a support contract for access.
-    Contact sales@gluu.org for more information. For free up-to-date binaries,
-    check out the latest releases at [The Linux Foundation Janssen Project](https://docs.jans.io),
-    the new upstream open source project.
-
-
 # Docker Installation
 
 ## Overview
@@ -15,8 +8,6 @@ This guide provides instructions for deploying the Gluu Server on a single node 
 For Docker deployments, provision a VM with:
 
 ### Linux users
-
-- If using Ubuntu use `20.04` and higher.
 
 - The minimum system requirements, as described in the [VM Preparation Guide](../installation-guide/index.md#system-requirements).
 
@@ -29,18 +20,6 @@ For Docker deployments, provision a VM with:
 - [Docker Desktop for Mac](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
 
 ## Instructions
-
-### Setup credentials for accessing docker images and assets
-
-1.  Contact sales@gluu.org for credentials to access and pull our docker images. Existing customers should have received the credentials already. 
-
-1.  Run the following command to use the credentials mentioned in previous step:
-
-    ```
-    docker login 
-    ```
-
-    You will be prompted for username and password/token.
 
 ### Obtain files for deployment
 
@@ -91,8 +70,6 @@ The generated files are similar to example below:
 ├── svc.redis.yml
 ├── svc.scim.yml
 ├── svc.vault_autounseal.yml
-├── svc.mysql.yml
-├── svc.nginx_ports.yml
 ├── vault_gluu_policy.hcl
 ├── vault_key_token.txt
 ├── vault_role_id.txt
@@ -202,17 +179,11 @@ SQL_DB_PORT = 3306
 # username to access SQL database
 SQL_DB_USER = "gluu"
 
-# Google project ID
-GOOGLE_PROJECT_ID = ""
-
 # Instance ID of Google Spanner
 GOOGLE_SPANNER_INSTANCE_ID = ""
 
 # Database ID of Google Spanner
 GOOGLE_SPANNER_DATABASE_ID = ""
-
-# Host of Spanner emulator, i.e. 10.10.1.2:9010
-SPANNER_EMULATOR_HOST = ""
 
 # ==============
 # Document store
@@ -266,28 +237,26 @@ COUCHBASE_BUCKET_PREFIX = "my_org"
 The following services are available during deployment:
 
 | Service             | Setting Name           | Mandatory | Enabled by default|
-| ------------------- | ---------------------- | --------- | ----------------- |
-| `consul`            | -                      | yes       | always            |
-| `registrator`       | -                      | yes       | always            |
-| `vault`             | -                      | yes       | always            |
-| `nginx`             | -                      | yes       | always            |
-| `persistence`       | `JOB_PERSISTENCE`      | no        | yes               |
-| `configuration`     | `JOB_CONFIGURATION`    | no        | yes               |
-| `oxauth`            | `SVC_OXAUTH`           | no        | yes               |
-| `oxtrust`           | `SVC_OXTRUST`          | no        | yes               |
-| `ldap`              | `SVC_LDAP`             | no        | yes               |
-| `oxpassport`        | `SVC_OXPASSPORT`       | no        | no                |
-| `oxshibboleth`      | `SVC_OXSHIBBOLETH`     | no        | no                |
-| `redis`             | `SVC_REDIS`            | no        | no                |
-| `vault` auto-unseal | `SVC_VAULT_AUTOUNSEAL` | no        | no                |
-| `oxd-server`        | `SVC_OXD_SERVER`       | no        | no                |
-| `cr-rotate`         | `SVC_CR_ROTATE`        | no        | no                |
-| `casa`              | `SVC_CASA`             | no        | no                |
-| `scim`              | `SVC_SCIM`             | no        | no                |
-| `fido2`             | `SVC_FIDO2`            | no        | no                |
-| `jackrabbit`        | `SVC_JACKRABBIT`       | no        | no                |
-| `mysql`             | `SVC_MYSQL`            | no        | no                |
-| `nginx_ports`       | `SVC_NGINX_PORTS`      | no        | yes               |
+| ------------------- | ---------------------- | --------- | ------- |
+| `consul`            | -                      | yes       | always  |
+| `registrator`       | -                      | yes       | always  |
+| `vault`             | -                      | yes       | always  |
+| `nginx`             | -                      | yes       | always  |
+| `persistence`       | `JOB_PERSISTENCE`      | no        | yes     |
+| `configuration`     | `JOB_CONFIGURATION`    | no        | yes     |
+| `oxauth`            | `SVC_OXAUTH`           | no        | yes     |
+| `oxtrust`           | `SVC_OXTRUST`          | no        | yes     |
+| `ldap`              | `SVC_LDAP`             | no        | yes     |
+| `oxpassport`        | `SVC_OXPASSPORT`       | no        | no      |
+| `oxshibboleth`      | `SVC_OXSHIBBOLETH`     | no        | no      |
+| `redis`             | `SVC_REDIS`            | no        | no      |
+| `vault` auto-unseal | `SVC_VAULT_AUTOUNSEAL` | no        | no      |
+| `oxd_server`        | `SVC_OXD_SERVER`       | no        | no      |
+| `cr_rotate`         | `SVC_CR_ROTATE`        | no        | no      |
+| `casa`              | `SVC_CASA`             | no        | no      |
+| `scim`              | `SVC_SCIM`             | no        | no      |
+| `fido2`             | `SVC_FIDO2`            | no        | no      |
+| `jackrabbit`        | `SVC_JACKRABBIT`       | no        | no      |
 
 To enable/disable non-mandatory services listed above, create a file called `settings.py` and set the value to `True` to enable or set to `False` to disable the service. For example:
 
@@ -344,7 +313,7 @@ Modify `settings.py` (create the file if doesn't exist) and configure based on s
 
     Additional steps required to satisfy dependencies:
 
-    -   put Couchbase cluster certificate into the `couchbase.crt` file (the root certificate is visible on the Root Certificate panel of the Security screen of Couchbase Web Console)
+    -   put Couchbase cluster certificate into the `couchbase.crt` file
 
     -   put Couchbase password into the `couchbase_password` file
 
@@ -371,7 +340,7 @@ Modify `settings.py` (create the file if doesn't exist) and configure based on s
 
     Additional steps required to satisfy dependencies:
 
-    -   put Couchbase cluster certificate into the `couchbase.crt` file (the root certificate is visible on the Root Certificate panel of the Security screen of Couchbase Web Console)
+    -   put Couchbase cluster certificate into the `couchbase.crt` file
 
     -   put Couchbase password into the `couchbase_password` file
 
@@ -386,8 +355,6 @@ Modify `settings.py` (create the file if doesn't exist) and configure based on s
     SQL_DB_HOST = "localhost"
     SQL_DB_PORT = 3306
     SQL_DB_USER = "gluu"
-    # ensure MySQL service is enabled
-    SVC_MYSQL = True
     # ensure LDAP service is disabled
     SVC_LDAP = False
     ```
@@ -395,27 +362,20 @@ Modify `settings.py` (create the file if doesn't exist) and configure based on s
     Additional steps required to satisfy dependencies:
 
     -   put MySQL password into the `sql_password` file.
-    -   put MySQL root password into the `sql_root_password` file (required to bootstrap the database).
     -   minimum MySQL version is `v5.7`.
 
 1.  Spanner
 
     ```python
     PERSISTENCE_TYPE = "spanner"
-    GOOGLE_PROJEC_ID = "my-project-id"
     GOOGLE_SPANNER_INSTANCE_ID = "my-instance-id"
     GOOGLE_SPANNER_DATABASE_ID = "my-db-id"
-
-    # optionally use Spanner emulator instead of Spanner cloud
-    # SPANNER_EMULATOR_HOST = "10.10.1.2:9010"
     # disable LDAP service
     SVC_LDAP = False
     ```
-
     Additional steps required to satisfy dependencies:
 
     -   put Google credentials into `google-credentials.json` file.
-    -   alternative is to use Spanner emulator
 
 #### Set up Vault auto-unseal
 

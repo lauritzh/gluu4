@@ -1,3 +1,4 @@
+
 const rewire = require('rewire')
 const configDiscoveryRewire = rewire('../server/utils/configDiscovery')
 const chai = require('chai')

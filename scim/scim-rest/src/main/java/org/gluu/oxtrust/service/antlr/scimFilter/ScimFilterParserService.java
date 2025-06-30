@@ -5,8 +5,6 @@
  */
 package org.gluu.oxtrust.service.antlr.scimFilter;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -19,8 +17,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.commons.lang.StringUtils;
-import org.gluu.model.GluuAttribute;
-import org.gluu.orm.util.StringHelper;
 import org.gluu.oxtrust.model.exception.SCIMException;
 import org.gluu.oxtrust.model.scim2.BaseScimResource;
 import org.gluu.oxtrust.service.antlr.scimFilter.antlr4.ScimFilterBaseListener;
@@ -28,7 +24,6 @@ import org.gluu.oxtrust.service.antlr.scimFilter.antlr4.ScimFilterLexer;
 import org.gluu.oxtrust.service.antlr.scimFilter.antlr4.ScimFilterParser;
 import org.gluu.oxtrust.service.antlr.scimFilter.util.FilterUtil;
 import org.gluu.persist.service.PersistanceFactoryService;
-import org.gluu.oxtrust.service.AttributeService;
 import org.gluu.search.filter.Filter;
 import org.slf4j.Logger;
 
@@ -44,9 +39,6 @@ public class ScimFilterParserService {
 
     @Inject
     private PersistanceFactoryService persistenceFactoryService;
-
-    @Inject
-    private AttributeService attrService;
 
     private boolean ldapBackend;
 
@@ -103,9 +95,7 @@ public class ScimFilterParserService {
             if (StringUtils.isEmpty(filter))
                 ldapFilter=defaultFilter;
             else {
-            	List<GluuAttribute> allAttributes = attrService.getAllAttributes();
-            	Map<String, GluuAttribute> allAttributesMap = buildAttributesMap(allAttributes);
-                FilterListener filterListener = new FilterListener(clazz, allAttributesMap, ldapBackend);
+                FilterListener filterListener = new FilterListener(clazz, ldapBackend);
                 walkTree(FilterUtil.preprocess(filter, clazz), filterListener);
                 ldapFilter = filterListener.getFilter();
 
@@ -121,16 +111,7 @@ public class ScimFilterParserService {
 
     }
 
-    private Map<String, GluuAttribute> buildAttributesMap(List<GluuAttribute> attributes) {
-    	Map<String, GluuAttribute> attributesMap = new HashMap<>();
-    	for(GluuAttribute attribute : attributes ) {
-    		attributesMap.put(StringHelper.toLowerCase(attribute.getName()), attribute);
-    	}
-
-    	return attributesMap;
-	}
-
-	public Boolean complexAttributeMatch(ParseTree parseTree, Map<String, Object> item, String parent, Class<? extends BaseScimResource> clazz) throws Exception {
+    public Boolean complexAttributeMatch(ParseTree parseTree, Map<String, Object> item, String parent, Class<? extends BaseScimResource> clazz) throws Exception {
 
         MatchFilterVisitor matchVisitor=new MatchFilterVisitor(item, parent, clazz);
         return matchVisitor.visit(parseTree);

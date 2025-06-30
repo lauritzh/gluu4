@@ -224,7 +224,6 @@
     "authenticationFiltersEnabled":true,
     "clientAuthenticationFiltersEnabled":true,
     "clientRegDefaultToCodeFlowWithRefresh":true,
-    "grantTypesAndResponseTypesAutofixEnabled": true,
     "authenticationFilters":[
         {
             "filter":"(&(mail=*{0}*)(inum={1}))",
@@ -335,7 +334,5 @@
     },
     "deviceAuthzRequestExpiresIn": 1800,
     "deviceAuthzTokenPollInterval": 5,
-    "deviceAuthzResponseTypeToProcessAuthz": "code",
-    "return200OnClientRegistration": true,
-    "dateFormatterPatterns": {}
+    "deviceAuthzResponseTypeToProcessAuthz": "code"
 }

@@ -340,18 +340,6 @@ public final class StringHelper {
         }
     }
 
-    public static Boolean toBoolean(final String string, Boolean defaultValue) {
-        if (isEmpty(string)) {
-            return defaultValue;
-        }
-
-        try {
-            return Boolean.parseBoolean(string);
-        } catch (NumberFormatException ex) {
-            return defaultValue;
-        }
-    }
-
     public static boolean toBoolean(Boolean value, boolean defaultValue) {
         if (value == null) {
             return defaultValue;
@@ -365,11 +353,7 @@ public final class StringHelper {
     }
 
     public static boolean isNotEmptyString(Object string) {
-    	if (string == null) {
-    		return false;
-    	}
-
-    	return !(string instanceof String) || isNotEmpty((String) string);
+        return !(string instanceof String) || isNotEmpty((String) string);
     }
 
     public static String toString(Object object) {

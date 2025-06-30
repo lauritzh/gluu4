@@ -1,6 +1,8 @@
 {{- if .Values.backup.enabled }}
+# License terms and conditions for Gluu Cloud Native Edition:
+# https://www.apache.org/licenses/LICENSE-2.0
 kind: CronJob
-apiVersion: batch/v1
+apiVersion: batch/v1beta1
 metadata:
   name: {{ include "opendj.fullname" . }}-backup
 spec:
@@ -10,20 +12,11 @@ spec:
     spec:
       template:
         spec:
-        {{- with $.Values.image.pullSecrets }}
-          imagePullSecrets:
-            {{- toYaml . | nindent 12 }}
-        {{- end }}
           dnsPolicy: {{ .Values.dnsPolicy | quote }}
         {{- with .Values.dnsConfig }}
           dnsConfig:
-    {{ toYaml . | indent 12 }}
+{{ toYaml . | indent 12 }}
         {{- end }}
-          securityContext:
-            runAsUser: 1000
-            runAsNonRoot: true
-            fsGroup: 1000
-            #fsGroupChangePolicy: "OnRootMismatch" enable once 1.23 is the lowest version
           containers:
             - name: {{ include "opendj.fullname" . }}-backup
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -99,6 +92,10 @@ spec:
                 sleep 300
                 RANDOM_NUM=$(cat /dev/urandom | tr -cd '0-5' | head -c 1)
                 LDAP_BACKUP_FILE=backup-$RANDOM_NUM.ldif
+                {{- if .Values.multiCluster.enabled }}
+                /opt/opendj/bin/export-ldif --hostname "$LDAP_HOST" --port "304{{$.Values.multiCluster.namespaceIntId}}0" --bindDN "$LDAP_BIND_DN" --bindPassword "$LDAP_PASSWORD" --backendID userRoot --ldifFile /opt/opendj/ldif/$LDAP_BACKUP_FILE --trustAll
+                {{- else }}
                 /opt/opendj/bin/export-ldif --hostname "$LDAP_HOST" --port 4444 --bindDN "$LDAP_BIND_DN" --bindPassword "$LDAP_PASSWORD" --backendID userRoot --ldifFile /opt/opendj/ldif/$LDAP_BACKUP_FILE --trustAll
+                {{- end }}
           restartPolicy: Never
 {{- end }}

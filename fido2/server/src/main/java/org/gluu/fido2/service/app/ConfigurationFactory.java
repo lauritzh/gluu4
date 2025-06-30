@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gluu.exception.ConfigurationException;
 import org.gluu.fido2.model.conf.AppConfiguration;
 import org.gluu.fido2.model.conf.Conf;
-import org.gluu.fido2.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.config.BaseDnConfiguration;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.Configuration;
@@ -71,8 +70,6 @@ public class ConfigurationFactory {
 
 	@Inject
 	private Instance<AbstractCryptoProvider> abstractCryptoProviderInstance;
-
-	private ErrorResponseFactory errorResponseFactory;
 
 	public final static String PERSISTENCE_CONFIGUARION_RELOAD_EVENT_TYPE = "persistenceConfigurationReloadEvent";
 	public final static String BASE_CONFIGUARION_RELOAD_EVENT_TYPE = "baseConfigurationReloadEvent";
@@ -127,7 +124,6 @@ public class ConfigurationFactory {
 			loadBaseConfiguration();
 
 			this.confDir = confDir();
-			log.debug("confDir: {}", confDir);
 
 			String certsDir = this.baseConfiguration.getString("certsDir");
 			if (StringHelper.isEmpty(certsDir)) {
@@ -250,12 +246,6 @@ public class ConfigurationFactory {
 		return staticConf;
 	}
 
-	@Produces
-	@ApplicationScoped
-	public ErrorResponseFactory getFido2ErrorResponseFactory() {
-		return errorResponseFactory;
-	}
-
 	public BaseDnConfiguration getBaseDn() {
 		return getStaticConfiguration().getBaseDn();
 	}
@@ -283,7 +273,6 @@ public class ConfigurationFactory {
 				if (this.loaded) {
 					destroy(AppConfiguration.class);
 					destroy(StaticConfiguration.class);
-//					destroy(Fido2ErrorResponseFactory.class);
 
 					destroyCryptoProviderInstance(AbstractCryptoProvider.class);
 				}
@@ -335,9 +324,6 @@ public class ConfigurationFactory {
 		}
 		if (conf.getStaticConf() != null) {
 			staticConf = conf.getStaticConf();
-		}
-		if (conf.getErrors() != null) {
-			errorResponseFactory = new ErrorResponseFactory(conf.getErrors(), conf.getDynamicConf());
 		}
 	}
 

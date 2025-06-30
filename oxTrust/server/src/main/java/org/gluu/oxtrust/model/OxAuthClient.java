@@ -161,6 +161,9 @@ public class OxAuthClient extends Entry implements Serializable {
 	@AttributeName(name = "oxAuthRequireAuthTime")
 	private Boolean requireAuthTime;
 
+	@AttributeName(name = "oxAuthPostLogoutRedirectURI")
+	private String[] postLogoutRedirectUris;
+
 	@AttributeName(name = "oxClaimRedirectURI")
 	private String[] claimRedirectURI;
 
@@ -183,7 +186,7 @@ public class OxAuthClient extends Entry implements Serializable {
 	private Integer accessTokenLifetime;
 
 	@AttributeName(name = "oxAuthDefaultAcrValues")
-	private String defaultAcrValues;
+	private String[] defaultAcrValues;
 
 	@AttributeName(name = "oxAuthInitiateLoginURI")
 	private String initiateLoginUri;
@@ -562,6 +565,14 @@ public class OxAuthClient extends Entry implements Serializable {
 		this.tokenEndpointAuthMethod = tokenEndpointAuthMethod;
 	}
 
+	public String[] getPostLogoutRedirectUris() {
+		return postLogoutRedirectUris;
+	}
+
+	public void setPostLogoutRedirectUris(String[] postLogoutRedirectUris) {
+		this.postLogoutRedirectUris = postLogoutRedirectUris;
+	}
+
 	public List<String> getLogoutUri() {
 		return logoutUri;
 	}
@@ -610,11 +621,11 @@ public class OxAuthClient extends Entry implements Serializable {
 		this.accessTokenLifetime = accessTokenLifetime;
 	}
 
-	public String getDefaultAcrValues() {
+	public String[] getDefaultAcrValues() {
 		return defaultAcrValues;
 	}
 
-	public void setDefaultAcrValues(String defaultAcrValues) {
+	public void setDefaultAcrValues(String[] defaultAcrValues) {
 		this.defaultAcrValues = defaultAcrValues;
 	}
 

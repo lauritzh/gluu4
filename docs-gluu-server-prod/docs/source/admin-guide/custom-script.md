@@ -252,43 +252,6 @@ This script can be used in an oxTrust application only.
 
 - [Sample ID Generation Script](./sample-id-generation-script.py)      
 
-
-## Authorization Challenge Custom Script
-
-The Authorization server implements [OAuth 2.0 for First-Party Applications](https://www.ietf.org/archive/id/draft-parecki-oauth-first-party-native-apps-02.html).
-This script is used to control/customize Authorization Challenge Endpoint.
-
-In request to Authorization Challenge Endpoint to is expected to have `acr_values` request parameter which specifies name of the custom script.
-If parameter is absent or AS can't find script with this name then it falls back to script with name `default_challenge`.
-This script is provided during installation and performs basic `username`/`password` authentication.
-
-```
-POST /oxauth/restv1/authorize-challenge HTTP/1.1
-Host: yuriyz-fond-skink.gluu.info
-client_id=999e13b8-f4a2-4fed-ad3c-6c88bd2c92ea&scope=openid+profile+address+email+phone+user_name&state=b4a41b29-51c8-4354-9c8c-fda38b4dbd43&nonce=3a56f8d0-f78e-4b15-857c-3e792801be68&acr_values=&request_session_id=false&password=secret&username=admin
-```
-There is **authorizationChallengeDefaultAcr** AS configuration property which allows to change fallback script name from `default_challenge` to some other value (value must be valid script name present on AS).
-
-The Authorization Challenage script implements the [AuthorizationChallenageType](https://github.com/GluuFederation/oxauth/blob/4.5/oxCore/script/src/main/java/org/gluu/model/custom/script/type/authzchallenge/AuthorizationChallengeType.java) interface. This extends methods from the base script type in addition to adding new methods:
-
-**Inherited methods**
-| Method header | Method description |
-|:-----|:------|
-| `def init(self, customScript, configurationAttributes)` | This method is only called once during the script initialization. It can be used for global script initialization, initiate objects etc |
-| `def destroy(self, configurationAttributes)` | This method is called once to destroy events. It can be used to free resource and objects created in the `init()` method |
-| `def getApiVersion(self, configurationAttributes, customScript)` | The getApiVersion method allows API changes in order to do transparent migration from an old script to a new API. Only include the customScript variable if the value for getApiVersion is greater than 10 |
-
-**New methods**
-| Method header | Method description |
-|:-----|:------|
-|`def authorize(self, context)`| Called when the request is received. |
-
-`authorize` method returns true/false which indicates to server whether to issue `authorization_code` in response or not.
-If parameters is not present then error has to be created and `false` returned.
-If all is good script has to return `true` and it's strongly recommended to set user `context.getExecutionContext().setUser(user);` so AS can keep tracking what exactly user is authenticated.
-
-Full sample script can be found [here](./authorization_challenge.py)
-
 ## Cache Refresh       
 
 In order to integrate your Gluu instance with backend LDAP servers handling authentication in your existing network environment, oxTrust provides a mechanism called [Cache Refresh](../user-management/ldap-sync.md#ldap-synchronization) to copy user data to the Gluu Server's local LDAP server. During this process it is possible to specify key attribute(s) and specify attribute name transformations. There are also cases when it can be used to overwrite attribute values or to add new attributes based on other attribute values.
@@ -325,7 +288,7 @@ Associate RPT Claims script with client (Update button must be clicked to persis
 
 ![rptclaims](../img/admin-guide/rptclaims.png)
 
-View a [RPT Claims Script Sample](https://github.com/GluuFederation/oxAuth/blob/version_4.4.0/Server/src/main/java/org/gluu/oxauth/uma/service/UmaRptService.java)
+View a [RPT Claims Script Sample](https://github.com/GluuFederation/oxAuth/blob/version_4.3.2/Server/src/main/java/org/gluu/oxauth/uma/service/UmaRptService.java)
 
 
 
@@ -402,144 +365,9 @@ Revoke Token scripts allow inject custom logic during token revoking.
         return True
 ```
 
-Full version of the script example can be found [here](https://github.com/GluuFederation/community-edition-setup/blob/version_4.4.0/static/extension/revoke_token/revoke_token.py).
+Full version of the script example can be found [here](https://github.com/GluuFederation/community-edition-setup/blob/version_4.3.0/static/extension/revoke_token/revoke_token.py).
 
 Note `RevokeTokenContext` allows to access response builder (`context.getResponseBuilder()`) which allows to customer response if needed.
-
-## Update Token Script
-
-### 1. Mandatory methods:
-
-```
-class UpdateToken(UpdateTokenType):
-
-    def __init__(self, currentTimeMillis):
-        self.currentTimeMillis = currentTimeMillis
-
-    def init(self, customScript, configurationAttributes):
-        return True
-
-    def destroy(self, configurationAttributes):
-        return True
-
-    def getApiVersion(self):
-        return 11
-```
-
-### 2. modifyIdToken () : Used to modify claims in an ID token
-
-Pseudocode and example :
-
-```
-    # Returns boolean, true - indicates that script applied changes
-    # jsonWebResponse - is JwtHeader, you can use any method to manipulate JWT
-    # context is reference of org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext
-    def modifyIdToken(self, jsonWebResponse, context):
-
-    # header claims
-	jsonWebResponse.getHeader().setClaim("header_name", "header_value")
-
-	#custom claims
-	jsonWebResponse.getClaims().setClaim("openbanking_intent_id", openbanking_intent_id_value)
-
-	#regular claims        
-	jsonWebResponse.getClaims().setClaim("sub", claimValue)
-
-	return True
-
-```
-
-### 3.  modifyAccessToken(): 
-
-#### a. Granularity of access control:
-An UpdateTokenType script is great for adding scopes or removing scopes to/from the Access token. By doing so you can tailor build the granularity of access control according to business need.
-
-[`context.overwriteAccessTokenScopes`](https://github.com/GluuFederation/oxAuth/blob/ef5762e41b13bffc09702f821a1ad6d81900428d/Server/src/main/java/org/gluu/oxauth/service/external/context/ExternalUpdateTokenContext.java) is ready to use method of the `context` variable
-
-```
-    from com.google.common.collect import Sets
-    ....
-    def modifyAccessToken(self, accessToken, context):
-              context.overwriteAccessTokenScopes(accessToken, Sets.newHashSet("openid", "mynewscope"))
-```
-
-#### b.  Perform business check before returning AT
-
-Pseudo code and example - Issue Access token only if account balance is greater than 0
-
-```
-    # Returns boolean, true - indicates that script applied changes
-    # accessToken - is JwtHeader, you can use any method to manipulate JWT
-    # context is reference of org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext
-    def modifyAccessToken(self, accessToken, context):
-
-         #read from session
-	     sessionIdService = CdiUtil.bean(SessionIdService)
-	     sessionId = sessionIdService.getSessionByDn(context.getGrant().getSessionDn()) # fetch from persistence
-
-        org_id = sessionId.getSessionAttributes().get("org_id")
-	    balance = thirdPartyApi.checkBalance(org_id)
-
-        if balance > 0 :
-           return True
-        else:
-           return False # forbid the creation of AT
-```
-
-#### c. Modify claims in an access token:
-
-```
-    
-
-    # Returns boolean, true - indicates that script applied changes. If false is returned token will not be created.
-    # accessToken is reference of org.gluu.oxauth.model.common.AccessToken (note authorization grant can be taken as context.getGrant())
-    # context is reference of org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext
-    def modifyAccessToken(self, accessToken, context):
-       
-        context.getHeader().setClaim("custom_header_name", "custom_header_value")
-        context.getClaims().setClaim("claim_name", "claimValue")
-       
-        print "Update token script. Modify access token: %s" % accessToken
-        return True
-
-```
-
-### 5. Modify a specific token lifetime based on the context:
-
-1. Refresh token lifetime:
-
-```
-    def getRefreshTokenLifetimeInSeconds(self, context):
-        return 24 * 60 * 60 # one day
-```
-
-2. ID token lifetime:
-
-```
-    def getIdTokenLifetimeInSeconds(self, context):
-        return 10 * 60 * 60 # 10 hours
-```
-
-3. Access token lifetime:
-```
-    def getAccessTokenLifetimeInSeconds(self, context):
-        return 10 * 60 * 60 # 10 hours
-```
-
-### 6. modifyRefreshToken() :  
-Used to modify claims in a Refresh Token
-
-```
-    # Returns boolean, true - indicates that script applied changes. If false is returned token will not be created.
-    # refreshToken is reference of org.gluu.oxauth.model.common.RefreshToken (note authorization grant can be taken as context.getGrant())
-    # context is reference of org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext
-    def modifyRefreshToken(self, refreshToken, context):
-        return True
-
-```
-
-- [Sample Update Token Script](./sample-update-token-script.py)
-
 
 ## End Session (Logout)
 
@@ -561,7 +389,7 @@ Snippet
         return ""
 ```
 
-Full version of the script example can be found [here](https://github.com/GluuFederation/community-edition-setup/blob/version_4.4.0/static/extension/end_session/end_session.py). 
+Full version of the script example can be found [here](https://github.com/GluuFederation/community-edition-setup/blob/version_4.3.0/static/extension/end_session/end_session.py). 
 
 ## Resource Owner Password Credentials
 
@@ -587,12 +415,7 @@ Snippet
         return False
 ```
 
-Full version of the script example can be found [here](https://github.com/GluuFederation/community-edition-setup/blob/version_4.4.0/static/extension/resource_owner_password_credentials/resource_owner_password_credentials.py).
-
-Sometimes it can be useful to ROPC custom script at Authorization Endpoint to avoid redirects and pages. 
-By default it is not enabled but it can be enabled if set `forceRopcInAuthorizationEndpoint` AS configuration property to `true`.
-
-Also it is required to set `user` in context in custom script (`context.setUser(<user>)`). Without it authorization will go on in normal way (with pages and redirects).
+Full version of the script example can be found [here](https://github.com/GluuFederation/community-edition-setup/blob/version_4.3.0/static/extension/resource_owner_password_credentials/resource_owner_password_credentials.py). 
 
 ## Persistence Extension
 
@@ -631,7 +454,7 @@ This script type is specific to SAML / Shibboleth IDP and allows developers to p
 |Method|`def translateAttributes(self, context, configurationAttributes)`|
 | ---  | --- |
 | **Description**|Translate attributes from user profile|
-|Method Parameter| `context` is [`org.gluu.idp.externalauth.TranslateAttributesContext.java`](https://github.com/GluuFederation/shib-oxauth-authn3/blob/version_4.4.0/src/main/java/org/gluu/idp/externalauth/TranslateAttributesContext.java) |
+|Method Parameter| `context` is [`org.gluu.idp.externalauth.TranslateAttributesContext.java`](https://github.com/GluuFederation/shib-oxauth-authn3/blob/version_4.3.0/src/main/java/org/gluu/idp/externalauth/TranslateAttributesContext.java) |
 |Method Parameter| `configurationAttributes` is `java.util.Map<String, SimpleCustomProperty>`|
     
 ## Additional Tips

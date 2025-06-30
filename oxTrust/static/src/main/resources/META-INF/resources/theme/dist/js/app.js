@@ -3,10 +3,7 @@
 
 //Make sure jQuery has been loaded before app.js
 if (typeof jQuery === "undefined") {
-  console.error("==========================")
-  console.error("====AdminUI requires jQuery")
-  console.error("==========================")
-  throw new Error("AdminUI requires jQuery");
+  throw new Error("AdminLTE requires jQuery");
 }
 
 /* AdminLTE

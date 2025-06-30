@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>casa-base</artifactId>
-        <version>4.5.11-SNAPSHOT</version>
+        <version>4.3.2-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
@@ -241,7 +241,7 @@
         <dependency>
             <groupId>com.twilio.sdk</groupId>
             <artifactId>twilio</artifactId>
-            <version>9.14.1</version>
+            <version>8.27.0</version>
         </dependency>
 
         <!-- OTP -->
@@ -289,10 +289,10 @@
 			<version>${jackson.version}</version>
 		</dependency>
 
-        <dependency>
-            <groupId>com.fasterxml</groupId>
-            <artifactId>aalto-xml</artifactId>
-            <version>1.2.1</version>
+		<dependency>
+           	<groupId>com.fasterxml</groupId>
+           	<artifactId>aalto-xml</artifactId>
+           	<version>1.2.1</version>
         </dependency>
 
         <dependency>
@@ -300,23 +300,6 @@
             <artifactId>jakarta.mail</artifactId>
             <version>1.6.7</version>
         </dependency>
-        
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>${bc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk18on</artifactId>
-            <version>${bc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcmail-jdk18on</artifactId>
-            <version>${bc.version}</version>
-        </dependency>        
-        
     </dependencies>
 
     <build>
@@ -355,7 +338,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Remove beans.xml from oxcore-service, oxauth-common and oxcore-cache jars.
+            <!-- Remove beans.xml from oxcore-service and oxcore-cache jars.
             It allows disabling jar scanning by Weld. It produces lots of errors as is -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -386,21 +369,6 @@
                         <configuration>
                             <fileset>
                                 <directory>${project.build.directory}/${project.build.finalName}.war/WEB-INF/lib/oxcore-cache-${ox.version}.jar</directory>
-                                <includes>
-                                    <include>META-INF/beans.xml</include>
-                                </includes>
-                            </fileset>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>remove-beans-file-oxauth-common</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>remove</goal>
-                        </goals>
-                        <configuration>
-                            <fileset>
-                                <directory>${project.build.directory}/${project.build.finalName}.war/WEB-INF/lib/oxauth-common-${ox.version}.jar</directory>
                                 <includes>
                                     <include>META-INF/beans.xml</include>
                                 </includes>

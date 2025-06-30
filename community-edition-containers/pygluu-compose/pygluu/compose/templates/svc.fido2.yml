@@ -3,7 +3,7 @@ version: "2.4"
 
 services:
   fido2:
-    image: gluufederation/fido2:4.5.11_dev
+    image: gluufederation/fido2:4.3.1_02
     environment:
       - GLUU_CONFIG_CONSUL_HOST=consul
       - GLUU_SECRET_VAULT_HOST=vault
@@ -18,11 +18,9 @@ services:
       - GLUU_SQL_DB_HOST=${SQL_DB_HOST}
       - GLUU_SQL_DB_PORT=${SQL_DB_PORT}
       - GLUU_SQL_DB_USER=${SQL_DB_USER}
-      - GLUU_SQL_DB_SCHEMA=${SQL_DB_SCHEMA}
       - GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID}
       - GLUU_GOOGLE_SPANNER_INSTANCE_ID=${GOOGLE_SPANNER_INSTANCE_ID}
       - GLUU_GOOGLE_SPANNER_DATABASE_ID=${GOOGLE_SPANNER_DATABASE_ID}
-      - SPANNER_EMULATOR_HOST=${SPANNER_EMULATOR_HOST}
     extra_hosts:
       - "${DOMAIN}:${HOST_IP}"
     container_name: fido2
@@ -37,13 +35,6 @@ services:
     restart: unless-stopped
     labels:
       - "SERVICE_NAME=fido2"
-      - "SERVICE_8080_CHECK_HTTP=/fido2/sys/health-check"
+      - "SERVICE_8080_CHECK_HTTP=/fido2/restv1/fido2/configuration"
       - "SERVICE_8080_CHECK_INTERVAL=30s"
-      - "SERVICE_8080_CHECK_TIMEOUT=5s"
-      - "autoheal=true"
-    healthcheck:
-      test: python3 /app/scripts/healthcheck.py
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+      - "SERVICE_8080_CHECK_TIMEOUT=30s"

@@ -5,11 +5,11 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>super-gluu-radius-server</artifactId>
-  <version>4.5.11-SNAPSHOT</version>
+  <version>4.3.2-SNAPSHOT</version>
   <parent>
     <groupId>org.gluu</groupId>
     <artifactId>super-gluu-radius</artifactId>
-    <version>4.5.11-SNAPSHOT</version>
+    <version>4.3.2-SNAPSHOT</version>
   </parent>
 
   <name>Super Gluu Radius Server</name>
@@ -21,15 +21,9 @@
   <dependencies>
     <!-- tinyradius -->
     <dependency>
-      <groupId>org.tinyradius</groupId>
+      <groupId>com.hynnet</groupId>
       <artifactId>tinyradius</artifactId>
-      <version>1.1.3</version>
-      <exclusions>
-      	<exclusion>
-      		<groupId>log4j</groupId>
-      		<artifactId>log4j</artifactId>
-      	</exclusion>
-      </exclusions>
+      <version>1.0</version>
     </dependency>
 
     <!-- oxcore-radius -->
@@ -110,21 +104,25 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.26</version>
     </dependency>
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
+      <version>2.17.1</version>
     </dependency>
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
+      <version>2.17.1</version>
     </dependency>
 
     <dependency>
       <groupId>commons-cli</groupId>
       <artifactId>commons-cli</artifactId>
+      <version>1.4</version>
     </dependency>
 
   </dependencies>
@@ -135,7 +133,10 @@
       <!-- compiler plugin -->
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
         <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
           <compilerArgs>

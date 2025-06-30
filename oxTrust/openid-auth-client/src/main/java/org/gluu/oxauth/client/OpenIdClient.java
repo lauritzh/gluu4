@@ -51,7 +51,6 @@ import org.gluu.util.exception.ConfigurationException;
 import org.gluu.util.init.Initializable;
 import org.gluu.util.security.StringEncrypter;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 
 /**
  * This class is the oxAuth client to authenticate users and retrieve user
@@ -124,12 +123,8 @@ public class OpenIdClient<C extends AppConfiguration, L extends AppConfiguration
 		}
 
 		final OpenIdConfigurationClient openIdConfigurationClient = new OpenIdConfigurationClient(openIdProvider);
-		ApacheHttpClient43Engine httpEngine = new ApacheHttpClient43Engine();
-		httpEngine.setFollowRedirects(true);
-		openIdConfigurationClient.setExecutor(httpEngine);
 		final OpenIdConfigurationResponse response = openIdConfigurationClient.execOpenIdConfiguration();
 		if ((response == null) || (response.getStatus() != 200)) {
-			logger.info("Failed to load oxAuth configuration. Http code ( {} ). Body: {}", response.getStatus(),response.getEntity());
 			throw new ConfigurationException("Failed to load oxAuth configuration");
 		}
 

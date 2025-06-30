@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 
 /**
  * A factory class to obtain "client" objects that allow interaction with the SCIM service.
@@ -176,7 +176,7 @@ public class ScimClientFactory {
                 clientSecret, secretPostAuthnMethod);
     }
     
-    public static ClientSideService getOAuthClient(String domain, String OIDCMetadataUrl,
+    public ClientSideService getOAuthClient(String domain, String OIDCMetadataUrl,
             String clientId, Path keyStorePath, String keyStorePassword, String keyId) throws Exception {
         return getOAuthClient(defaultInterface, domain, OIDCMetadataUrl, clientId,
                 keyStorePath, keyStorePassword, keyId);

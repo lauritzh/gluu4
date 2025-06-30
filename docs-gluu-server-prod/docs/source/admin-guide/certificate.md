@@ -114,8 +114,23 @@
 
     ## Rotating Certificates and Keys in Kubernetes setup
     
+    #### Cert and Key Rotation in a Cloud Native Multi Cluster/Region Environment
+    
     !!! Note
-        `gluu-config-cm` in all examples refer to gluu's installation configuration parameters. This name is correct in Kustomization installation, however in Helm the name is in the format of `<helms release name>-config-cm` and must be changed.
+        In a multi-cluster environment, rotation of certs and keys should only be done in one cluster region. If the secret and config layer aren't central, the secret and configmap should then be moved to other regions by first saving them into a file and applying them on the second or subsequent clusters.
+
+        First get both the secret and configmap and save them into files on the cluster where the rotation was done
+
+        `kubectl get secret gluu -n gluu -o yaml > gluu-secret.yaml`
+        `kubectl get cm gluu -n gluu -o yaml > gluu-cm.yaml`
+
+        Apply them on the other cluster(s) in other regions
+
+        `kubectl apply -f gluu-secret.yaml -n gluu`
+        `kubectl apply -f gluu-cm.yaml -n gluu`
+
+    !!! Note
+        `gluu-config-cm` in all examples below refer to gluus installation configuration parameters. This name is correct in Kustomization installation, however in Helm the name is in the format of `<helms release name>-config-cm` and must be changed.
     
     
     === "web (ingress)"
@@ -143,15 +158,13 @@
                         sidecar.istio.io/inject: "false"                  
                     spec:
                       restartPolicy: Never
-                      imagePullSecrets:
-                      - name: regcred
                       containers:
                         - name: web-key-rotation
-                          image: gluufederation/certmanager:4.5.2-1
+                          image: gluufederation/certmanager:4.3.0_b1
                           envFrom:
                           - configMapRef:
                               name: gluu-config-cm # This may be differnet in Helm
-                          args: ["patch", "web", "--opts", "valid-to:365"]
+                          args: ["patch", "web"]
                 ```
             
             1. Apply job
@@ -187,8 +200,6 @@
                         sidecar.istio.io/inject: "false"                  
                     spec:
                       restartPolicy: Never
-                      imagePullSecrets:
-                      - name: regcred
                       volumes:
                       - name: web-cert
                         secret:
@@ -204,7 +215,7 @@
                               path: gluu_https.key                              
                       containers:
                         - name: load-web-key-rotation
-                          image: gluufederation/certmanager:4.5.2-1
+                          image: gluufederation/certmanager:4.3.0_b1
                           envFrom:
                           - configMapRef:
                               name: gluu-config-cm  #This may be differnet in Helm
@@ -227,7 +238,7 @@
     === "oxAuth"
     
         !!! Warning
-            Key rotation CronJob is usually installed with Gluu. Please double check before deploying using `kubectl get cronjobs -n <gluu-namespace>`.
+            Key rotation cronJob is usually installed with Gluu. Please make sure before deploying `kubectl get cronjobs -n <gluu-namespace>`.
 
         | Associated certificates and keys |
         | -------------------------------- |
@@ -240,7 +251,7 @@
             # License terms and conditions for Gluu Cloud Native Edition:
             # https://www.apache.org/licenses/LICENSE-2.0
             kind: CronJob
-            apiVersion: batch/v1
+            apiVersion: batch/v1beta1
             metadata:
               name: oxauth-key-rotation
             spec:
@@ -255,7 +266,7 @@
                     spec:
                       containers:
                         - name: oxauth-key-rotation
-                          image: gluufederation/certmanager:4.5.2-1
+                          image: gluufederation/certmanager:4.3.0_b1
                           env:
                             - name: GLUU_CONTAINER_MAIN_NAME
                               value: "oxauth" # Place oxauth container name 
@@ -283,8 +294,6 @@
                           #  mountPath: "/etc/jans/conf/sql_password"
                           #  subPath: sql_password
                       restartPolicy: Never
-                      imagePullSecrets:
-                      - name: regcred
                       #volumes:
                       # If using Couchbase
                       #- name: cb-pass
@@ -300,9 +309,9 @@
             ```
         
         !!! Warning
-            Key rotation CronJob will try to push `oxauth-keys.jks` and `oxauth-keys.json` to oxAuth pods. If the service account user does not have permissions to list pods the above will fail with a `403` Forbidden message. This action can be disabled forcing oxAuth pods to pull from Kubernetes `Secret`s instead by setting the enviornment variable `GLUU_SYNC_JKS_ENABLED` to `true` inside the main config map i.e `gluu-config-cm` and adding to the `args` of the above yaml `"--opts", "push-to-container:false"` so the `args` section would look like `args: ["patch", "oxauth", "--opts", "interval:48", "--opts", "push-to-container:false"]`.
+            Key rotation cronJob will try to push `oxauth-keys.jks` and `oxauth-keys.json` to oxAuth pods. If the service account user does not have permissions to list pods the above will fail with a `403` Forbidden message. This action can be disabled forcing oxAuth pods to pull from Kubernetes `Secret`s instead by setting the enviornment variable `GLUU_SYNC_JKS_ENABLED` to `true` inside the main config map i.e `gluu-config-cm` and adding to the `args` of the above yaml `"--opts", "push-to-container:false"` so the `args` section would look like `args: ["patch", "oxauth", "--opts", "interval:48", "--opts", "push-to-container:false"]`.
                     
-        1. Apply CronJob
+        1. Apply cron job
         
             ```bash
                 kubectl apply -f oxauth-key-rotation.yaml -n <gluu-namespace>
@@ -338,11 +347,9 @@
                     sidecar.istio.io/inject: "false"              
                 spec:
                   restartPolicy: Never
-                  imagePullSecrets:
-                      - name: regcred
                   containers:
                     - name: oxshibboleth-key-rotation
-                      image: gluufederation/certmanager:4.5.2-1
+                      image: gluufederation/certmanager:4.3.0_b1
                       envFrom:
                       - configMapRef:
                           name: gluu-config-cm
@@ -385,16 +392,14 @@
                     sidecar.istio.io/inject: "false"              
                 spec:
                   restartPolicy: Never
-                  imagePullSecrets:
-                      - name: regcred
                   containers:
                     - name: oxd-key-rotation
-                      image: gluufederation/certmanager:4.5.2-1
+                      image: gluufederation/certmanager:4.3.0_b1
                       envFrom:
                       - configMapRef:
                           name: gluu-config-cm
                       # Change application-cn:oxd-server and admin-cn:oxd-server to match oxd service name
-                      args: ["patch", "oxd", "--opts", "application-cn:oxd-server", "--opts", "admin-cn:oxd-server", "--opts", "valid-to:365"]
+                      args: ["patch", "oxd", "--opts", "application-cn:oxd-server", "--opts", "admin-cn:oxd-server"]
             ``` 
         
         1. Apply job
@@ -431,15 +436,13 @@
                     sidecar.istio.io/inject: "false"              
                 spec:
                   restartPolicy: Never
-                  imagePullSecrets:
-                      - name: regcred
                   containers:
                     - name: ldap-key-rotation
-                      image: gluufederation/certmanager:4.5.2-1
+                      image: gluufederation/certmanager:4.3.0_b1
                       envFrom:
                       - configMapRef:
                           name: gluu-config-cm
-                      args: ["patch", "ldap", "--opts", "subj-alt-name:opendj", "--opts", "valid-to:365"] 
+                      args: ["patch", "ldap", "--opts", "subj-alt-name:opendj"] 
             ```
         
         1. Apply job
@@ -478,15 +481,13 @@
                     sidecar.istio.io/inject: "false"              
                 spec:
                   restartPolicy: Never
-                  imagePullSecrets:
-                      - name: regcred
                   containers:
                     - name: passport-key-rotation
-                      image: gluufederation/certmanager:4.5.2-1
+                      image: gluufederation/certmanager:4.3.0_b1
                       envFrom:
                       - configMapRef:
                           name: gluu-config-cm
-                      args: ["patch", "passport", "--opts", "valid-to:365"]
+                      args: ["patch", "passport"]
             ```
         
         1. Apply job
@@ -520,15 +521,13 @@
                     sidecar.istio.io/inject: "false"              
                 spec:
                   restartPolicy: Never
-                  imagePullSecrets:
-                      - name: regcred
                   containers:
                     - name: scim-key-rotation
-                      image: gluufederation/certmanager:4.5.2-1
+                      image: gluufederation/certmanager:4.3.0_b1
                       envFrom:
                       - configMapRef:
                           name: gluu-config-cm
-                      args: ["patch", "scim", "--opts", "valid-to:365"]
+                      args: ["patch", "scim"]
             ```
             
         1. Apply job

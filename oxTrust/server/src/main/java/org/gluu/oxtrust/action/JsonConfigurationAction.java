@@ -359,6 +359,7 @@ public class JsonConfigurationAction implements Serializable {
 				resultOxTrustappConfiguration.setKeystorePassword(HIDDEN_PASSWORD_TEXT);
 				resultOxTrustappConfiguration.setIdpSecurityKeyPassword(HIDDEN_PASSWORD_TEXT);
 				resultOxTrustappConfiguration.setIdpBindPassword(HIDDEN_PASSWORD_TEXT);
+				resultOxTrustappConfiguration.setCaCertsPassphrase(HIDDEN_PASSWORD_TEXT);
 				resultOxTrustappConfiguration.setOxAuthClientPassword(HIDDEN_PASSWORD_TEXT);
 
 				return jsonService.objectToJson(resultOxTrustappConfiguration);
@@ -448,6 +449,7 @@ public class JsonConfigurationAction implements Serializable {
 			processPasswordProperty(this.oxTrustappConfiguration, resultOxTrustappConfiguration,
 					"idpSecurityKeyPassword");
 			processPasswordProperty(this.oxTrustappConfiguration, resultOxTrustappConfiguration, "idpBindPassword");
+			processPasswordProperty(this.oxTrustappConfiguration, resultOxTrustappConfiguration, "caCertsPassphrase");
 			processPasswordProperty(this.oxTrustappConfiguration, resultOxTrustappConfiguration,
 					"oxAuthClientPassword");
 

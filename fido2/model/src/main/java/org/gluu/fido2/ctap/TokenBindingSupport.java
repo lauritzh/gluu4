@@ -20,7 +20,7 @@ public enum TokenBindingSupport {
 
     private final String status;
 
-    private static Map<String, TokenBindingSupport> KEY_MAPPINGS = new HashMap<>();
+    private static Map<String, TokenBindingSupport> KEY_MAPPINGS = new HashMap<String, TokenBindingSupport>();
 
     static {
         for (TokenBindingSupport enumType : values()) {

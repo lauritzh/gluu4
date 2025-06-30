@@ -12,7 +12,6 @@ from setup_app.pylib.ldif4.ldif import LDIFWriter
 class ScimInstaller(JettyInstaller):
 
     def __init__(self):
-        setattr(base.current_app, self.__class__.__name__, self)
         self.service_name = 'scim'
         self.needdb = True
         self.app_type = AppType.SERVICE
@@ -37,13 +36,19 @@ class ScimInstaller(JettyInstaller):
 
 
     def install(self):
+        self.logIt("Copying scim.war into jetty webapps folder...")
+
         self.installJettyService(self.jetty_app_configuration[self.service_name], True)
+        jettyServiceWebapps = os.path.join(self.jetty_base, self.service_name,  'webapps')
+        self.copyFile(self.source_files[0][0], jettyServiceWebapps)
+        self.war_for_jetty10(os.path.join(jettyServiceWebapps, os.path.basename(self.source_files[0][0])))
         self.enable()
 
 
     def generate_configuration(self):
 
-        if Config.get('scim_protection_mode') not in ('TEST', 'UMA', 'OAUTH'):
+
+        if not Config.get('scim_protection_mode') in ('TEST', 'UMA', 'OAUTH'):
             if base.argsp.enable_scim_test_mode:
                 Config.scim_protection_mode = 'TEST'
             elif base.argsp.enable_scim_uma_mode:
@@ -65,7 +70,7 @@ class ScimInstaller(JettyInstaller):
         Config.scim_rs_client_jks_pass_encoded = self.obscure(Config.scim_rs_client_jks_pass)
 
         if not Config.get('scim_rp_client_jks_pass'):
-            Config.scim_rp_client_jks_pass = self.getPW()
+            Config.scim_rp_client_jks_pass = 'secret'
 
         Config.enable_scim_access_policy = 'true' if Config.installPassport else 'false'
 
@@ -74,10 +79,10 @@ class ScimInstaller(JettyInstaller):
             if os.path.exists(jks_fn):
                 self.backupFile(jks_fn, move=True)
 
-        Config.scim_rs_client_jwks = self.gen_openid_data_store_keys(self.scim_rs_client_jks_fn, Config.scim_rs_client_jks_pass)
+        Config.scim_rs_client_jwks = self.gen_openid_jwks_jks_keys(self.scim_rs_client_jks_fn, Config.scim_rs_client_jks_pass)
         Config.templateRenderingDict['scim_rs_client_base64_jwks'] = self.generate_base64_string(Config.scim_rs_client_jwks, 1)
 
-        Config.scim_rp_client_jwks = self.gen_openid_data_store_keys(self.scim_rp_client_jks_fn, Config.scim_rp_client_jks_pass)
+        Config.scim_rp_client_jwks = self.gen_openid_jwks_jks_keys(self.scim_rp_client_jks_fn, Config.scim_rp_client_jks_pass)
         Config.templateRenderingDict['scim_rp_client_base64_jwks'] = self.generate_base64_string(Config.scim_rp_client_jwks, 1)
 
         self.copyFile(self.scim_rp_client_jks_fn, Config.certFolder)

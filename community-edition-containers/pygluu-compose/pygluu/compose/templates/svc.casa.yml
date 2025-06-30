@@ -2,7 +2,7 @@
 version: "2.4"
 services:
   casa:
-    image: gluufederation/casa:4.5.11_dev
+    image: gluufederation/casa:4.3.1_02
     environment:
       - GLUU_CONFIG_CONSUL_HOST=consul
       - GLUU_SECRET_VAULT_HOST=vault
@@ -13,7 +13,7 @@ services:
       - GLUU_COUCHBASE_URL=${COUCHBASE_URL}
       - GLUU_COUCHBASE_USER=${COUCHBASE_USER}
       - GLUU_COUCHBASE_BUCKET_PREFIX=${COUCHBASE_BUCKET_PREFIX}
-      - GLUU_OXD_SERVER_URL=oxd-server:8443
+      - GLUU_OXD_SERVER_URL=oxd_server:8443
       - GLUU_DOCUMENT_STORE_TYPE=${DOCUMENT_STORE_TYPE}
       - GLUU_JACKRABBIT_URL=http://jackrabbit:8080
       - GLUU_JACKRABBIT_ADMIN_ID=${JACKRABBIT_USER}
@@ -23,11 +23,9 @@ services:
       - GLUU_SQL_DB_HOST=${SQL_DB_HOST}
       - GLUU_SQL_DB_PORT=${SQL_DB_PORT}
       - GLUU_SQL_DB_USER=${SQL_DB_USER}
-      - GLUU_SQL_DB_SCHEMA=${SQL_DB_SCHEMA}
       - GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID}
       - GLUU_GOOGLE_SPANNER_INSTANCE_ID=${GOOGLE_SPANNER_INSTANCE_ID}
       - GLUU_GOOGLE_SPANNER_DATABASE_ID=${GOOGLE_SPANNER_DATABASE_ID}
-      - SPANNER_EMULATOR_HOST=${SPANNER_EMULATOR_HOST}
     extra_hosts:
       - "${DOMAIN}:${HOST_IP}"
     container_name: casa
@@ -45,12 +43,5 @@ services:
       - "APP_NAME=casa"
       - "SERVICE_8080_CHECK_HTTP=/casa/health-check"
       - "SERVICE_8080_CHECK_INTERVAL=30s"
-      - "SERVICE_8080_CHECK_TIMEOUT=5s"
-      - "autoheal=true"
+      - "SERVICE_8080_CHECK_TIMEOUT=30s"
     mem_limit: 1024M
-    healthcheck:
-      test: python3 /app/scripts/healthcheck.py
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s

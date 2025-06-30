@@ -20,9 +20,4 @@ spec:
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
-    loadBalancer:
-      consistentHash:
-        httpCookie:
-          name: admin-ui-route
-          ttl: {{ .Values.istioDestinationRuleCookieTTL }}
 {{- end }}

@@ -21,5 +21,9 @@ public class PushErrorResponse extends BaseResponse {
 
     public PushErrorResponse(Response clientResponse) {
         super(clientResponse);
+
+        String entity = clientResponse.readEntity(String.class);
+        setEntity(entity);
+        setHeaders(clientResponse.getMetadata());
     }
 }

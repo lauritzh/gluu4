@@ -16,7 +16,7 @@ public interface IFidoDeviceService {
 
 	String getDnForFidoDevice(String userId, String id);
 
-	GluuCustomFidoDevice getGluuCustomFidoDeviceById(String userId, String id) throws Exception;
+	GluuCustomFidoDevice getGluuCustomFidoDeviceById(String userId, String id);
 
 	void updateGluuCustomFidoDevice(GluuCustomFidoDevice gluuCustomFidoDevice);
 

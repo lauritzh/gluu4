@@ -24,6 +24,4 @@ public interface IdpType extends BaseExternalType {
 
 	boolean postAuthentication(Object context, Map<String, SimpleCustomProperty> configurationAttributes);
 
-	boolean onReuseAuthnResult(Object context,Map<String,SimpleCustomProperty> configurationAttributes);
-
 }

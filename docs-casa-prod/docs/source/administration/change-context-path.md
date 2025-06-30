@@ -28,6 +28,6 @@ To publish the application at a location other than `/casa`, do the following:
    
     - At the bottom, press the "Update" button
 
-1. Wait for around 1 minute (so the server picks the script changes), then restart Casa and Apache services. Use this [page](https://gluu.org/docs/gluu-server/4.4/operation/services/#restart) as a guide
+1. Wait for around 1 minute (so the server picks the script changes), then restart Casa and Apache services. Use this [page](https://gluu.org/docs/ce/4.3/operation/services/#restart) as a guide
 
 1. The application should be accessible now at the new URL.

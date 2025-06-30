@@ -82,8 +82,6 @@ public class SimpleSearchUserTest extends UserBaseTest {
         assertEquals(response.getStatus(), OK.getStatusCode());
 
         ListResponse listResponse=response.readEntity(ListResponse.class);
-        assertNotNull(listResponse);
-        assertNotNull(listResponse.getResources());
         assertTrue(listResponse.getResources().size()>0);
 
         //Retrieve first user in results

@@ -22,15 +22,7 @@
             }
         }
 
-    function changeEvent(element) {
-    var val = $(element).find('option:selected').text();
-    //alert("val " + val);
-    if(val === 'Manual') {
-       #{rich:component('createMetadata:createMeatadataModalPanel')}.show();
-    }
-	}        
     </h:outputScript>
-	<ui:include src="/WEB-INF/incl/trustmanager/viewSPMetadata.xhtml" />
 	<ui:include
 		src="/WEB-INF/incl/trustmanager/configureMetadataFiltersPanel.xhtml" />
 	<ui:include
@@ -79,20 +71,6 @@
 .inpanelBody {
 	height: 220px;
 	width: 220px;
-}
-
-#spMetadataPanel_container {
-	z-index: 999 !important;
-}
-
-#spMetadataPanel_content_scroller {
-	width: 700px !important;
-	height: 500px !important;
-}
-
-#spMetadataPanel_content {
-	width: 700px !important;
-	height: 500px !important;
 }
 
 pre {
@@ -149,7 +127,7 @@ input[submit] {
 											<f:selectItems
 												value="#{_trustRelationshipAction.entityTypeList}"
 												var="_type" itemLabel="#{_type.displayName}" />
-											<a4j:ajax event="change" render="metadataType, spSingleGroup, mdqUrlId, mdqProviderId, mdqEntityId"
+											<a4j:ajax event="change" render="metadataType, spSingleGroup"
 												execute="@this" />
 										</h:selectOneMenu>
 									</ox:decorate>
@@ -160,7 +138,7 @@ input[submit] {
 												<h:selectOneMenu
 													styleClass=" rounded form-control MetaDataType"
 													value="#{_trustRelationship.spMetaDataSourceType}"
-													onchange="changeEvent(this)" required="true"
+													required="true"
 													id="spMetaDataSourceTypeId"
 													converter="omnifaces.GenericEnumConverter">
 													<f:selectItem noSelectionOption="true"
@@ -169,7 +147,7 @@ input[submit] {
 														value="#{_trustRelationshipAction.metadataSourceTypesList}"
 														var="_type" itemLabel="#{_type.displayName}" />
 													<a4j:ajax event="change"
-														render="MetadataOperations, spMetaDataUrlGroupId, FederationWizard, FederationWizardEntitySelection, urlId, mdqUrlId, mdqProviderId, mdqEntityId"
+														render="MetadataOperations, spMetaDataUrlGroupId, FederationWizard, FederationWizardEntitySelection, urlId"
 														limitRender="true" execute="@this" />
 												</h:selectOneMenu>
 											</ox:decorate>
@@ -287,39 +265,6 @@ input[submit] {
 												required="true" id="spMetaDataURLId" />
 										</ox:decorate>
 									</h:panelGroup>
-									
-									<h:panelGroup id="mdqUrlId">
-										<ox:decorate id="mdqUrlId_"
-											rendered="#{(_trustRelationship.spMetaDataSourceType.value eq 'mdq') and (_trustRelationship.entityType.value eq 'Federation/Aggregate')}"
-											label="#{msgs['trustmanager.mdqUrl']}">
-											<h:inputText styleClass="form-control"
-												size="40" value="#{_trustRelationship.url}"
-												required="true" id="mdqUrlId__" />
-										</ox:decorate>
-									</h:panelGroup>
-
-									<h:panelGroup id="mdqProviderId">
-										<ox:decorate id="mdqProviderId_"
-											rendered="#{(_trustRelationship.spMetaDataSourceType.value eq 'mdq') and (_trustRelationship.entityType.value eq 'Single SP')}"
-											label="#{msgs['trustmanager.selectMdqProvider']}">
-											<h:selectOneMenu styleClass="rounded form-control"
-												value="#{_trustRelationship.gluuContainerFederation}" required="true"
-												id="mdqProviderId__">
-												<f:selectItem noSelectOption="true" itemLabel="#{msgs['trustmanager.mdqProviderSelectLabel']}"/>
-												<f:selectItems value="#{_trustRelationshipAction.allMdqFederatedTrustRelationships}"
-													var="_type" itemLabel="#{_type.displayName}" itemValue="#{_type.dn}" />
-											</h:selectOneMenu>
-										</ox:decorate>
-									</h:panelGroup>
-									<h:panelGroup id="mdqEntityId">
-										<ox:decorate id="mdqEntityId_"
-											rendered="#{(_trustRelationship.spMetaDataSourceType.value eq 'mdq') and (_trustRelationship.entityType.value eq 'Single SP')}"
-											label="#{msgs['trustmanager.mdqEntityId']}">
-											<h:inputText styleClass="form-control"
-												size="40" value="#{_trustRelationship.entityId}" required="true" id="mdqEntityId__"/>
-										</ox:decorate>
-									</h:panelGroup>
-										
 									<h:panelGroup id="spSingleGroup">
 										<h:panelGroup id="spSingleGroupId">
 											<h:panelGroup id="LogoutUrlGroupId">
@@ -328,14 +273,6 @@ input[submit] {
 													<h:inputText styleClass="form-control"
 														value="#{_trustRelationship.spLogoutURL}" size="40"
 														id="spLogoutURLId" />
-												</ox:decorate>
-											</h:panelGroup>
-											<h:panelGroup id="spSingleLogoutRedirectUrl">
-												<ox:decorate id="LogoutRedirectUrl"
-												    label="#{msgs['trustmanager.spLogoutRedirectUrl']}">
-													<h:inputText styleClass="form-control"
-													    value="#{_trustRelationship.spLogoutRedirectUrl}" size="40"
-														id="spLogoutRedirectUrlId" />
 												</ox:decorate>
 											</h:panelGroup>
 											<ox:decorate id="configureSpecific"

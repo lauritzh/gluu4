@@ -19,7 +19,6 @@ import org.gluu.model.custom.script.CustomScriptType;
 import org.gluu.model.custom.script.model.CustomScript;
 import org.gluu.oxtrust.api.server.api.impl.BaseWebResource;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.model.OxAuthClient;
 import org.gluu.oxtrust.service.ClientService;
 import org.gluu.oxtrust.service.ScopeService;
@@ -36,7 +35,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
-@Path(ApiConstants.BASE_API_URL + ApiConstants.RADIUS_SETTINGS)
+@Path(ApiConstants.BASE_API_URL+ApiConstants.RADIUS_SETTINGS)
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
@@ -65,7 +64,7 @@ public class GluuRadiusConfigWebResource extends BaseWebResource {
         @ApiResponse(responseCode = "404", description="Gluu Radius configuration not found"),
         @ApiResponse(responseCode = "500", description="Internal server error")
     })
-    @ProtectedApi(scopes = {ApiScopeConstants.SCOPE_GLUU_RADIUS_CONFIG_READ})
+    @ProtectedApi(scopes = {READ_ACCESS})
     public Response getServerConfig() {
         log(logger,"Get radius server configuration");
         try {
@@ -90,7 +89,7 @@ public class GluuRadiusConfigWebResource extends BaseWebResource {
         @ApiResponse(responseCode = "404", description = "Gluu Radius configuration not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @ProtectedApi(scopes = {ApiScopeConstants.SCOPE_GLUU_RADIUS_CONFIG_WRITE})
+    @ProtectedApi(scopes = {WRITE_ACCESS})
     public Response updateServerConfiguration(ServerConfiguration newConfig) {
         log(logger,"Update radius server configuration");
         try {

@@ -14,15 +14,13 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.gluu.oxauth.model.common.IdType;
 import org.gluu.oxtrust.model.GluuCustomPerson;
 import org.gluu.oxtrust.model.GluuGroup;
 import org.gluu.oxtrust.model.GluuGroupVisibility;
-import org.gluu.oxtrust.service.external.ExternalIdGeneratorService;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.EntryPersistenceException;
-import org.gluu.persist.exception.operation.*;
+import org.gluu.persist.exception.operation.DuplicateEntryException;
 import org.gluu.persist.model.SearchScope;
 import org.gluu.persist.model.base.SimpleBranch;
 import org.gluu.search.filter.Filter;
@@ -51,9 +49,6 @@ public class GroupService implements Serializable, IGroupService {
 
 	@Inject
 	private PersonService personService;
-
-	@Inject
-	private ExternalIdGeneratorService idGeneratorService;
 
 	/*
 	 * (non-Javadoc)
@@ -140,11 +135,6 @@ public class GroupService implements Serializable, IGroupService {
 		Filter ownerFilter = Filter.createEqualityFilter(OxTrustConstants.owner, personDN);
 		Filter memberFilter = Filter.createEqualityFilter(OxTrustConstants.member, personDN);
 		Filter searchFilter = Filter.createORFilter(ownerFilter, memberFilter);
-		
-		if (!persistenceEntryManager.hasBranchesSupport(groupDN)) {
-			Filter groupFilter = Filter.createEqualityFilter(OxTrustConstants.dn, groupDN);
-			searchFilter = Filter.createANDFilter(groupFilter,searchFilter);
-		}
 
 		boolean isMemberOrOwner = false;
 		try {
@@ -156,17 +146,19 @@ public class GroupService implements Serializable, IGroupService {
 		return isMemberOrOwner;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.gluu.oxtrust.ldap.service.IGroupService#getGroupByInum(java.lang.String)
+	 */
 	@Override
-	public GluuGroup getGroupByInum(String inum) throws Exception {
+	public GluuGroup getGroupByInum(String inum) {
 		GluuGroup result = null;
 		try {
 			result = persistenceEntryManager.find(GluuGroup.class, getDnForGroup(inum));
 		} catch (Exception e) {
-            if (!SearchException.class.isInstance(e.getCause())) {
-                log.error(e.getMessage(), e.getCause());
-                throw e;
-            }
-            log.debug("Failed to find group by Inum {}", inum);
+			log.error("Failed to find group by Inum " + inum, e);
 		}
 		return result;
 
@@ -265,19 +257,7 @@ public class GroupService implements Serializable, IGroupService {
 	 * @return New inum for group
 	 */
 	private String generateInumForNewGroupImpl() throws Exception {
-
-	    String id = null;
-	    if (idGeneratorService.isEnabled()) {
-	        id = idGeneratorService.executeExternalGenerateIdMethod(
-	            //Use the first enabled script only
-	            idGeneratorService.getCustomScriptConfigurations().stream().findFirst().orElse(null)
-	            , ""    //appId 
-	            , IdType.GROUP.getType()    //idType
-	            , ""    //idPrefix
-            );
-	    }
-        return id == null ? UUID.randomUUID().toString() : id;
-
+		return UUID.randomUUID().toString();
 	}
 
 	/*

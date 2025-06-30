@@ -22,7 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.DERTaggedObject;
+import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.AccessDescription;
 import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
@@ -46,8 +46,7 @@ import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.CertificateValidity;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.ValidatorSourceType;
-import org.gluu.oxauth.model.util.CertUtils;
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +66,7 @@ public class OCSPCertificateVerifier implements CertificateVerifier {
 
 	@Override
 	public ValidationStatus validate(X509Certificate certificate, List<X509Certificate> issuers, Date validationDate) {
-
-	    X509Certificate issuer = CertUtils.getIssuer(certificate, issuers);
+		X509Certificate issuer = issuers.get(0);
 		ValidationStatus status = new ValidationStatus(certificate, issuer, validationDate, ValidatorSourceType.OCSP, CertificateValidity.UNKNOWN);
 
 		try {
@@ -83,7 +81,7 @@ public class OCSPCertificateVerifier implements CertificateVerifier {
 			log.debug("OCSP URL for '" + subjectX500Principal + "' is '" + ocspUrl + "'");
 
 			DigestCalculator digestCalculator = new JcaDigestCalculatorProviderBuilder().build().get(CertificateID.HASH_SHA1);
-            CertificateID certificateId = new CertificateID(digestCalculator, new JcaX509CertificateHolder(issuer), certificate.getSerialNumber());			
+			CertificateID certificateId = new CertificateID(digestCalculator, new JcaX509CertificateHolder(certificate), certificate.getSerialNumber());
 
 			// Generate OCSP request
 			OCSPReq ocspReq = generateOCSPRequest(certificateId);
@@ -171,7 +169,7 @@ public class OCSPCertificateVerifier implements CertificateVerifier {
 
 		AccessDescription[] accessDescriptions = authorityInformationAccess.getAccessDescriptions();
 		for (AccessDescription accessDescription : accessDescriptions) {
-			boolean correctAccessMethod = accessDescription.getAccessMethod().equals((Object)X509ObjectIdentifiers.ocspAccessMethod);
+			boolean correctAccessMethod = accessDescription.getAccessMethod().equals(X509ObjectIdentifiers.ocspAccessMethod);
 			if (!correctAccessMethod) {
 				continue;
 			}
@@ -181,7 +179,7 @@ public class OCSPCertificateVerifier implements CertificateVerifier {
 				continue;
 			}
 
-			DERIA5String derStr = (DERIA5String) DERIA5String.getInstance((DERTaggedObject) name.toASN1Primitive(), false);
+			DERIA5String derStr = DERIA5String.getInstance((ASN1TaggedObject) name.toASN1Primitive(), false);
 			return derStr.getString();
 		}
 

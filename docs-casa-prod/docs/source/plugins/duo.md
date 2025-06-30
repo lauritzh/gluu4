@@ -4,13 +4,13 @@
 ## DUO's MFA Service
 Multi-factor authentication from [Cisco's Duo](https://duo.com/) protects your applications by using a second source of validation, like a phone or token, to verify user identity before granting access. Duo is engineered to provide a simple, streamlined login experience for every user and application, and as a cloud-based solution, it integrates easily with your existing technology.
 
-This document will explain how to use Gluu's [Duo interception script](https://github.com/GluuFederation/casa/blob/version_4.5.0/plugins/duo/extras/DuoExternalAuthenticator.py) along with a Plugin in Casa to enroll a user's DUO credentials for 2FA. 
+This document will explain how to use Gluu's [Duo interception script](https://github.com/GluuFederation/casa/blob/version_4.3.0/plugins/duo/extras/DuoExternalAuthenticator.py) along with a Plugin in Casa to enroll a user's DUO credentials for 2FA. 
 
 In order to use this authentication mechanism your organization will need to register for a DUO account. 
 
 ## Prerequisites
 - A Gluu Server ([installation instructions](../installation-guide/index.md));
-- [DUO interception script](https://github.com/GluuFederation/casa/blob/version_4.5.0/plugins/duo/extras/DuoExternalAuthenticator.py) ;
+- [DUO interception script](https://github.com/GluuFederation/casa/blob/version_4.3.0/plugins/duo/extras/DuoExternalAuthenticator.py) ;
 - An account with [DUO](https://admin.duosecurity.com/).   
 
 ## Configure DUO Account
@@ -35,7 +35,7 @@ In order to use this authentication mechanism your organization will need to reg
 Log into oxTrust, and go to `Configuration` > `Person Authentication scripts` > duo. 
 ### Script contents
 
-Download this [file](https://github.com/GluuFederation/casa/blob/version_4.5.0/plugins/duo/extras/DuoExternalAuthenticator.py) and copy its contents in the `Script` form field.
+Download this [file](https://github.com/GluuFederation/casa/blob/version_4.3.0/plugins/duo/extras/DuoExternalAuthenticator.py) and copy its contents in the `Script` form field.
 
 ### Properties
 The mandatory properties in the DUO authentication script are as follows
@@ -47,7 +47,7 @@ The mandatory properties in the DUO authentication script are as follows
 
 
 ### Contents of duo_creds_file as configured in Properties 
-1. Here is a sample file - https://github.com/GluuFederation/casa/blob/version_4.5.0/plugins/duo/extras/duo_creds.json
+1. Here is a sample file - https://github.com/GluuFederation/casa/blob/version_4.3.0/plugins/duo/extras/duo_creds.json
 2. The contents of the file can be populated by referring to Step B and C under "Configure DUO Account"
 
 
@@ -61,7 +61,7 @@ Click on `Enable` under the script contents box, and press `Update` at the botto
 
 ### Add the plugin to Casa
 
-1. [Download the plugin](https://maven.gluu.org/maven/org/gluu/casa/plugins/duo-plugin/4.5.0.Final/duo-plugin-4.5.0.Final-jar-with-dependencies.jar) 
+1. [Download the plugin](https://maven.gluu.org/maven/org/gluu/casa/plugins/duo-plugin/4.3.1.Final/duo-plugin-4.3.1.Final-jar-with-dependencies.jar) 
 
 1. Log in to Casa using an administrator account
 

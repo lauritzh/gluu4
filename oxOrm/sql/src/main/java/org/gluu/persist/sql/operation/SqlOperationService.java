@@ -9,7 +9,6 @@ package org.gluu.persist.sql.operation;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import org.gluu.persist.exception.operation.DeleteException;
@@ -27,7 +26,6 @@ import org.gluu.persist.operation.PersistenceOperationService;
 import org.gluu.persist.sql.impl.SqlBatchOperationWraper;
 import org.gluu.persist.sql.model.ConvertedExpression;
 import org.gluu.persist.sql.model.SearchReturnDataType;
-import org.gluu.persist.sql.model.TableMapping;
 import org.gluu.persist.sql.operation.impl.SqlConnectionProvider;
 
 import com.querydsl.core.types.OrderSpecifier;
@@ -39,11 +37,6 @@ import com.querydsl.core.types.OrderSpecifier;
  */
 public interface SqlOperationService extends PersistenceOperationService {
 
-	String JSON_TYPE_NAME = "json";
-	String JSONB_TYPE_NAME = "jsonb";
-	String LONGTEXT_TYPE_NAME = "longtext";
-	String TIMESTAMP = "timestamp";
-
     static String DN = "dn";
     static String UID = "uid";
     static String[] UID_ARRAY = new String[] { "uid" };
@@ -51,11 +44,10 @@ public interface SqlOperationService extends PersistenceOperationService {
     static String OBJECT_CLASS = "objectClass";
 
     static String DOC_ALIAS = "doc";
-    static String DOC_INNER_ALIAS = "doc_inner";
     static String ID = "id";
     static String DOC_ID = "doc_id";
 
-	public static final String SQL_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+	public static final String SQL_DATA_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
 	public static final Object[] NO_OBJECTS = new Object[0];
 
     SqlConnectionProvider getConnectionProvider();
@@ -75,7 +67,7 @@ public interface SqlOperationService extends PersistenceOperationService {
             String[] attributes, OrderSpecifier<?>[] orderBy, SqlBatchOperationWraper<O> batchOperationWraper, SearchReturnDataType returnDataType,
             int start, int count, int pageSize) throws SearchException;
 
-    String[] createStoragePassword(String[] passwords, AttributeData attributeData);
+    String[] createStoragePassword(String[] passwords);
     
     boolean isBinaryAttribute(String attribute);
     boolean isCertificateAttribute(String attribute);
@@ -97,12 +89,5 @@ public interface SqlOperationService extends PersistenceOperationService {
 	Connection getConnection();
 
 	DatabaseMetaData getMetadata();
-
-	boolean isJsonColumn(String tableName, String attributeType);
-
-	TableMapping getTabeMapping(String key, String objectClass);
-
-	String encodeTime(Date date);
-    Date decodeTime(String date, boolean silent);
 
 }

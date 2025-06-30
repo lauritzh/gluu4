@@ -18,11 +18,11 @@ This process consists of creating entries under every user's `fido2_register` br
 
 To perform the conversion follow these steps:
 
-1. Download or clone Casa repository, eg. `https://github.com/GluuFederation/casa/archive/version_4.4.0.zip`
+1. Download or clone Casa repository, eg. `https://github.com/GluuFederation/casa/archive/version_4.3.0.zip`
 1. Extract the file contents and transfer the folder `casa/extras/fido2-migration` to the server - where Casa is running - in a temporary location.
 1. `cd` to `fido2-migration` in the temporary location
 1. Run `jar -xf /opt/gluu/jetty/casa/webapps/casa.war WEB-INF/lib`
-1. Run `wget -P WEB-INF/lib https://maven.gluu.org/maven/org/gluu/oxcore-script/4.4.0.Final/oxcore-script-4.4.0.Final.jar
+1. Run `wget -P WEB-INF/lib https://maven.gluu.org/maven/org/gluu/oxcore-script/4.3.0.Final/oxcore-script-4.3.0.Final.jar
 1. Run `java -cp .:WEB-INF/lib/* bsh.Interpreter script.bsh`
 
 The script will output some feedback in the console. You can `tail` the file `log.txt` to see more details of the processing. Identifiers of failed entries (if any) are dumped to file `rejected.txt`.  

@@ -7,14 +7,21 @@ const R = require('ramda')
 // This is wrapped in a function so params is not evaluated upon module load, only at first usage
 const params = R.once(() => [
   {
-    strategy: '@node-saml/passport-saml',
+    strategy: 'passport-saml',
     passportAuthnParams: {},
     options: {
-      validateInResponseTo: 'always',
+      validateInResponseTo: true,
       requestIdExpirationPeriodMs: 3600000,
       decryptionPvk: fs.readFileSync(global.config.spTLSKey, 'utf-8'),
       decryptionCert: fs.readFileSync(global.config.spTLSCert, 'utf-8')
     }
+  },
+  {
+    strategy: 'passport-oxd',
+    passportAuthnParams: {
+      scope: ['openid', 'email', 'profile']
+    },
+    options: {}
   },
   {
     strategy: 'openid-client',
@@ -87,5 +94,5 @@ function get (strategyId, paramName) {
 }
 
 module.exports = {
-  get
+  get: get
 }

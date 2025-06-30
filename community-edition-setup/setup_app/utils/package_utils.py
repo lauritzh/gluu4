@@ -1,12 +1,11 @@
 import os
 import sys
-import importlib
 
 from setup_app import paths
 from setup_app.config import Config
 from setup_app.utils import base
 from setup_app.utils.setup_utils import SetupUtils
-from setup_app.static import InstallTypes, SetupProfiles
+from setup_app.static import InstallTypes
 
 class PackageUtils(SetupUtils):
 
@@ -19,12 +18,8 @@ class PackageUtils(SetupUtils):
             check_text = '0'
 
         elif base.clone_type == 'rpm':
-            if base.os_type == 'suse':
-                install_command = 'zypper install -y {0}'
-                update_command = 'zypper refresh'
-            else:
-                install_command = 'yum install -y {0}'
-                update_command = 'yum install -y epel-release'
+            install_command = 'yum install -y {0}'
+            update_command = 'yum install -y epel-release'
             query_command = 'rpm -q {0}'
             check_text = 'is not installed'
 
@@ -34,59 +29,47 @@ class PackageUtils(SetupUtils):
 
         install_command, update_command, query_command, check_text = self.get_install_commands()
 
-        install_list = {'mandatory': [], 'optional': []}
-        on_disa_stig = base.argsp.profile == 'DISA-STIG' or os.path.exists(os.path.join(paths.INSTALL_DIR, 'disa-stig'))
+        install_list = {'mondatory': [], 'optional': []}
+
 
         package_list = base.get_os_package_list()
 
         os_type_version = base.os_type + ' ' + base.os_version
 
         if hasattr(base.argsp,'local_rdbm') and (base.argsp.local_rdbm == 'mysql' or (Config.get('rdbm_install_type') == InstallTypes.LOCAL and Config.rdbm_type == 'mysql')):
-            package_list[os_type_version]['mandatory'] += ' mysql-server'
+            package_list[os_type_version]['mondatory'] += ' mysql-server'
         if hasattr(base.argsp,'local_rdbm') and (base.argsp.local_rdbm == 'pgsql' or (Config.get('rdbm_install_type') == InstallTypes.LOCAL and Config.rdbm_type == 'pgsql')):
-            package_list[os_type_version]['mandatory'] += ' postgresql python3-psycopg2 postgresql-contrib'
+            package_list[os_type_version]['mondatory'] += ' postgresql python3-psycopg2'
             if base.clone_type == 'deb':
-                package_list[os_type_version]['mandatory'] += ''
-            elif base.clone_type == 'rpm':
-                package_list[os_type_version]['mandatory'] += ' postgresql-server'
-                self.run(['dnf', '-y', 'module', 'disable', 'postgresql'])
-                self.run(['dnf', '-y', 'module', 'reset', 'postgresql'])
-                self.run(['dnf', '-y', 'module', 'enable', 'postgresql:12'])
-
-        for pypackage in package_list[os_type_version]['python']:
-            try:
-                importlib.import_module(pypackage)
-            except Exception:
-                package_list[os_type_version]['mandatory'] += ' ' + package_list[os_type_version]['python'][pypackage]
-
-        if on_disa_stig:
-            package_list[os_type_version]['mandatory'] += ' java-11-openjdk-headless'
+                package_list[os_type_version]['mondatory'] += ' postgresql-contrib'
 
         for install_type in install_list:
             for package in package_list[os_type_version][install_type].split():
-                if on_disa_stig and 'python3' in package:
-                    continue
-                sout, serr = self.run(query_command.format(package), shell=True, get_stderr=True)
-                if check_text in sout+serr:
-                    self.logIt('Package {0} was not installed'.format(package))
-                    install_list[install_type].append(package)
+                if os_type_version in ('centos 7', 'red 7') and package.startswith('python3-'):
+                    package_query = package.replace('python3-', 'python36-')
                 else:
-                    self.logIt('Package {0} was installed'.format(package))
+                    package_query = package
+                sout, serr = self.run(query_command.format(package_query), shell=True, get_stderr=True)
+                if check_text in sout+serr:
+                    self.logIt('Package {0} was not installed'.format(package_query))
+                    install_list[install_type].append(package_query)
+                else:
+                    self.logIt('Package {0} was installed'.format(package_query))
 
-        install = {'mandatory': True, 'optional': False}
+        install = {'mondatory': True, 'optional': False}
 
         for install_type in install_list:
             if install_list[install_type]:
                 packages = " ".join(install_list[install_type])
 
                 if not base.argsp.n:
-                    if install_type == 'mandatory':
+                    if install_type == 'mondatory':
                         print("The following packages are required for Gluu Server")
                         print(packages)
                         r = input("Do you want to install these now? [Y/n] ")
                         if r and r.lower()=='n':
                             install[install_type] = False
-                            if install_type == 'mandatory':
+                            if install_type == 'mondatory':
                                 print("Can not proceed without installing required packages. Exiting ...")
                                 sys.exit()
 

@@ -19,8 +19,6 @@ import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.model.token.ClientAssertion;
 import org.gluu.oxauth.model.token.ClientAssertionType;
 import org.gluu.oxauth.model.token.HttpAuthTokenType;
@@ -121,13 +119,6 @@ public class AuthenticationFilter implements Filter {
         try {
             final String requestUrl = httpRequest.getRequestURL().toString();
             log.trace("Get request to: '{}'", requestUrl);
-            
-            final String method = httpRequest.getMethod();
-            if (appConfiguration.isSkipAuthenticationFilterOptionsMethod() && "OPTIONS".equals(method)) {
-                log.trace("Ignoring '{}' request to to: '{}'", method, requestUrl);
-                filterChain.doFilter(httpRequest, httpResponse);
-                return;
-            }
 
             boolean tokenEndpoint = ServerUtil.isSameRequestPath(requestUrl, appConfiguration.getTokenEndpoint());
             boolean tokenRevocationEndpoint = ServerUtil.isSameRequestPath(requestUrl, appConfiguration.getTokenRevocationEndpoint());
@@ -137,14 +128,8 @@ public class AuthenticationFilter implements Filter {
             boolean revokeSessionEndpoint = requestUrl.endsWith("/revoke_session");
             String authorizationHeader = httpRequest.getHeader("Authorization");
 
-            try {
-	            if (processMTLS(httpRequest, httpResponse, filterChain)) {
-	                return;
-	            }
-            } catch (Throwable ex) {
-            	// Catch exceptions like org.eclipse.jetty.http.BadMessageException when form is invalid
-            	// https://github.com/GluuFederation/oxAuth/issues/1843
-                log.error(ex.getMessage(), ex);
+            if (processMTLS(httpRequest, httpResponse, filterChain)) {
+                return;
             }
 
             if ((tokenRevocationEndpoint || deviceAuthorizationEndpoint) && clientService.isPublic(httpRequest.getParameter("client_id"))) {

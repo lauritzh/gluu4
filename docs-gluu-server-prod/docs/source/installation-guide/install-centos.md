@@ -1,10 +1,3 @@
-
-!!! Attention
-    All Linux assets, packages, and binaries require a support contract for access.
-    Contact sales@gluu.org for more information. For free up-to-date binaries,
-    check out the latest releases at [The Linux Foundation Janssen Project](https://docs.jans.io),
-    the new upstream open source project.
-
 # CentOS Installation 
 ## Overview
 Single-node Gluu Server Linux packages are available for CentOS 8 and 7. Follow the instructions below: 
@@ -33,11 +26,11 @@ The Gluu Server will create its file system under `/root/` and will be installed
 For **CentOS 8**, run the following commands to install:
 
 ```
-wget --user="your-username" --password="your-password" https://repo.gluu.org/centos/Gluu-centos-8.repo -O /etc/yum.repos.d/Gluu.repo
+wget https://repo.gluu.org/centos/Gluu-centos-8.repo -O /etc/yum.repos.d/Gluu.repo
 ```
 
 ```
-wget --user="your-username" --password="your-password" https://repo.gluu.org/centos/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
+wget https://repo.gluu.org/centos/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
 ```
 
 ```
@@ -45,19 +38,11 @@ rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
 ```
 
 ```
-Update file /etc/dnf/dnf.conf, append these two lines:
-
-
-username=**your-username**
-password=**your-password**
-```
-
-```
 yum clean all
 ```
 
 ```
-yum install gluu-server
+yum install gluu-server-4.3.1-centos8.x86_64.rpm
 ```
 
 After installation, the `gluu-server` package needs to be excluded from automatic updates with the following command.
@@ -65,15 +50,20 @@ After installation, the `gluu-server` package needs to be excluded from automati
 ```
 yum versionlock gluu-server
 ```
+Inside chroot, there is a bug in Centos 7 package. That causes `/sbin/gluu-serverd login` command to fail. For that we need to run below additional command to change the permissions of private key files.
+
+```
+chmod 600  /opt/gluu_server/etc/ssh/ssh_host_*_key
+```
 
 For **CentOS 7**, run the following commands to install:
 
 ```
-wget --user="your-username" --password="your-password" https://repo.gluu.org/centos/Gluu-centos-7.repo -O /etc/yum.repos.d/Gluu.repo
+wget https://repo.gluu.org/centos/Gluu-centos-7.repo -O /etc/yum.repos.d/Gluu.repo
 ```
 
 ```
-wget --user="your-username" --password="your-password" https://repo.gluu.org/centos/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
+wget https://repo.gluu.org/centos/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
 ```
 
 ```
@@ -81,19 +71,11 @@ rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
 ```
 
 ```
-Update file /etc/dnf/dnf.conf, append these two lines:
-
-
-username=**your-username**
-password=**your-password**
-```
-
-```
 yum clean all
 ```
 
 ```
-yum install gluu-server
+yum install gluu-server-4.3.1-centos7.x86_64.rpm
 ```
 
 After installation, the `gluu-server` package needs to be excluded from automatic updates with the following command.

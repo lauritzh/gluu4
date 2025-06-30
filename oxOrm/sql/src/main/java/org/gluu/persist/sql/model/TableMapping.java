@@ -8,8 +8,6 @@ package org.gluu.persist.sql.model;
 
 import java.util.Map;
 
-import org.gluu.persist.model.AttributeType;
-
 /**
  * Mapping to DB table
  *
@@ -20,9 +18,9 @@ public class TableMapping {
     private final String baseKeyName;
     private final String tableName;
     private final String objectClass;
-    private final Map<String, AttributeType> columTypes;
+    private final Map<String, String> columTypes;
 
-    public TableMapping(final String baseKeyName, final String tableName, final String objectClass, Map<String, AttributeType> columTypes) {
+    public TableMapping(final String baseKeyName, final String tableName, final String objectClass, Map<String, String> columTypes) {
         this.baseKeyName = baseKeyName;
         this.tableName = tableName;
         this.objectClass = objectClass;
@@ -41,7 +39,7 @@ public class TableMapping {
 		return objectClass;
 	}
 
-	public Map<String, AttributeType> getColumTypes() {
+	public Map<String, String> getColumTypes() {
 		return columTypes;
 	}
 

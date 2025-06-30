@@ -33,7 +33,7 @@ def get_setup_options():
     }
 
 
-    if base.argsp.install_local_ldap:
+    if base.argsp.install_local_wrends:
         setupOptions['ldap_install'] = InstallTypes.LOCAL
 
     if base.argsp.local_couchbase:
@@ -122,7 +122,7 @@ def get_setup_options():
             setupOptions['rdbm_install'] = True
             setupOptions['rdbm_install_type'] = InstallTypes.REMOTE
             setupOptions['rdbm_type'] = base.argsp.remote_rdbm
-            if base.argsp.remote_rdbm != 'spanner':
+            if not base.argsp.remote_rdbm == 'spanner':
                 setupOptions['rdbm_host'] = base.argsp.rdbm_host
 
         if getattr(base.argsp, 'local_rdbm', None):
@@ -172,22 +172,10 @@ def get_setup_options():
     if base.argsp.disable_local_ldap:
         setupOptions['ldap_install'] = InstallTypes.NONE
 
-    if base.argsp.local_couchbase:
-        setupOptions['cb_install'] = InstallTypes.LOCAL
-
     setupOptions['properties_password'] = base.argsp.properties_password
 
     if base.argsp.install_shib and base.argsp.remote_rdbm == 'spanner':
         print(msg.spanner_idp_warning)
         setupOptions['installSaml'] = False
-
-    if base.argsp.properties:
-        prop_list = base.argsp.properties.split(',')
-        for props in prop_list:
-            n = props.find(':')
-            if n > 0:
-                p_key = props[:n].strip()
-                p_val = props[n+1:].strip()
-                setupOptions[p_key] = p_val
 
     return setupOptions

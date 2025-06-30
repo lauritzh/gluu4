@@ -166,4 +166,4 @@ This basically covers the need. There are more useful methods found in `org.gluu
 
 ### The final result
 
-The fully functional code for this plugin can be found in the sample plugins folder [here](https://github.com/GluuFederation/casa/tree/version_4.4.0/plugins/samples/clients-management). Once installed login as administrator, and go to `Administration console` > `clients ownership`.
+The fully functional code for this plugin can be found in the sample plugins folder [here](https://github.com/GluuFederation/casa/tree/version_4.3.0/plugins/samples/clients-management). Once installed login as administrator, and go to `Administration console` > `clients ownership`.

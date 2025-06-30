@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import javax.jcr.RepositoryException;
 
@@ -61,13 +60,13 @@ public class JcaDocumentStoreManualTest {
 		System.out.println(dsp.hasDocument("/test2/test3/test3.jmx"));
 
 		System.out.print("Write document: " + "/test2/test3/test4/test5.jmx: ");
-		System.out.println(dsp.saveDocumentStream("/test2/test3/test4/test5.jmx", new ByteArrayInputStream(doc2), List.of("oxtrust-server","Shibboleth")));
+		System.out.println(dsp.saveDocumentStream("/test2/test3/test4/test5.jmx", new ByteArrayInputStream(doc2)));
 
 		System.out.print("Has document: " + "/test2/test3/test4/test5.jmx: ");
 		System.out.println(dsp.hasDocument("/test2/test3/test4/test5.jmx"));
 
 		System.out.print("Write document: " + "/test2/test3/test4/test5.jmx: ");
-		System.out.println(dsp.saveDocument("/test2/test3/test4/test5.jmx", doc1, StandardCharsets.UTF_8, List.of("oxtrust-server","Shibboleth")));
+		System.out.println(dsp.saveDocument("/test2/test3/test4/test5.jmx", doc1, StandardCharsets.UTF_8));
 
 		System.out.print("Has document: " + "/test2/test3/test4/test5.jmx: ");
 		System.out.println(dsp.hasDocument("/test2/test3/test4/test5.jmx"));

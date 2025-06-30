@@ -1,6 +1,6 @@
 # Config API
 
-Most aspects of Casa that are configurable through the admin console UI can be programmatically operated using the configuration API. A formal description of the API can be found in this [swagger](https://raw.githubusercontent.com/GluuFederation/casa/version_4.4.0/app/src/main/webapp/admin-api.yaml) file. Note all endpoints are protected by tokens which must have the `casa.config` OAuth scope.
+Most aspects of Casa that are configurable through the admin console UI can be programmatically operated using the configuration API. A formal description of the API can be found in this [swagger](https://raw.githubusercontent.com/GluuFederation/casa/version_4.3.0/app/src/main/webapp/admin-api.yaml) file. Note all endpoints are protected by tokens which must have the `casa.config` OAuth scope.
 
 At a high level the following are the steps to get a token:
 
@@ -22,7 +22,7 @@ You can reuse the client in your projects by pointing to the right artifact. If 
 <dependency>
 	<groupId>org.gluu</groupId>
 	<artifactId>casa-config-client</artifactId>
-	<version>4.4.0.Final</version>
+	<version>4.3.0.Final</version>
 </dependency>
 ```
 

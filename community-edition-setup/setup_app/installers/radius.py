@@ -14,12 +14,11 @@ from setup_app.utils.ldif_utils import schema2json
 class RadiusInstaller(BaseInstaller, SetupUtils):
 
     def __init__(self):
-        setattr(base.current_app, self.__class__.__name__, self)
         self.service_name = 'gluu-radius'
         self.pbar_text = "Installing Radius Base"
         self.app_type = AppType.SERVICE
         self.install_var = 'installGluuRadius'
-        self.install_type = InstallOption.MANDATORY
+        self.install_type = InstallOption.MONDATORY
         self.register_progess()
 
         self.source_files = [
@@ -108,7 +107,7 @@ class RadiusInstaller(BaseInstaller, SetupUtils):
                 if Config.rdbm_type != 'spanner': 
                     self.dbUtils.rdm_automapper(force=True)
 
-            self.dbUtils.import_ldif([ldif_file_server])
+                self.dbUtils.import_ldif([ldif_file_server])
 
             self.dbUtils.enable_script('5866-4202')
             self.dbUtils.enable_script('B8FD-4C11')
@@ -128,11 +127,12 @@ class RadiusInstaller(BaseInstaller, SetupUtils):
         self.copyFile(os.path.join(self.source_dir, 'etc/gluu/conf/radius/gluu-radius-logging.xml'), self.conf_dir)
         self.copyFile(os.path.join(self.source_dir, 'scripts/gluu_common.py'), os.path.join(Config.gluuOptPythonFolder, 'libs'))
 
+        if not base.snap:
+            self.copyFile(os.path.join(self.source_dir, 'etc/init.d/gluu-radius'), '/etc/init.d')
+            self.run([paths.cmd_chmod, '+x', '/etc/init.d/gluu-radius'])
 
-        self.copyFile(os.path.join(self.source_dir, 'etc/init.d/gluu-radius'), '/etc/init.d')
-        self.run([paths.cmd_chmod, '+x', '/etc/init.d/gluu-radius'])
-
-        self.copyFile(os.path.join(self.source_dir, 'systemd/gluu-radius.service'), '/etc/systemd/system')
+            if base.os_name != 'ubuntu16':
+                self.copyFile(os.path.join(self.source_dir, 'systemd/gluu-radius.service'), '/etc/systemd/system')
 
         #create empty gluu-radius.private-key.pem
         gluu_radius_private_key_fn = os.path.join(Config.certFolder, 'gluu-radius.private-key.pem')
@@ -175,12 +175,12 @@ class RadiusInstaller(BaseInstaller, SetupUtils):
         radius_jwt_pass = self.obscure(Config.radius_jwt_pass)
         radius_jks_fn = os.path.join(Config.certFolder, 'gluu-radius.jks')
 
-        raidus_client_jwks = self.gen_openid_data_store_keys(radius_jks_fn, Config.radius_jwt_pass)
+        raidus_client_jwks = self.gen_openid_jwks_jks_keys(radius_jks_fn, Config.radius_jwt_pass)
         raidus_client_jwks = ''.join(raidus_client_jwks).replace('\'','').replace(',,',',').replace('{,','{')
         raidus_client_jwks = json.loads(raidus_client_jwks)
         Config.templateRenderingDict['radius_jwt_pass'] = radius_jwt_pass
         raidus_client_jwks_json = json.dumps(raidus_client_jwks, indent=2)
-        Config.templateRenderingDict['gluu_ro_client_base64_jwks'] = base64.encodebytes(raidus_client_jwks_json.encode('utf-8')).decode('utf-8').replace(' ','').replace('\n','')
+        Config.templateRenderingDict['gluu_ro_client_base64_jwks'] = base64.encodestring(raidus_client_jwks_json.encode('utf-8')).decode('utf-8').replace(' ','').replace('\n','')
 
         for k in raidus_client_jwks['keys']:
             if k.get('alg') == 'RS512':

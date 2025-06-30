@@ -1028,6 +1028,11 @@
             "exclusiveMaximum": false,
             "exclusiveMinimum": false
         },
+        "sessionIdEnabled": {
+            "id": "sessionIdEnabled",
+            "description": "Boolean value specifying whether to enable authentication by session_id.",
+            "type": "boolean"
+        },
         "changeSessionIdOnAuthentication": {
             "id": "changeSessionIdOnAuthentication",
             "description": "Boolean value specifying whether change session_id on authentication. Default value is true.",
@@ -1837,68 +1842,6 @@
             "description": "Response type used to process device authz requests",
             "type": "string",
             "minLength": 0
-        },
-        "skipAuthenticationFilterOptionsMethod": {
-            "id": "skipAuthenticationFilterOptionsMethod",
-            "description": "Specifies whether to process OPTIONS rerquests in Authentication Filter or not",
-            "type": "boolean"
-        },"allowWildcardRedirectUri": {
-            "id": "allowWildcardRedirectUri",
-            "description": "Specifies whether to allow wildcard in redirect URI or not.",
-            "type": "boolean"
-        },"return200OnClientRegistration": {
-            "id": "return200OnClientRegistration",
-            "description": "Specifies client registration.",
-            "type": "boolean"
-        },"dateFormatterPatterns": {
-            "id": "dateFormatterPatterns",
-            "description": "dateFormatterPatterns",
-            "type": "object",
-            "properties": {
-                "birthdate": {
-                    "id": "birthdate",
-                    "description": "birthdate",
-                    "type": "string",
-                    "minLength": 1
-                }
-            }
-        },
-        "connectionServiceConfiguration": {
-            "id": "connectionServiceConfiguration",
-            "description": "Connection Service Configuration",
-            "type": "object",
-            "properties": {
-                "maxTotal": {
-                    "id": "maxTotal",
-                    "description": "Set the maximum number of total open connections. Default value is 200.",
-                    "type": "integer",
-                    "multipleOf": 1,
-                    "maximum": 2147483647,
-                    "minimum": 1,
-                    "exclusiveMaximum": false,
-                    "exclusiveMinimum": false
-                },
-                "maxPerRoute": {
-                    "id": "maxPerRoute",
-                    "description": "Set the maximum number of concurrent connections per route. Default value is 50.",
-                    "type": "integer",
-                    "multipleOf": 1,
-                    "maximum": 2147483647,
-                    "minimum": 1,
-                    "exclusiveMaximum": false,
-                    "exclusiveMinimum": false
-                },
-                "validateAfterInactivity": {
-                    "id": "validateAfterInactivity",
-                    "description": "Defines period of inactivity in milliseconds after which persistent connections must be re-validated prior to being leased to the consumer. Default value is 2000.",
-                    "type": "integer",
-                    "multipleOf": 1,
-                    "maximum": 2147483647,
-                    "minimum": -1,
-                    "exclusiveMaximum": false,
-                    "exclusiveMinimum": false
-                }
-            }
         }
     },
     "required": [
@@ -1986,6 +1929,7 @@
         "clientAuthenticationFilters",
         "sessionIdUnusedLifetime",
         "sessionIdUnauthenticatedUnusedLifetime",
+        "sessionIdEnabled",
         "sessionIdPersistOnPromptNone",
         "sessionIdLifetime",
         "configurationUpdateInterval",
@@ -2049,8 +1993,6 @@
         "cibaEndUserNotificationConfig",
         "deviceAuthzRequestExpiresIn",
         "deviceAuthzTokenPollInterval",
-        "deviceAuthzResponseTypeToProcessAuthz",
-        "skipAuthenticationFilterOptionsMethod",
-        "connectionServiceConfiguration"
+        "deviceAuthzResponseTypeToProcessAuthz"
     ]
 }

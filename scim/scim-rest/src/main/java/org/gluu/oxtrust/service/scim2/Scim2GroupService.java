@@ -36,7 +36,7 @@ import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.model.PagedResult;
 import org.gluu.persist.model.SortOrder;
 import org.gluu.search.filter.Filter;
-import org.gluu.util.StringHelper;
+
 import org.slf4j.Logger;
 
 @ApplicationScoped
@@ -101,7 +101,7 @@ public class Scim2GroupService implements Serializable {
     }
     
 	private void transferAttributesToGroup(GroupResource res, GluuGroup group,
-            boolean skipMembersValidation, boolean fillMembersDisplay, String usersUrl) throws Exception {
+            boolean skipMembersValidation, boolean fillMembersDisplay, String usersUrl) {
 
 		// externalId (so oxTrustExternalId) not part of LDAP schema
 		group.setAttribute("oxTrustMetaCreated", res.getMeta().getCreated());
@@ -185,9 +185,9 @@ public class Scim2GroupService implements Serializable {
 
 		Meta meta = new Meta();
 		meta.setResourceType(ScimResourceUtil.getType(res.getClass()));
-		meta.setCreated(StringHelper.toString(gluuGroup.getAttribute("oxTrustMetaCreated")));
-		meta.setLastModified(StringHelper.toString(gluuGroup.getAttribute("oxTrustMetaLastModified")));
-		meta.setLocation(StringHelper.toString(gluuGroup.getAttribute("oxTrustMetaLocation")));
+		meta.setCreated(gluuGroup.getAttribute("oxTrustMetaCreated"));
+		meta.setLastModified(gluuGroup.getAttribute("oxTrustMetaLastModified"));
+		meta.setLocation(gluuGroup.getAttribute("oxTrustMetaLocation"));
 		if (meta.getLocation() == null)
 			meta.setLocation(groupsUrl + "/" + gluuGroup.getInum());
 

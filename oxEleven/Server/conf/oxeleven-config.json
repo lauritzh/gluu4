@@ -1,8 +1,8 @@
 {
     "pkcs11Config": {
-        "name": "SoftHSMv2",
+        "name": "SoftHSM",
         "library": "/usr/local/lib/softhsm/libsofthsm2.so",
-        "slotListIndex": "0",
+        "slot": "0",
         "showInfo": "true"
     },
     "pkcs11Pin": "1234",

@@ -2,7 +2,7 @@ package org.gluu.idp.utilities.java.support.security;
 
 import javax.annotation.Nonnull;
 
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 
 /**
  * Init BC/BCFIPS before invoking tool

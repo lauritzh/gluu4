@@ -45,9 +45,6 @@ public class FilterProcessor {
 
 			Filter resultFilter = new Filter(type, resultFilters.toArray(new Filter[0]));
 			resultFilter.setAssertionValue(genericFilter.getAssertionValue());
-			resultFilter.setSubInitial(genericFilter.getSubInitial());
-			resultFilter.setSubAny(genericFilter.getSubAny());
-			resultFilter.setSubFinal(genericFilter.getSubFinal());
 
 			return resultFilter;
 		}
@@ -66,45 +63,4 @@ public class FilterProcessor {
 		return genericFilter;
 	}
 
-	public Filter excludeLowerFilter(Filter genericFilter) {
-		if (genericFilter == null) {
-			return null;
-		}
-
-		FilterType type = genericFilter.getType();
-		if (FilterType.RAW == type) {
-			return genericFilter;
-		}
-
-		Filter[] filters = genericFilter.getFilters();
-		if (filters != null) {
-			for (Filter filter : filters) {
-				if (filter.getType() == FilterType.LOWERCASE) {
-					Filter resultFilter = genericFilter.clone();
-					resultFilter.setFilters(null);
-					resultFilter.setAttributeName(filter.getAttributeName());
-					
-					return resultFilter;
-				}
-			}
-
-			List<Filter> resultFilters = new LinkedList<>();
-			for (Filter filter : filters) {
-				Filter resultFilter = excludeLowerFilter(filter);
-				if (resultFilter != null) {
-					resultFilters.add(resultFilter);
-				}
-			}
-			if (resultFilters.size() == 0) {
-				return null;
-			}
-
-			Filter resultFilter = new Filter(type, resultFilters.toArray(new Filter[0]));
-			resultFilter.setAssertionValue(genericFilter.getAssertionValue());
-
-			return resultFilter;
-		}
-
-		return genericFilter;
-	}
 }

@@ -15,27 +15,27 @@
         <dependency>
             <groupId>org.gluu</groupId>
             <artifactId>oxauth-model</artifactId>
-            <version>4.2.3.Final</version>
+            <version>4.3.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.gluu</groupId>
             <artifactId>oxcore-util</artifactId>
-            <version>4.2.3.Final</version>
+            <version>4.3.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20231013</version>
+            <version>20200518</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.76</version>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.69</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk18on</artifactId>
-            <version>1.76</version>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.69</version>
         </dependency>
         
         <!-- LOGGING -->
@@ -54,12 +54,18 @@
             <artifactId>log4j-core</artifactId>
             <version>${log4j.version}</version>
         </dependency>
-
+        
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+        </dependency>
+        
         <!-- RESTEASY -->
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-client</artifactId>
-            <version>3.13.0.Final</version>
+            <version>4.5.7.Final</version>
         </dependency>
     </dependencies>
 
@@ -67,7 +73,7 @@
         <repository>
             <id>gluu</id>
             <name>Gluu repository</name>
-            <url>https://maven.gluu.org/maven4</url>
+            <url>https://maven.gluu.org/maven</url>
         </repository>
     </repositories>
 </project>

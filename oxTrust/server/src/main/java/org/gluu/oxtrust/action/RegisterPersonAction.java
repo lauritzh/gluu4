@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ConversationScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
@@ -37,7 +36,6 @@ import org.gluu.model.GluuAttribute;
 import org.gluu.model.GluuStatus;
 import org.gluu.model.GluuUserRole;
 import org.gluu.model.SimpleCustomProperty;
-import org.gluu.model.attribute.AttributeValidation;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.oxtrust.exception.DuplicateEmailException;
 import org.gluu.oxtrust.model.GluuCustomAttribute;
@@ -231,7 +229,7 @@ public class RegisterPersonAction implements Serializable {
 		}
 		String outcome = registerImpl();
 		if (OxTrustConstants.RESULT_SUCCESS.equals(outcome)) {
-			setPostRegistrationInformation("You've successfully created your account, please go to you email to successfully register your account.");
+			setPostRegistrationInformation("You successfully registered. Enjoy!");
 		} else if (OxTrustConstants.RESULT_DISABLED.equals(outcome)) {
 			setPostRegistrationInformation(
 					"You successfully registered. Please contact site administration to enable your account.");
@@ -511,51 +509,6 @@ public class RegisterPersonAction implements Serializable {
 
 	public void setConfirmationOkay(boolean confirmationOkay) {
 		this.confirmationOkay = confirmationOkay;
-	}
-	public void validateConfirmPassword(FacesContext context, UIComponent comp, Object value) {
-		Pattern pattern = null;
-		String attributeValue = (String) value;
-		if (StringHelper.isEmpty(attributeValue)) {
-			FacesMessage message = new FacesMessage("Value is required");
-			message.setSeverity(FacesMessage.SEVERITY_ERROR);
-			throw new ValidatorException(message);
-		}
-		boolean validateOnlyPwd = false;
-		AttributeValidation validation = attributeService.getAttributeByName("userPassword").getAttributeValidation();
-		boolean canValidate = validation != null && validation.getRegexp() != null && !validation.getRegexp().isEmpty();
-		if (comp.getClientId().endsWith("password")) {
-			this.password = (String) value;
-			validateOnlyPwd = true;
-		} else if (comp.getClientId().endsWith("passwordValidation")) {
-			this.repeatPassword = (String) value;
-		}
-		this.repeatPassword = this.repeatPassword == null ? "" : this.repeatPassword;
-		if (canValidate) {
-			pattern = Pattern.compile(validation.getRegexp());
-		}
-
-		if (canValidate && validateOnlyPwd
-				&& (!pattern.matcher(this.password).matches())) {
-			((UIInput) comp).setValid(false);
-			FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
-					facesMessages.evalResourceAsString("#{msgs['password.validation.invalid']}"),
-					facesMessages.evalResourceAsString("#{msgs['password.validation.invalid']}"));
-			context.addMessage(comp.getClientId(context), message);
-		}
-		if (!validateOnlyPwd && !StringHelper.equals(password, repeatPassword) && this.repeatPassword != null) {
-			((UIInput) comp).setValid(false);
-			FacesMessage message = new FacesMessage("Both passwords should be the same!");
-			message.setSeverity(FacesMessage.SEVERITY_ERROR);
-			throw new ValidatorException(message);
-		}
-		if (canValidate && !validateOnlyPwd
-				&& (!pattern.matcher(this.password).matches() || !pattern.matcher(this.repeatPassword).matches())) {
-			((UIInput) comp).setValid(false);
-			FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
-					facesMessages.evalResourceAsString("#{msgs['password.validation.invalid']}"),
-					facesMessages.evalResourceAsString("#{msgs['password.validation.invalid']}"));
-			context.addMessage(comp.getClientId(context), message);
-		}
 	}
 
 }

@@ -3,32 +3,29 @@
  *
  * Copyright (c) 2014, Gluu
  */
+
 package org.gluu.orm.couchbase.impl;
 
-import java.nio.file.FileSystems;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.Properties;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.enterprise.context.ApplicationScoped;
-
+import org.gluu.persist.PersistenceEntryManager;
+import org.gluu.persist.PersistenceEntryManagerFactory;
+import org.gluu.persist.exception.operation.ConfigurationException;
+import org.gluu.persist.service.BaseFactoryService;
 import org.gluu.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import org.gluu.orm.couchbase.operation.impl.CouchbaseOperationServiceImpl;
 import org.gluu.orm.util.PropertiesHelper;
 import org.gluu.orm.util.StringHelper;
 import org.gluu.orm.util.init.Initializable;
-import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.persist.PersistenceEntryManagerFactory;
-import org.gluu.persist.exception.operation.ConfigurationException;
-import org.gluu.persist.service.BaseFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.couchbase.client.core.env.SecurityConfig;
-import com.couchbase.client.java.env.ClusterEnvironment;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
+import java.util.HashMap;
+import java.util.Properties;
 
 /**
  * Couchbase Entry Manager Factory
@@ -43,83 +40,85 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
     public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.couchbase.name();
     public static final String PROPERTIES_FILE = "gluu-couchbase%s.properties";
 
-    private ClusterEnvironment clusterEnvironment;
+    private DefaultCouchbaseEnvironment.Builder builder;
+    private CouchbaseEnvironment couchbaseEnvironment;
 
 	private Properties couchbaseConnectionProperties;
 
     @PostConstruct
-    public void create() {}
+    public void create() {
+    	this.builder = DefaultCouchbaseEnvironment.builder().operationTracingEnabled(false);
+    }
 
     @PreDestroy
     public void destroy() {
-    	if (clusterEnvironment != null) {
-    		clusterEnvironment.shutdown();
+    	if (couchbaseEnvironment != null) {
+    		boolean result = couchbaseEnvironment.shutdown();
     		resetInitialized();
-    		LOG.info("Couchbase environment was destroyed successfully");
+    		LOG.info("Couchbase environment are destroyed with result: {}", result);
     	}
     }
 
 	@Override
 	protected void initInternal() {
-	    ClusterEnvironment.Builder clusterEnvironmentBuilder = ClusterEnvironment.builder();
-
-	    // SSL settings
+        // SSL settings
         boolean useSSL = Boolean.valueOf(couchbaseConnectionProperties.getProperty("ssl.trustStore.enable")).booleanValue();
         if (useSSL) {
             String sslTrustStoreFile = couchbaseConnectionProperties.getProperty("ssl.trustStore.file");
             String sslTrustStorePin = couchbaseConnectionProperties.getProperty("ssl.trustStore.pin");
-            Optional<String> sslTrustStoreType = Optional.ofNullable(couchbaseConnectionProperties.getProperty("ssl.trustStore.type"));
 
-            SecurityConfig.Builder securityConfigBuilder = clusterEnvironmentBuilder.securityConfig();
-
-            boolean enableTLS = Boolean.valueOf(couchbaseConnectionProperties.getProperty("tls.enable")).booleanValue();
-            if (enableTLS) {
-            	securityConfigBuilder.enableTls(enableTLS);
-            }
-
-            securityConfigBuilder.trustStore(FileSystems.getDefault().getPath(sslTrustStoreFile), sslTrustStorePin, sslTrustStoreType);
+            builder.sslEnabled(true).sslTruststoreFile(sslTrustStoreFile).sslTruststorePassword(sslTrustStorePin);
         	LOG.info("Configuring builder to enable SSL support");
         } else {
-        	clusterEnvironmentBuilder.securityConfig().enableTls(false);
+        	builder.sslEnabled(false);
         	LOG.info("Configuring builder to disable SSL support");
         }
-
+        
         String connectTimeoutString = couchbaseConnectionProperties.getProperty("connection.connect-timeout");
         if (StringHelper.isNotEmpty(connectTimeoutString)) {
         	int connectTimeout = Integer.valueOf(connectTimeoutString);
-           	clusterEnvironmentBuilder.timeoutConfig().connectTimeout(Duration.ofMillis(connectTimeout));
+        	builder.connectTimeout(connectTimeout);
         	LOG.info("Configuring builder to override connectTimeout from properties");
         }
 
-        String connectDnsUseLookupString = couchbaseConnectionProperties.getProperty("connection.dns.use-lookup");
-        if (StringHelper.isNotEmpty(connectDnsUseLookupString)) {
-        	boolean connectDnsUseLookup = Boolean.valueOf(connectDnsUseLookupString);
-           	clusterEnvironmentBuilder.ioConfig().enableDnsSrv(connectDnsUseLookup);
-        	LOG.info("Configuring builder to override enableDnsSrv from properties");
-        }
-
-        String kvTimeoutString = couchbaseConnectionProperties.getProperty("connection.kv-timeout");
-        if (StringHelper.isNotEmpty(kvTimeoutString)) {
-        	int kvTimeout = Integer.valueOf(kvTimeoutString);
-           	clusterEnvironmentBuilder.timeoutConfig().kvTimeout(Duration.ofMillis(kvTimeout));
-        	LOG.info("Configuring builder to override kvTimeout from properties");
-        }
-
-        String queryTimeoutString = couchbaseConnectionProperties.getProperty("connection.query-timeout");
-        if (StringHelper.isNotEmpty(queryTimeoutString)) {
-        	int queryTimeout = Integer.valueOf(queryTimeoutString);
-           	clusterEnvironmentBuilder.timeoutConfig().queryTimeout(Duration.ofMillis(queryTimeout));
-        	LOG.info("Configuring builder to override queryTimeout from properties");
+        String operationTracingEnabledString = couchbaseConnectionProperties.getProperty("connection.operation-tracing-enabled");
+        if (StringHelper.isNotEmpty(operationTracingEnabledString)) {
+        	boolean operationTracingEnabled = Boolean.valueOf(operationTracingEnabledString);
+        	builder.operationTracingEnabled(operationTracingEnabled);
+        	LOG.info("Configuring builder to override operationTracingEnabled from properties");
         }
 
         String mutationTokensEnabledString = couchbaseConnectionProperties.getProperty("connection.mutation-tokens-enabled");
         if (StringHelper.isNotEmpty(mutationTokensEnabledString)) {
         	boolean mutationTokensEnabled = Boolean.valueOf(mutationTokensEnabledString);
-        	clusterEnvironmentBuilder.ioConfig().enableMutationTokens(mutationTokensEnabled);
+        	builder.mutationTokensEnabled(mutationTokensEnabled);
         	LOG.info("Configuring builder to override mutationTokensEnabled from properties");
         }
 
-        this.clusterEnvironment = clusterEnvironmentBuilder.build();
+        String computationPoolSizeString = couchbaseConnectionProperties.getProperty("connection.computation-pool-size");
+        if (StringHelper.isNotEmpty(computationPoolSizeString)) {
+        	int computationPoolSize = Integer.valueOf(computationPoolSizeString);
+        	builder.computationPoolSize(computationPoolSize);
+        	LOG.info("Configuring builder to override computationPoolSize from properties");
+        }
+
+        String keepAliveTimeoutString = couchbaseConnectionProperties.getProperty("connection.keep-alive-timeout");
+        if (StringHelper.isNotEmpty(keepAliveTimeoutString)) {
+        	long keepAliveTimeout = Integer.valueOf(keepAliveTimeoutString);
+        	builder.keepAliveTimeout(keepAliveTimeout);
+        	LOG.info("Configuring builder to override keepAliveTimeout from properties");
+        }
+
+        String keepAliveIntervalString = couchbaseConnectionProperties.getProperty("connection.keep-alive-interval");
+        if (StringHelper.isNotEmpty(keepAliveIntervalString)) {
+        	long keepAliveInterval = Integer.valueOf(keepAliveIntervalString);
+        	builder.keepAliveInterval(keepAliveInterval);
+        	LOG.info("Configuring builder to override keepAliveInterval from properties");
+        }
+
+        this.couchbaseEnvironment = builder.build();
+
+        this.builder = null;
 	}
 
     @Override
@@ -138,8 +137,8 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
     	return confs;
     }
     
-    public ClusterEnvironment getClusterEnvironment() {
-    	return clusterEnvironment;
+    public CouchbaseEnvironment getCouchbaseEnvironment() {
+    	return couchbaseEnvironment;
     }
 
     @Override
@@ -157,7 +156,7 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
             throw new ConfigurationException("Failed to create Couchbase environment!");
     	}
 
-    	CouchbaseConnectionProvider connectionProvider = new CouchbaseConnectionProvider(entryManagerConf, clusterEnvironment);
+    	CouchbaseConnectionProvider connectionProvider = new CouchbaseConnectionProvider(entryManagerConf, couchbaseEnvironment);
         connectionProvider.create();
         if (!connectionProvider.isCreated()) {
             throw new ConfigurationException(
@@ -173,10 +172,22 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
 
 	@Override
 	public void initStandalone(BaseFactoryService persistanceFactoryService) {
-	    ClusterEnvironment.Builder clusterEnvironmentBuilder = ClusterEnvironment.builder();
-	    clusterEnvironmentBuilder.ioConfig().enableMutationTokens(true).build();
-
-	    this.clusterEnvironment = clusterEnvironmentBuilder.build();
+		this.builder = DefaultCouchbaseEnvironment.builder().mutationTokensEnabled(true).computationPoolSize(5);
 	}
 
+
+/*
+    public static void main(String[] args) throws FileNotFoundException, IOException {
+    	Properties prop = new Properties();
+    	prop.load(new FileInputStream(new File("D:/Temp/jans-couchbase.properties")));
+    	
+    	CouchbaseEntryManagerFactory cemf = new CouchbaseEntryManagerFactory();
+    	cemf.create();
+    	
+    	CouchbaseEntryManager cem = cemf.createEntryManager(prop);
+        
+        System.out.println(cem.getOperationService().getConnectionProvider().isCreated());
+        
+	}
+*/
 }

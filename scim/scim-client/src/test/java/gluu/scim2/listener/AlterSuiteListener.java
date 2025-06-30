@@ -1,7 +1,8 @@
 package gluu.scim2.listener;
 
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.util.StringHelper;
-import org.gluu.util.security.SecurityProviderUtility;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.IAlterSuiteListener;

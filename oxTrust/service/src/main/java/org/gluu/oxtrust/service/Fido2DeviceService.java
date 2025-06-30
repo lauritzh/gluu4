@@ -13,8 +13,6 @@ import org.gluu.oxtrust.model.GluuFido2Device;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.EntryPersistenceException;
-import org.gluu.persist.exception.operation.SearchException;
-import org.gluu.persist.model.base.SimpleBranch;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
@@ -37,7 +35,7 @@ public class Fido2DeviceService implements Serializable {
 		try {
 			String finalDn = String.format("oxId=%s,ou=fido2_register,", deviceID);
 			finalDn = finalDn.concat(person.getDn());
-			ldapEntryManager.removeRecursively(finalDn, GluuCustomPerson.class);
+			ldapEntryManager.removeRecursively(finalDn);
 			return true;
 		} catch (Exception e) {
 			log.error("", e);
@@ -59,22 +57,15 @@ public class Fido2DeviceService implements Serializable {
 	public List<GluuFido2Device> findAllFido2Devices(GluuCustomPerson person) {
 		try {
 			String baseDnForU2fDevices = getDnForFido2Device(null, person.getInum());
-			if (ldapEntryManager.hasBranchesSupport(baseDnForU2fDevices)) {
-				if (!ldapEntryManager.contains(baseDnForU2fDevices, SimpleBranch.class)) {
-					return new ArrayList<>();
-				}
-			}
-
 			Filter inumFilter = Filter.createEqualityFilter(OxTrustConstants.PERSON_INUM, person.getInum());
 			return ldapEntryManager.findEntries(baseDnForU2fDevices, GluuFido2Device.class, inumFilter);
 		} catch (EntryPersistenceException e) {
-			log.warn("Failed to load fido2 devices enrolled for {}", person.getDisplayName(), e);
+			log.warn("No fido2 devices enrolled for " + person.getDisplayName());
+			return new ArrayList<>();
 		}
-
-		return new ArrayList<>();
 	}
 
-	public GluuFido2Device getFido2DeviceById(String userId, String id) throws Exception {
+	public GluuFido2Device getFido2DeviceById(String userId, String id) {
 		GluuFido2Device f2d = null;
 		try {
 			String dn = getDnForFido2Device(id, userId);
@@ -85,11 +76,7 @@ public class Fido2DeviceService implements Serializable {
 				f2d = ldapEntryManager.findEntries(dn, GluuFido2Device.class, filter).get(0);
 			}
 		} catch (Exception e) {
-            if (!SearchException.class.isInstance(e.getCause())) {
-                log.error(e.getMessage(), e.getCause());
-                throw e;
-            }
-            log.debug("Failed to find Fido 2 device with id {}", id);
+			log.error("Failed to find Fido 2 device with id " + id, e);
 		}
 		return f2d;
 
@@ -100,7 +87,7 @@ public class Fido2DeviceService implements Serializable {
 	}
 
 	public void removeFido2Device(GluuFido2Device fido2Device) {
-		ldapEntryManager.removeRecursively(fido2Device.getDn(), GluuFido2Device.class);
+		ldapEntryManager.removeRecursively(fido2Device.getDn());
 	}
 
 	public GluuFido2Device getGluuCustomFidoDeviceById(String id, String userId) {

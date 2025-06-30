@@ -8,8 +8,6 @@ package org.gluu.oxtrust.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +18,6 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.gluu.model.GluuStatus;
 import org.gluu.persist.annotation.AttributeName;
@@ -31,20 +25,12 @@ import org.gluu.persist.annotation.DataEntry;
 import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.model.base.InumEntry;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @DataEntry
 @ObjectClass(value = "gluuSAMLconfig")
 @JsonInclude(Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlSeeAlso({GluuEntityType.class, GluuMetadataSourceType.class, GluuStatus.class, GluuValidationStatus.class, 
-    GluuCustomAttribute.class, MetadataFilter.class, ProfileConfiguration.class, DeconstructedTrustRelationship.class})
 public class GluuSAMLTrustRelationship extends InumEntry implements Serializable {
 
 	private static final long serialVersionUID = 5907443836820485369L;
@@ -100,7 +86,7 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 	@AttributeName(name = "gluuTrustContact")
 	private List<String> gluuTrustContact;
 
-	//private List<DeconstructedTrustRelationship> deconstructedTrustRelationships = new ArrayList<DeconstructedTrustRelationship>();
+	private List<DeconstructedTrustRelationship> deconstructedTrustRelationships = new ArrayList<DeconstructedTrustRelationship>();
 
 	@AttributeName(name = "gluuTrustDeconstruction")
 	private List<String> gluuTrustDeconstruction;
@@ -128,10 +114,6 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 	@AttributeName(name = "oxAuthPostLogoutRedirectURI")
 	private String spLogoutURL;
 
-	@Pattern(regexp = "^$|(^(https?|http)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])", message = "Please enter a valid url, including protocol (http/https)")
-	@AttributeName(name="spLogoutRedirectUrl")
-	private String spLogoutRedirectUrl;
-
 	@AttributeName(name = "gluuValidationLog")
 	private List<String> validationLog;
 
@@ -140,27 +122,6 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 
 	@AttributeName(name = "gluuEntityType")
 	private GluuEntityType entityType;
-	
-	private String metadataStr;
-	
-	private String certificate;
-
-
-	public String getCertificate() {
-		return certificate;
-	}
-
-	public void setCertificate(String certificate) {
-		this.certificate = certificate;
-	}
-
-	public String getMetadataStr() {
-		return metadataStr;
-	}
-
-	public void setMetadataStr(String metadataStr) {
-		this.metadataStr = metadataStr;
-	}
 
 	public void setFederation(boolean isFederation) {
 		this.gluuIsFederation = Boolean.toString(isFederation);
@@ -191,10 +152,7 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 		return gluuEntityId;
 	}
 
-	/*public void setGluuEntityId(Set<String> gluuEntityId) {
-		this.gluuEntityId = new ArrayList<String>(gluuEntityId);
-	}*/
-	public void setUniqueGluuEntityId(Set<String> gluuEntityId) {
+	public void setGluuEntityId(Set<String> gluuEntityId) {
 		this.gluuEntityId = new ArrayList<String>(gluuEntityId);
 	}
 
@@ -217,7 +175,7 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 		if (entityId != null) {
 			entityIds.add(entityId);
 		}
-		setUniqueGluuEntityId(entityIds);
+		setGluuEntityId(entityIds);
 	}
 
 	public void setSpecificRelyingPartyConfig(boolean specificRelyingPartyConfig) {
@@ -226,6 +184,15 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 
 	public boolean getSpecificRelyingPartyConfig() {
 		return Boolean.parseBoolean(gluuSpecificRelyingPartyConfig);
+	}
+
+	public List<DeconstructedTrustRelationship> getDeconstructedTrustRelationships() {
+		return deconstructedTrustRelationships;
+	}
+
+	public void setDeconstructedTrustRelationships(
+			List<DeconstructedTrustRelationship> deconstructedTrustRelationships) {
+		this.deconstructedTrustRelationships = deconstructedTrustRelationships;
 	}
 
 	public String getDescription() {
@@ -364,17 +331,6 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 		this.spLogoutURL = spLogoutURL;
 	}
 
-	public String getSpLogoutRedirectUrl() {
-		
-		
-		return spLogoutRedirectUrl;
-	}
-
-	public void setSpLogoutRedirectUrl(String spLogoutRedirectUrl) {
-
-		this.spLogoutRedirectUrl = spLogoutRedirectUrl;
-	}
-
 	public String getSpMetaDataFN() {
 		return spMetaDataFN;
 	}
@@ -457,47 +413,5 @@ public class GluuSAMLTrustRelationship extends InumEntry implements Serializable
 
 	public void setEntityType(GluuEntityType entityType) {
 		this.entityType = entityType;
-	}
-
-	public boolean entityTypeIsFederation() {
-
-		return (this.entityType == GluuEntityType.FederationAggregate);
-	}
-
-	public boolean entityTypeIsSingleSp() {
-
-		return (this.entityType == GluuEntityType.SingleSP);
-	}
-
-	public boolean isFileMetadataSourceType() {
-
-		return (this.spMetaDataSourceType == GluuMetadataSourceType.FILE);
-	}
-
-	public boolean isUriMetadataSourceType() {
-
-		return (this.spMetaDataSourceType == GluuMetadataSourceType.URI);
-	}
-
-	public boolean isMdqMetadataSourceType() {
-
-		return (this.spMetaDataSourceType == GluuMetadataSourceType.MDQ);
-	}
-
-	public boolean isMdqFederation() {
-
-		return (this.entityType == GluuEntityType.FederationAggregate) && (this.spMetaDataSourceType == GluuMetadataSourceType.MDQ);
-	}
-
-	private static class SortByDatasourceTypeComparator implements Comparator<GluuSAMLTrustRelationship> {
-
-		public int compare(GluuSAMLTrustRelationship first, GluuSAMLTrustRelationship second) {
-
-			return first.getSpMetaDataSourceType().getRank() - second.getSpMetaDataSourceType().getRank();
-		}
-	}
-
-	public static void sortByDataSourceType(List<GluuSAMLTrustRelationship> trustRelationships) {
-		Collections.sort(trustRelationships,new SortByDatasourceTypeComparator());
 	}
 }

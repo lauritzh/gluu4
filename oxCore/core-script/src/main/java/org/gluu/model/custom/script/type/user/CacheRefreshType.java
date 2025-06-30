@@ -24,6 +24,4 @@ public interface CacheRefreshType extends BaseExternalType {
 
     public boolean updateUser(Object person, Map<String, SimpleCustomProperty> configurationAttributes);
 
-    public boolean updateSourceUser(Object person, Map<String, SimpleCustomProperty> configurationAttributes);
-
 }

@@ -1,13 +1,17 @@
 package org.gluu.service.cache;
 
+import java.io.Serializable;
+import java.util.Set;
+
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.*;
 
-import java.io.Serializable;
-
-import static org.gluu.service.cache.RedisClusterProvider.hosts;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.JedisSentinelPool;
+import redis.clients.jedis.Protocol;
 
 /**
  * Important : keep it weld free. It's reused by oxd !
@@ -28,24 +32,20 @@ public class RedisSentinelProvider extends AbstractRedisProvider {
         try {
             LOG.debug("Starting RedisSentinelProvider ... configuration:" + getRedisConfiguration());
 
-            String password = redisConfiguration.getPassword();
             JedisPoolConfig poolConfig = createPoolConfig();
-            JedisClientConfig jedisClientConfig;
-
-            if (redisConfiguration.getUseSSL()) {
-                RedisProviderFactory.setSSLSystemProperties(redisConfiguration);
-                jedisClientConfig = DefaultJedisClientConfig.builder().ssl(true).password(password).build();
-            } else {
-                jedisClientConfig = DefaultJedisClientConfig.builder().ssl(false).password(password).build();
-            }
-
-            pool = new JedisSentinelPool(getRedisConfiguration().getSentinelMasterGroupName(),
-                    hosts(getRedisConfiguration().getServers()), poolConfig, jedisClientConfig, jedisClientConfig);
-
+            String password = redisConfiguration.getPassword();
+            pool = new JedisSentinelPool(
+                    getRedisConfiguration().getSentinelMasterGroupName(),
+                    Set.of(StringUtils.split(getRedisConfiguration().getServers().trim(), ",")),
+                    poolConfig,
+                    redisConfiguration.getConnectionTimeout(),
+                    redisConfiguration.getSoTimeout(),
+                    password,
+                    Protocol.DEFAULT_DATABASE);
             testConnection();
             LOG.debug("RedisSentinelProvider started.");
         } catch (Exception e) {
-            LOG.error("Failed to start RedisSentinelProvider.", e);
+            LOG.error("Failed to start RedisSentinelProvider.");
             throw new IllegalStateException("Error starting RedisSentinelProvider", e);
         }
     }

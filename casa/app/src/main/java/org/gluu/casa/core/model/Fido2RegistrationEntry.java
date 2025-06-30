@@ -15,7 +15,7 @@ import java.util.Date;
 //Using org.gluu.fido2.model.entry.Fido2RegistrationEntry directly from fido2-model artifact
 //does not work well, why!!! why!!!
 @DataEntry
-@ObjectClass(value = "jansFido2RegistrationEntry")
+@ObjectClass(value = "oxFido2RegistrationEntry")
 public class Fido2RegistrationEntry extends Entry {
 
 	@AttributeName(name = "displayName")
@@ -24,12 +24,12 @@ public class Fido2RegistrationEntry extends Entry {
 	@AttributeName(name = "creationDate")
 	private Date creationDate;
 
-	@AttributeName(name = "jansId")
+	@AttributeName(name = "oxId")
 	private String id;
 
 	
 	@JsonObject
-	@AttributeName(name = "jansRegistrationData" , ignoreDuringUpdate = true)
+	@AttributeName(name = "oxRegistrationData" , ignoreDuringUpdate = true)
 	private Fido2RegistrationData registrationData;
 
 	public String getDisplayName() {

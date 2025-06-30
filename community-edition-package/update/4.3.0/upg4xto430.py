@@ -34,11 +34,6 @@ parser.add_argument('-n', help="No interactive prompt before upgrade starts, 'Y'
 parser.add_argument('-application-max-ram', help="Application max ram in MB", type=int)
 argsp = parser.parse_args()
 
-argsd = {}
-argsd['n'] = argsp.n
-if argsp.application_max_ram:
-    argsd['application_max_ram'] = argsp.application_max_ram
-
 installer = shutil.which('yum') if shutil.which('yum') else shutil.which('apt')
 
 if not os.path.exists('/etc/gluu/conf'):
@@ -272,11 +267,6 @@ class GluuUpdater:
                     )
             shutil.rmtree(tmp_dir)
 
-        sys.argv = [sys.argv[0]]
-        if argsd.get('n'):
-            sys.argv.append('-n')
-
-
         open(os.path.join(self.ces_dir, '__init__.py'), 'w').close()
         sys.path.append(os.path.join(cur_dir, 'ces_current'))
 
@@ -367,20 +357,6 @@ class GluuUpdater:
         self.casaInstaller = CasaInstaller()
         self.passportInstaller = PassportInstaller()
         self.radiusInstaller = RadiusInstaller()
-
-        for sinstaller, sinstallarg in (
-                    (self.oxauthInstaller, 'installOxAuth'),
-                    (self.oxtrustInstaller, 'installOxTrust'),
-                    (self.fidoInstaller, 'installFido2'),
-                    (self.scimInstaller, 'installScimServer'),
-                    (self.samlInstaller, 'installSaml'),
-                    (self.oxdInstaller, 'installOxd'),
-                    (self.casaInstaller, 'installCasa'),
-                    (self.passportInstaller, 'installPassport'),
-                    (self.radiusInstaller, 'installGluuRadius'),
-                    ):
-            if getattr(sinstaller, 'installed')():
-                setattr(self.Config, sinstallarg, True)
 
         self.rdbmInstaller.packageUtils = packageUtils
         if argsp.application_max_ram:
@@ -812,7 +788,7 @@ class GluuUpdater:
                     ('https://corretto.aws/downloads/resources/{0}/amazon-corretto-{0}-linux-x64.tar.gz'.format(self.corretto_version), os.path.join(self.app_dir, 'amazon-corretto-11-x64-linux-jdk.tar.gz')),
                     ('https://repo1.maven.org/maven2/org/python/jython-installer/{0}/jython-installer-{0}.jar'.format(self.jython_version), os.path.join(self.app_dir, 'jython-installer-{}.jar'.format(self.jython_version))),
                     ('https://nodejs.org/dist/{0}/node-{0}-linux-x64.tar.xz'.format(self.node_version), os.path.join(self.app_dir, 'node-{0}-linux-x64.tar.xz'.format(self.node_version))),
-                    ('https://raw.githubusercontent.com/JanssenProject/jans/refs/heads/main/jans-linux-setup/jans_setup/static/scripts/facter', '/usr/bin/facter'),
+                    ('https://raw.githubusercontent.com/GluuFederation/gluu-snap/master/facter/facter', '/usr/bin/facter'),
                     ('https://ox.gluu.org/maven/org/gluufederation/opendj/opendj-server-legacy/{0}/opendj-server-legacy-{0}.zip'.format(self.opendj_version), os.path.join(self.app_dir, 'opendj-server-{}.zip'.format(self.opendj_version))),
                     ('https://ox.gluu.org/maven/org/gluu/oxauth-client/{0}{1}/oxauth-client-{0}{1}-jar-with-dependencies.jar'.format(self.up_version, self.build_tag), os.path.join(self.app_dir, 'oxauth-client-jar-with-dependencies.jar')),
                     ]

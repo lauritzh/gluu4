@@ -29,16 +29,11 @@ import org.gluu.model.SelectableEntity;
 import org.gluu.model.custom.script.CustomScriptType;
 import org.gluu.model.custom.script.model.CustomScript;
 import org.gluu.oxauth.model.common.ScopeType;
-import org.gluu.oxauth.model.uma.persistence.UmaResource;
-import org.gluu.oxtrust.model.OxAuthClient;
 import org.gluu.oxtrust.security.Identity;
 import org.gluu.oxtrust.service.AttributeService;
-import org.gluu.oxtrust.service.ClientService;
 import org.gluu.oxtrust.service.OxTrustAuditService;
 import org.gluu.oxtrust.service.ScopeService;
-import org.gluu.oxtrust.service.uma.ResourceSetService;
 import org.gluu.oxtrust.util.OxTrustConstants;
-import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.exception.BasePersistenceException;
 import org.gluu.service.LookupService;
 import org.gluu.service.custom.CustomScriptService;
@@ -94,19 +89,11 @@ public class UpdateScopeAction implements Serializable {
 	@Inject
 	private CustomScriptService customScriptService;
 	@Inject
-	private ClientService clientService;	
-	@Inject
-	private ResourceSetService resourceSetService;
-	@Inject
 	private Identity identity;
 	@Inject
 	private OxTrustAuditService oxTrustAuditService;
 	private List<CustomScript> dynamicScripts;
 	private List<SelectableEntity<CustomScript>> availableDynamicScripts = new ArrayList<>();
-	private List<OxAuthClient> clientList;
-	private List<CustomScript> authorizationPolicies;
-	private List<SelectableEntity<CustomScript>> availableAuthorizationPolicies;
-	private List<OxAuthClient> umaClientList;
 
 	private String oxAttributesJson;
 
@@ -117,7 +104,6 @@ public class UpdateScopeAction implements Serializable {
 		this.update = false;
 		this.scope = new Scope();
 		this.scope.setScopeType(ScopeType.OAUTH);
-		this.setAuthorizationPolicies(getInitialAuthorizationPolicies());
 		try {
 			if (this.scope.getOxAuthClaims() != null && this.scope.getOxAuthClaims().size() > 0) {
 				this.claims = getClaimDisplayNameEntiries();
@@ -158,32 +144,8 @@ public class UpdateScopeAction implements Serializable {
 		this.update = true;
 		try {
 			this.scope = scopeService.getScopeByInum(this.inum);
-			if (this.scope == null) {
-				facesMessages.add(FacesMessage.SEVERITY_ERROR, "Failed to load scope");
-				conversationService.endConversation();
-				return OxTrustConstants.RESULT_FAILURE;
-			}
 			if (this.scope.getDisplayName() == null) {
 				this.scope.setDisplayName(this.scope.getId());
-			}
-			this.setAuthorizationPolicies(getInitialAuthorizationPolicies());
-			this.clientList= clientService.getClientByScope(this.scope.getDn());
-			
-			List<UmaResource> umaResourceList = resourceSetService.findResourcesByScope(this.scope.getDn());
-			if (umaResourceList != null) {
-				for (UmaResource umaResource : umaResourceList) {
-					List<String> list = umaResource.getClients();
-					if (list != null) {
-						umaClientList = new ArrayList<OxAuthClient>();
-						for (String clientDn : list) {
-							OxAuthClient oxAuthClient = clientService.getClientByDn(clientDn);
-							if (oxAuthClient != null) {
-								umaClientList.add(oxAuthClient);
-							}
-
-						}
-					}
-				}
 			}
 		} catch (BasePersistenceException ex) {
 			log.error("Failed to find scope {}", inum, ex);
@@ -228,8 +190,8 @@ public class UpdateScopeAction implements Serializable {
 			this.scope.setDisplayName(this.scope.getDisplayName().trim());
 			this.scope.setId(this.scope.getDisplayName());
 			updateDynamicScripts();
-			updateAuthorizationPolicies();
 			updateClaims();
+			saveAttributesJson();
 			if (update) {
 				try {
 					scopeService.updateScope(this.scope);
@@ -276,7 +238,7 @@ public class UpdateScopeAction implements Serializable {
 	}
 
 	private void updateClaims() {
-		if ((this.claims == null)
+		if ((org.gluu.oxauth.model.common.ScopeType.DYNAMIC == this.scope.getScopeType()) || (this.claims == null)
 				|| (this.claims.size() == 0)) {
 			this.scope.setOxAuthClaims(null);
 			return;
@@ -348,6 +310,7 @@ public class UpdateScopeAction implements Serializable {
 		try {
 			this.availableClaims = attributeService.searchAttributes(this.searchAvailableClaimPattern,
 					OxTrustConstants.searchSizeLimit);
+			removeDuplicates();
 			this.oldSearchAvailableClaimPattern = this.searchAvailableClaimPattern;
 			selectAddedClaims();
 		} catch (Exception ex) {
@@ -414,137 +377,13 @@ public class UpdateScopeAction implements Serializable {
 
 	private List<DisplayNameEntry> getClaimDisplayNameEntiries() throws Exception {
 		List<DisplayNameEntry> result = new ArrayList<DisplayNameEntry>();
-		List<AttributeDisplayNameEntry> tmp = lookupService.getDisplayNameEntries(attributeService.getDnForAttribute(null),
-				AttributeDisplayNameEntry.class, this.scope.getOxAuthClaims());
+		List<DisplayNameEntry> tmp = lookupService.getDisplayNameEntries(attributeService.getDnForAttribute(null),
+				this.scope.getOxAuthClaims());
 		if (tmp != null) {
 			result.addAll(tmp);
 		}
 		return result;
 	}
-	
-	private List<CustomScript> getInitialAuthorizationPolicies() {
-		List<CustomScript> result = new ArrayList<CustomScript>();
-		if ((this.scope.getUmaAuthorizationPolicies() == null)
-				|| (this.scope.getUmaAuthorizationPolicies().size() == 0)) {
-			return result;
-		}
-
-		List<ScriptDisplayNameEntry> displayNameEntries = lookupService.getDisplayNameEntries(customScriptService.baseDn(),
-				ScriptDisplayNameEntry.class, this.scope.getUmaAuthorizationPolicies());
-		if (displayNameEntries != null) {
-			for (DisplayNameEntry displayNameEntry : displayNameEntries) {
-				result.add(new CustomScript(displayNameEntry.getDn(), displayNameEntry.getInum(),
-						displayNameEntry.getDisplayName()));
-			}
-		}
-
-		return result;
-	}
-	
-	private void updateAuthorizationPolicies() {
-		if (this.getAuthorizationPolicies() == null || this.getAuthorizationPolicies().size() == 0) {
-			this.scope.setUmaAuthorizationPolicies(null);
-			return;
-		}
-
-		List<String> tmpAuthorizationPolicies = new ArrayList<String>();
-		for (CustomScript authorizationPolicy : this.getAuthorizationPolicies()) {
-			tmpAuthorizationPolicies.add(authorizationPolicy.getDn());
-		}
-
-		this.scope.setUmaAuthorizationPolicies(tmpAuthorizationPolicies);
-	}
-	
-	public void acceptSelectAuthorizationPolicies() {
-		if (this.getAvailableAuthorizationPolicies() == null) {
-			return;
-		}
-
-		Set<String> addedAuthorizationPolicyInums = getAddedAuthorizationPolicyInums();
-
-		for (SelectableEntity<CustomScript> availableAuthorizationPolicy : this.getAvailableAuthorizationPolicies()) {
-			CustomScript authorizationPolicy = availableAuthorizationPolicy.getEntity();
-			if (availableAuthorizationPolicy.isSelected()
-					&& !addedAuthorizationPolicyInums.contains(authorizationPolicy.getInum())) {
-				addAuthorizationPolicy(authorizationPolicy);
-			}
-
-			if (!availableAuthorizationPolicy.isSelected()
-					&& addedAuthorizationPolicyInums.contains(authorizationPolicy.getInum())) {
-				removeAuthorizationPolicy(authorizationPolicy);
-			}
-		}
-	}
-
-	public void cancelSelectAuthorizationPolicies() {
-	}
-
-	public void addAuthorizationPolicy(CustomScript addAuthorizationPolicy) {
-		if (addAuthorizationPolicy == null) {
-			return;
-		}
-
-		this.getAuthorizationPolicies().add(addAuthorizationPolicy);
-	}
-
-	public void removeAuthorizationPolicy(CustomScript removeAuthorizationPolicy) {
-		if (removeAuthorizationPolicy == null) {
-			return;
-		}
-
-		for (Iterator<CustomScript> it = this.getAuthorizationPolicies().iterator(); it.hasNext();) {
-			CustomScript authorizationPolicy = (CustomScript) it.next();
-
-			if (StringHelper.equalsIgnoreCase(removeAuthorizationPolicy.getInum(), authorizationPolicy.getInum())) {
-				it.remove();
-				break;
-			}
-		}
-	}
-	
-	public void searchAvailableAuthorizationPolicies() {
-		if (this.getAvailableAuthorizationPolicies() != null) {
-			selectAddedAuthorizationPolicies();
-			return;
-		}
-
-		try {
-			List<CustomScript> availableScripts = customScriptService
-					.findCustomScripts(Arrays.asList(CustomScriptType.UMA_RPT_POLICY), CUSTOM_SCRIPT_RETURN_ATTRIBUTES);
-
-			List<SelectableEntity<CustomScript>> tmpAvailableAuthorizationPolicies = new ArrayList<SelectableEntity<CustomScript>>();
-			for (CustomScript authorizationPolicy : availableScripts) {
-				tmpAvailableAuthorizationPolicies.add(new SelectableEntity<CustomScript>(authorizationPolicy));
-			}
-
-			this.setAvailableAuthorizationPolicies(tmpAvailableAuthorizationPolicies);
-			selectAddedAuthorizationPolicies();
-		} catch (BasePersistenceException ex) {
-			log.error("Failed to find available authorization policies", ex);
-		}
-
-	}
-
-	private void selectAddedAuthorizationPolicies() {
-		Set<String> addedAuthorizationPolicyInums = getAddedAuthorizationPolicyInums();
-
-		for (SelectableEntity<CustomScript> availableAuthorizationPolicy : this.getAvailableAuthorizationPolicies()) {
-			availableAuthorizationPolicy.setSelected(
-					addedAuthorizationPolicyInums.contains(availableAuthorizationPolicy.getEntity().getInum()));
-		}
-	}
-
-	private Set<String> getAddedAuthorizationPolicyInums() {
-		Set<String> addedAuthorizationPolicyInums = new HashSet<String>();
-
-		for (CustomScript authorizationPolicy : this.getAuthorizationPolicies()) {
-			addedAuthorizationPolicyInums.add(authorizationPolicy.getInum());
-		}
-
-		return addedAuthorizationPolicyInums;
-	}
-
-
 
 	public String getInum() {
 		return inum;
@@ -575,8 +414,8 @@ public class UpdateScopeAction implements Serializable {
 		if ((this.scope.getDynamicScopeScripts() == null) || (this.scope.getDynamicScopeScripts().size() == 0)) {
 			return result;
 		}
-		List<ScriptDisplayNameEntry> displayNameEntries = lookupService.getDisplayNameEntries(customScriptService.baseDn(),
-				ScriptDisplayNameEntry.class, this.scope.getDynamicScopeScripts());
+		List<DisplayNameEntry> displayNameEntries = lookupService.getDisplayNameEntries(customScriptService.baseDn(),
+				this.scope.getDynamicScopeScripts());
 		if (displayNameEntries != null) {
 			for (DisplayNameEntry displayNameEntry : displayNameEntries) {
 				result.add(new CustomScript(displayNameEntry.getDn(), displayNameEntry.getInum(),
@@ -691,12 +530,7 @@ public class UpdateScopeAction implements Serializable {
 	}
 
 	public List<ScopeType> getScopeTypes() {
-		List<ScopeType> scopeTypes = scopeService.getScopeTypes();
-		if(!update) {
-			scopeTypes.remove(ScopeType.UMA);
-			scopeTypes.remove(ScopeType.SPONTANEOUS);
-		}
-		return scopeTypes;
+		return scopeService.getScopeTypes();
 	}
 
 	public String getOxAttributesJson() {
@@ -728,51 +562,5 @@ public class UpdateScopeAction implements Serializable {
 		} else {
 			return "{}";
 		}
-	}
-
-	@ObjectClass(value = "gluuAttribute")
-	class AttributeDisplayNameEntry extends DisplayNameEntry {
-		public AttributeDisplayNameEntry() {
-			super();
-		}
-	}
-	
-	@ObjectClass(value = "oxCustomScript")
-	class ScriptDisplayNameEntry extends DisplayNameEntry {
-		public ScriptDisplayNameEntry() {
-			super();
-		}
-	}
-
-	public List<OxAuthClient> getClientList() {
-		return clientList;
-	}
-
-	public void setClientList(List<OxAuthClient> clientList) {
-		this.clientList = clientList;
-	}
-
-	public List<CustomScript> getAuthorizationPolicies() {
-		return authorizationPolicies;
-	}
-
-	public void setAuthorizationPolicies(List<CustomScript> authorizationPolicies) {
-		this.authorizationPolicies = authorizationPolicies;
-	}
-
-	public List<OxAuthClient> getUmaClientList() {
-		return umaClientList;
-	}
-
-	public void setUmaClientList(List<OxAuthClient> umaClientList) {
-		this.umaClientList = umaClientList;
-	}
-
-	public List<SelectableEntity<CustomScript>> getAvailableAuthorizationPolicies() {
-		return availableAuthorizationPolicies;
-	}
-
-	public void setAvailableAuthorizationPolicies(List<SelectableEntity<CustomScript>> availableAuthorizationPolicies) {
-		this.availableAuthorizationPolicies = availableAuthorizationPolicies;
 	}
 }

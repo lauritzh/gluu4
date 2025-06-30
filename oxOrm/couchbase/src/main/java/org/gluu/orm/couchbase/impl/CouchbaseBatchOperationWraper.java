@@ -6,13 +6,14 @@
 
 package org.gluu.orm.couchbase.impl;
 
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.query.N1qlQueryRow;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.gluu.persist.model.BatchOperation;
 import org.gluu.persist.reflect.property.PropertyAnnotation;
-
-import com.couchbase.client.java.json.JsonObject;
 
 /**
  * Couchbase batch operation wrapper
@@ -43,12 +44,19 @@ public class CouchbaseBatchOperationWraper<T> {
         return batchOperation;
     }
 
-    public List<T> createEntities(List<JsonObject> searchResult) {
+    public List<T> createEntities(List<N1qlQueryRow> searchResult) {
         if (couchbaseEntryManager == null) {
             return new ArrayList<T>(0);
         }
 
-        return couchbaseEntryManager.createEntities(entryClass, propertiesAnnotations, null, searchResult.toArray(new JsonObject[0]));
+        JsonObject[] resultObjects = new JsonObject[searchResult.size()];
+
+        int index = 0;
+        for (N1qlQueryRow row : searchResult) {
+            resultObjects[index++] = row.value();
+        }
+
+        return couchbaseEntryManager.createEntities(entryClass, propertiesAnnotations, null, resultObjects);
     }
 
 }

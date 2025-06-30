@@ -6,19 +6,27 @@
 
 package org.gluu.oxauth.model.authorize;
 
-import com.google.common.collect.Lists;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.gluu.oxauth.model.common.Display;
 import org.gluu.oxauth.model.common.Prompt;
-import org.gluu.oxauth.model.common.ResponseMode;
 import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.encryption.KeyEncryptionAlgorithm;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.jwe.Jwe;
 import org.gluu.oxauth.model.jwe.JweDecrypterImpl;
@@ -27,12 +35,9 @@ import org.gluu.oxauth.model.jwt.JwtHeaderName;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.JwtUtil;
-import org.gluu.oxauth.model.util.URLPatternList;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.RedirectUriResponse;
-import org.gluu.oxauth.service.RedirectionUriService;
-import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.service.cdi.util.CdiUtil;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
@@ -41,16 +46,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 /**
  * @author Javier Rojas Blum
@@ -91,7 +88,6 @@ public class JwtAuthorizationRequest {
     private String bindingMessage;
     private String userCode;
     private Integer requestedExpiry;
-    private ResponseMode responseMode;
 
     private String encodedJwt;
     private String payload;
@@ -294,15 +290,14 @@ public class JwtAuthorizationRequest {
                 requestedExpiry = Integer.parseInt(jsonPayload.getString("requested_expiry"));
             }
         }
-        if (jsonPayload.has("response_mode")) {
-            responseMode = ResponseMode.getByValue(jsonPayload.optString("response_mode"));
-        }
     }
 
     private boolean validateSignature(AbstractCryptoProvider cryptoProvider, SignatureAlgorithm signatureAlgorithm, Client client, String signingInput, String signature) throws Exception {
         ClientService clientService = CdiUtil.bean(ClientService.class);
         String sharedSecret = clientService.decryptSecret(client.getClientSecret());
-        JSONObject jwks = ServerUtil.getJwks(client);
+        JSONObject jwks = Strings.isNullOrEmpty(client.getJwks()) ?
+                JwtUtil.getJSONWebKeys(client.getJwksUri()) :
+                new JSONObject(client.getJwks());
         return cryptoProvider.verifySignature(signingInput, signature, keyId, jwks, sharedSecret, signatureAlgorithm);
     }
 
@@ -423,10 +418,6 @@ public class JwtAuthorizationRequest {
         return requestedExpiry;
     }
 
-    public ResponseMode getResponseMode() {
-        return responseMode;
-    }
-
     @Nullable
     private static String queryRequest(@Nullable String requestUri, @Nullable RedirectUriResponse redirectUriResponse,
                                        AppConfiguration appConfiguration) {
@@ -442,21 +433,21 @@ public class JwtAuthorizationRequest {
             javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
             String request = null;
             try {
-                Response clientResponse = clientRequest.target(reqUriWithoutFragment).request().buildGet().invoke();
-                int status = clientResponse.getStatus();
-
-                if (status == 200) {
-                    request = clientResponse.readEntity(String.class);
-
-                    if (StringUtils.isBlank(reqUriHash) || !appConfiguration.getRequestUriHashVerificationEnabled()) {
-                        validRequestUri = true;
-                    } else {
-                        String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(request));
-                        validRequestUri = StringUtils.equals(reqUriHash, hash);
-                    }
-                }
+	            Response clientResponse = clientRequest.target(reqUriWithoutFragment).request().buildGet().invoke();
+	            int status = clientResponse.getStatus();
+	
+	            if (status == 200) {
+	                request = clientResponse.readEntity(String.class);
+	
+	                if (StringUtils.isBlank(reqUriHash) || !appConfiguration.getRequestUriHashVerificationEnabled()) {
+	                    validRequestUri = true;
+	                } else {
+	                    String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(request));
+	                    validRequestUri = StringUtils.equals(reqUriHash, hash);
+	                }
+	            }
             } finally {
-                clientRequest.close();
+            	clientRequest.close();
             }
 
             if (!validRequestUri && redirectUriResponse != null) {
@@ -472,7 +463,6 @@ public class JwtAuthorizationRequest {
     }
 
     public static JwtAuthorizationRequest createJwtRequest(String request, String requestUri, Client client, RedirectUriResponse redirectUriResponse, AbstractCryptoProvider cryptoProvider, AppConfiguration appConfiguration) {
-        validateRequestUri(requestUri, client, appConfiguration, redirectUriResponse != null ? redirectUriResponse.getState() : null);
         final String requestFromClient = queryRequest(requestUri, redirectUriResponse, appConfiguration);
         if (StringUtils.isNotBlank(requestFromClient)) {
             request = requestFromClient;
@@ -492,35 +482,4 @@ public class JwtAuthorizationRequest {
         return null;
     }
 
-    public static void validateRequestUri(String requestUri, Client client, AppConfiguration appConfiguration, String state) {
-        validateRequestUri(requestUri, client, appConfiguration, state, CdiUtil.bean(ErrorResponseFactory.class));
-    }
-
-    public static void validateRequestUri(String requestUri, Client client, AppConfiguration appConfiguration, String state, ErrorResponseFactory errorResponseFactory) {
-        if (StringUtils.isBlank(requestUri)) {
-            return; // nothing to validate
-        }
-
-        // client.requestUris() - validation
-        if (ArrayUtils.isNotEmpty(client.getRequestUris()) && !RedirectionUriService.isUriEqual(requestUri, client.getRequestUris())) {
-            log.debug("request_uri is forbidden by client request uris.");
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST_URI, state, ""))
-                    .build());
-        }
-
-        // check black list
-        final List<String> blackList = appConfiguration.getRequestUriBlockList();
-        if (!blackList.isEmpty()) {
-            URLPatternList urlPatternList = new URLPatternList(blackList);
-            if (urlPatternList.isUrlListed(requestUri)) {
-                log.debug("request_uri is forbidden by requestUriBlackList configuration.");
-                throw new WebApplicationException(Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST_URI, state, ""))
-                        .build());
-            }
-        }
-    }
 }

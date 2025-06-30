@@ -1,13 +1,6 @@
-
-!!! Attention
-    All Linux assets, packages, and binaries require a support contract for access.
-    Contact sales@gluu.org for more information. For free up-to-date binaries,
-    check out the latest releases at [The Linux Foundation Janssen Project](https://docs.jans.io),
-    the new upstream open source project.
-
 # RHEL Installation 
 ## Overview
-Single-node Gluu Server Linux packages are available for RHEL 7, 8 and 9. Follow the instructions below:
+Single-node Gluu Server Linux packages are available for RHEL 7 and 8. Follow the instructions below:
 
 1. [Install the Linux package](#install-the-package)
 2. [Start the Server and log in to the container](#start-the-server-and-log-in)
@@ -30,83 +23,18 @@ Single-node Gluu Server Linux packages are available for RHEL 7, 8 and 9. Follow
 
 The Gluu Server will create its file system under `/root/` and will be installed under `/opt`. File size and [minimum requirements](../installation-guide/index.md) remain the same as the host.
 
-For **RHEL 9 nochroot-package**, run the following commands:
-
-```
-Open /etc/yum.repos.d/redhat-rhui.repo update enabled=0 to enabled=1 in repo: [codeready-builder-for-rhel-9-rhui-rpms]
-```
-
-```
-dnf update -y
-```
-
-```
-dnf  install  https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-
-```
-
-```
-dnf  install  https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
-
-```
-
-```
-wget --user="user" --password="password" https://repo.gluu.org/rhel/Gluu-rhel-9-testing.repo -O /etc/yum.repos.d/Gluu.repo
-
-```
-
-```
-wget --user="user" --password="password" https://repo.gluu.org/rhel/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
-```
-
-```
-update-crypto-policies --set DEFAULT:SHA1
-```
-
-```
-rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
-```
-
-```
-Update file /etc/dnf/dnf.conf, append these two lines:
-
-username=user
-password=password
-```
-
-```
-dnf clean all
-```
-
-```
-dnf install gluu-server-nochroot
-```
-
-```
-update-crypto-policies --set DEFAULT
-```
-
-
 For **RHEL 8**, run the following commands:
 
 ```
-wget --user="your-username" --password="your-password" https://repo.gluu.org/rhel/Gluu-rhel8.repo -O /etc/yum.repos.d/Gluu.repo
+wget https://repo.gluu.org/rhel/Gluu-rhel8.repo -O /etc/yum.repos.d/Gluu.repo
 ```
 
 ```
-wget --user="your-username" --password="your-password" https://repo.gluu.org/rhel/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
+wget https://repo.gluu.org/rhel/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
 ```
 
 ```
 rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
-```
-
-```
-Update file /etc/dnf/dnf.conf, append these two lines:
-
-
-username=**your-username**
-password=**your-password**
 ```
 
 ```
@@ -114,7 +42,7 @@ yum clean all
 ```
 
 ```
-yum install gluu-server
+yum install gluu-server-4.3.1-rhel8.x86_64.rpm
 ```
 
 After installation, the `gluu-server` package needs to be excluded from automatic updates with the following command.
@@ -126,11 +54,11 @@ yum versionlock gluu-server
 For **RHEL 7**, run the following commands:
 
 ```
-wget --user="your-username" --password="your-password" https://repo.gluu.org/rhel/Gluu-rhel7.repo -O /etc/yum.repos.d/Gluu.repo
+wget https://repo.gluu.org/rhel/Gluu-rhel7.repo -O /etc/yum.repos.d/Gluu.repo
 ```
 
 ```
-wget --user="your-username" --password="your-password" https://repo.gluu.org/rhel/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
+wget https://repo.gluu.org/rhel/RPM-GPG-KEY-GLUU -O /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
 ```
 
 ```
@@ -138,19 +66,11 @@ rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-GLUU
 ```
 
 ```
-Update file /etc/dnf/dnf.conf, append these two lines:
-
-
-username=**your-username**
-password=**your-password**
-```
-
-```
 yum clean all
 ```
 
 ```
-yum install gluu-server
+yum install gluu-server-4.3.1-rhel7.x86_64.rpm
 ```
 
 After installation, the `gluu-server` package needs to be excluded from automatic updates with the following command.

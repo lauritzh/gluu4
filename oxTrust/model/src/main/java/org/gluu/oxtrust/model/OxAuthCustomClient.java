@@ -14,7 +14,6 @@ import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.AttributesList;
 import org.gluu.persist.annotation.DataEntry;
 import org.gluu.persist.annotation.ObjectClass;
-import org.gluu.util.StringHelper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -43,7 +42,7 @@ public class OxAuthCustomClient extends CustomEntry implements Serializable {
 	}
 
 	public String getInum() {
-		return StringHelper.toString(getAttribute("inum"));
+		return getAttribute("inum");
 	}
 
 	public void setInum(String value) {
@@ -51,7 +50,7 @@ public class OxAuthCustomClient extends CustomEntry implements Serializable {
 	}
 
 	public String getDisplayName() {
-		return StringHelper.toString(getAttribute("displayName"));
+		return getAttribute("displayName");
 	}
 
 	public void setDisplayName(String value) {
@@ -59,7 +58,7 @@ public class OxAuthCustomClient extends CustomEntry implements Serializable {
 	}
 
 	public String getOxAuthClientSecret() {
-		return StringHelper.toString(getAttribute("oxAuthClientSecret"));
+		return getAttribute("oxAuthClientSecret");
 	}
 
 	public void setOxAuthClientSecret(String value) {
@@ -67,7 +66,7 @@ public class OxAuthCustomClient extends CustomEntry implements Serializable {
 	}
 
 	public String getUserPassword() {
-		return StringHelper.toString(getAttribute("userPassword"));
+		return getAttribute("userPassword");
 	}
 
 	public void setUserPassword(String value) {

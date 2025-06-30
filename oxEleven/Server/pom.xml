@@ -10,7 +10,7 @@
 	<parent>
 		<artifactId>oxeleven</artifactId>
 		<groupId>org.gluu</groupId>
-		<version>4.5.11-SNAPSHOT</version>
+		<version>4.3.2-SNAPSHOT</version>
 	</parent>
 
 	<build>
@@ -49,7 +49,7 @@
 		<!-- Security -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk18on</artifactId>
+			<artifactId>bcprov-jdk15on</artifactId>
 		</dependency>
 
 		<!-- Google -->

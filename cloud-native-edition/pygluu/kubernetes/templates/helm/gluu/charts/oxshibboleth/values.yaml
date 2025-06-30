@@ -29,7 +29,7 @@ image:
   # -- Image  to use for deploying.
   repository: gluufederation/oxshibboleth
   # -- Image  tag to use for deploying.
-  tag: 4.5.11_dev
+  tag: 4.3.1_01
   # -- Image Pull Secrets
   pullSecrets: [ ]
 # -- Service replica number.
@@ -60,34 +60,29 @@ service:
   sessionAffinityConfig:
     clientIP:
       timeoutSeconds: 10800
-  # -- Configure the liveness healthcheck for the oxshibboleth if needed.
-  livenessProbe:
-    # -- Executes the python3 healthcheck.
-    exec:
-      command:
-        - python3
-        - /app/scripts/healthcheck.py
-    initialDelaySeconds: 30
-    periodSeconds: 30
-    timeoutSeconds: 5
-  # -- Configure the readiness healthcheck for the oxshibboleth if needed.
-  readinessProbe:
-    exec:
-      command:
-        - python3
-        - /app/scripts/healthcheck.py
+# -- Configure the liveness healthcheck for the oxShibboleth if needed.
+livenessProbe:
+  httpGet:
+    # -- http liveness probe endpoint
+    path: /idp
+    port: http-oxshib
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+# -- Configure the readiness healthcheck for the casa if needed.
+readinessProbe:
+  httpGet:
+    # -- http liveness probe endpoint
+    path: /idp
+    port: http-oxshib
+  initialDelaySeconds: 25
+  periodSeconds: 25
+  timeoutSeconds: 5
 # -- Configure any additional volumes that need to be attached to the pod
 volumes: []
 # -- Configure any additional volumesMounts that need to be attached to the containers
 volumeMounts: []
-# Actions on lifecycle events such as postStart and preStop
-# Example postStop: https://github.com/GluuFederation/cloud-native-edition/discussions/516
-# Example postStart:
-# lifecycle:
-#   postStart:
-#     exec:
-#       command: ["sh", "-c", "mkdir /opt/gluu/jetty/oxauth/custom/static/stylesheet/"]
-lifecycle: {}
+
 nameOverride: ""
 fullnameOverride: ""
 
@@ -101,5 +96,3 @@ affinity: {}
 additionalLabels: { }
 # -- Additional annotations that will be added across all resources  in the format of {cert-manager.io/issuer: "letsencrypt-prod"}. key app is taken
 additionalAnnotations: { }
-# -- Add custom scripts that have been mounted to run before the entrypoint.
-customScripts: []

@@ -5,29 +5,23 @@
     <groupId>org.gluu</groupId>
     <artifactId>oxd</artifactId>
     <packaging>pom</packaging>
-    <version>4.5.11-SNAPSHOT</version>
+    <version>4.3.2-SNAPSHOT</version>
     <name>oxD</name>
     <url>https://jenkins.gluu.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.min-version>3.0.3</maven.min-version>
-        <oxCore.version>4.5.11-SNAPSHOT</oxCore.version>
+        <oxCore.version>4.3.2-SNAPSHOT</oxCore.version>
         <jackson.version>2.10.1</jackson.version>
         <httpcomponents.version>4.1.2</httpcomponents.version>
-        <oxauth.version>4.5.11-SNAPSHOT</oxauth.version>
+        <oxauth.version>4.3.2-SNAPSHOT</oxauth.version>
         <licensing.version>1.1.0</licensing.version>
-        <guice.version>5.0.0</guice.version>
+        <guice.version>3.0</guice.version>
         <guava.version>[24.1.1,)</guava.version>
-        <oxlicense.version>4.5.11-SNAPSHOT</oxlicense.version>
-        <selenium.version>4.0.0</selenium.version>
-	<skip.swagger.client.generation>false</skip.swagger.client.generation>
-
-	<sonar.projectKey>GluuFederation_oxd</sonar.projectKey>
-        <sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
-        <sonar.organization>gluufederation</sonar.organization>
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-
+        <oxlicense.version>4.3.2-SNAPSHOT</oxlicense.version>
+        <selenium.version>3.141.59</selenium.version>
+        <skip.swagger.client.generation>false</skip.swagger.client.generation>
     </properties>
 
     <prerequisites>
@@ -75,9 +69,15 @@
             <dependency>
                 <groupId>org.gluu</groupId>
                 <artifactId>gluu-core-bom</artifactId>
-                <version>4.5.11-SNAPSHOT</version>
+                <version>4.3.2-SNAPSHOT</version>
                 <scope>import</scope>
                 <type>pom</type>
+            </dependency>
+            <!-- Force to use this version because MySQL connector depends on older version -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>3.19.1</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
@@ -89,7 +89,7 @@
             <dependency>
                 <groupId>org.gluu</groupId>
                 <artifactId>uma-rs-resteasy</artifactId>
-                <version>4.5.11-SNAPSHOT</version>
+                <version>4.3.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.gluu</groupId>
@@ -218,21 +218,44 @@
             </dependency>
             <!-- selenium dependencies-->
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.13.2</version>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-java</artifactId>
+                <version>${selenium.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-java</artifactId>
-                <version>3.141.59</version>
-                <scope>test</scope>
+                <artifactId>selenium-remote-driver</artifactId>
+                <version>${selenium.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
                 <artifactId>selenium-support</artifactId>
                 <version>3.141.59</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.htmlunit</groupId>
+                <artifactId>htmlunit-cssparser</artifactId>
+                <version>1.9.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>htmlunit-driver</artifactId>
+                <version>2.52.0</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>net.sourceforge.htmlunit</groupId>
+                        <artifactId>htmlunit</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.htmlunit</groupId>
+                <artifactId>htmlunit</artifactId>
+                <version>2.52.0</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -246,17 +269,16 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>2.3</version>
                 </plugin>
-				<!-- Ensures we are compiling at 1.8 level -->
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.1</version>
-					<configuration>
-						<source>1.8</source>
-						<target>1.8</target>
-						<encoding>UTF-8</encoding>
-					</configuration>
-				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.3.2</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                        <encoding>UTF-8</encoding>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>

@@ -64,6 +64,10 @@ public class MetricService extends org.gluu.service.metric.MetricService {
 
     @Override
     public boolean isMetricReporterEnabled() {
+        if (this.appConfiguration.getMetricReporterEnabled() == null) {
+            return false;
+        }
+
         return this.appConfiguration.getMetricReporterEnabled();
     }
 

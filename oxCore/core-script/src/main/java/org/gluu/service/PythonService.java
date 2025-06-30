@@ -67,11 +67,9 @@ public class PythonService implements Serializable {
     public boolean initPythonInterpreter(String pythonModulesDir) {
         boolean result = false;
 
-        String pythonHome = getPythonHome();
-    	log.info("Initializing PythonService with Jython: '{}'", pythonHome);
-        if (StringHelper.isNotEmpty(pythonHome)) {
+        if (isInitInterpreter()) {
             try {
-            	PythonInterpreter.initialize(getPreProperties(), getPostProperties(pythonModulesDir, pythonHome), null);
+                PythonInterpreter.initialize(getPreProperties(), getPostProperties(pythonModulesDir), null);
                 this.pythonInterpreter = new PythonInterpreter();
 
                 initPythonInterpreter(this.pythonInterpreter);
@@ -82,8 +80,6 @@ public class PythonService implements Serializable {
             } catch (Exception ex) {
                 log.error("Failed to initialize PythonInterpreter correctly", ex);
             }
-        } else {
-        	log.error("Failed to initialize PythonService. Jython location is not defined!");
         }
 
         this.interpereterReady = result;
@@ -124,13 +120,16 @@ public class PythonService implements Serializable {
         return clonedProps;
     }
 
-    private Properties getPostProperties(String pythonModulesDir, String pythonHome) {
+    private Properties getPostProperties(String pythonModulesDir) {
         Properties props = getPreProperties();
 
         String catalinaTmpFolder = System.getProperty("java.io.tmpdir") + File.separator + "python" + File.separator + "cachedir";
         props.setProperty("python.cachedir", catalinaTmpFolder);
 
-        props.setProperty("python.home", pythonHome);
+        String pythonHome = System.getenv("PYTHON_HOME");
+        if (StringHelper.isNotEmpty(pythonHome)) {
+            props.setProperty("python.home", pythonHome);
+        }
 
         // Register custom python modules
         if (StringHelper.isNotEmpty(pythonModulesDir)) {
@@ -143,14 +142,15 @@ public class PythonService implements Serializable {
         return props;
     }
 
-	private String getPythonHome() {
-		String pythonHome = System.getenv("PYTHON_HOME");
+    private boolean isInitInterpreter() {
+        String pythonHome = System.getenv("PYTHON_HOME");
         if (StringHelper.isNotEmpty(pythonHome)) {
-            return pythonHome;
+            System.setProperty("python.home", pythonHome);
         }
 
-        return System.getProperty("python.home");
-	}
+        String pythonHomeProperty = System.getProperty("python.home");
+        return StringHelper.isNotEmpty(pythonHomeProperty);
+    }
 
     public <T> T loadPythonScript(String scriptName, String scriptPythonType, Class<T> scriptJavaType, PyObject[] constructorArgs)
             throws PythonException {

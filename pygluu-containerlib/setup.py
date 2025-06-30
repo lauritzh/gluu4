@@ -19,10 +19,10 @@ def find_version(*file_paths):
 setup(
     name="pygluu-containerlib",
     version=find_version("pygluu", "containerlib", "__init__.py"),
-    url="https://github.com/GluuFederation/gluu4/tree/4.5/pygluu-containerlib",
+    url="https://github.com/GluuFederation/pygluu-containerlib",
     license="Apache License 2.0",
     author="Gluu",
-    author_email="support@gluu.org",
+    author_email="isman@gluu.org",
     description="",
     long_description=__doc__,
     packages=find_packages(),
@@ -38,12 +38,11 @@ setup(
         "requests-toolbelt>=0.9.1",
         "cryptography>=2.8",
         "pymysql>=1.0.2",
-        "sqlalchemy>=1.3,<2.0",
+        "sqlalchemy>=1.3,<1.4",
         "psycopg2>=2.8.6",
         "google-cloud-spanner>=3.3.0",
         "boto3>=1.26.21",
         "google-cloud-secret-manager>=2.2.0",
-        "click",
     ],
     classifiers=[
         "Intended Audience :: Developers",
@@ -54,14 +53,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
     ],
     include_package_data=True,
     python_requires=">=3.8.0",
-    entry_points={
-        "console_scripts": [
-            "pygluu-containerlib = pygluu.containerlib.cli:cli",
-        ],
-    },
 )

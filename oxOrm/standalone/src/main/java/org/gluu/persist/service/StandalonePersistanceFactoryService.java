@@ -11,7 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +31,6 @@ public class StandalonePersistanceFactoryService extends PersistanceFactoryServi
 
 	private HashMap<String, PersistenceEntryManagerFactory> persistenceEntryManagerFactoryNames;
 	private HashMap<Class<? extends PersistenceEntryManagerFactory>, PersistenceEntryManagerFactory> persistenceEntryManagerFactoryTypes;
-	private Set<String> initializedFactories = new HashSet<>();
 
 	@Override
 	public PersistenceEntryManagerFactory getPersistenceEntryManagerFactory(PersistenceConfiguration persistenceConfiguration) {
@@ -47,17 +45,8 @@ public class StandalonePersistanceFactoryService extends PersistanceFactoryServi
 
 		PersistenceEntryManagerFactory persistenceEntryManagerFactory = this.persistenceEntryManagerFactoryTypes
 				.get(persistenceEntryManagerFactoryClass);
-		initFactory(persistenceEntryManagerFactory);
 
 		return persistenceEntryManagerFactory;
-	}
-
-	private void initFactory(PersistenceEntryManagerFactory persistenceEntryManagerFactory) {
-		String persistenceType = persistenceEntryManagerFactory.getPersistenceType();
-		if (!initializedFactories.contains(persistenceType)) {
-			persistenceEntryManagerFactory.initStandalone(this);
-			initializedFactories.add(persistenceType);
-		}
 	}
 
 	@Override
@@ -67,7 +56,6 @@ public class StandalonePersistanceFactoryService extends PersistanceFactoryServi
 		}
 
 		PersistenceEntryManagerFactory persistenceEntryManagerFactory = this.persistenceEntryManagerFactoryNames.get(persistenceType);
-		initFactory(persistenceEntryManagerFactory);
 
 		return persistenceEntryManagerFactory;
 	}
@@ -98,6 +86,7 @@ public class StandalonePersistanceFactoryService extends PersistanceFactoryServi
 		PersistenceEntryManagerFactory persistenceEntryManagerFactory;
 		try {
 			persistenceEntryManagerFactory = ReflectHelper.createObjectByDefaultConstructor(persistenceEntryManagerFactoryClass);
+			persistenceEntryManagerFactory.initStandalone(this);
 		} catch (PropertyNotFoundException | IllegalArgumentException | InstantiationException | IllegalAccessException
 				| InvocationTargetException e) {
             throw new ConfigurationException(

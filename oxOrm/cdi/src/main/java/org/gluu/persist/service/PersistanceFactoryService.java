@@ -7,9 +7,7 @@
 package org.gluu.persist.service;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -47,9 +45,6 @@ public class PersistanceFactoryService implements BaseFactoryService {
 			BASE_DIR = null;
 		}
 	}
-
-	public static String DB_PROPERTY_MYSQL_SIMPLE_JSON = "mysql.simple-json";
-	public static List<String> ADDIONAL_ENV_DB_PROPERTIES = Arrays.asList(DB_PROPERTY_MYSQL_SIMPLE_JSON);
 
 	public static final String BASE_DIR;
 	public static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
@@ -157,14 +152,8 @@ public class PersistanceFactoryService implements BaseFactoryService {
 			}
 			PropertiesConfiguration propertiesConfiguration = persistenceFileConf.getPropertiesConfiguration();
 
-			// Allow to override values via environment variables
-			replaceWithSystemValues(propertiesConfiguration, ADDIONAL_ENV_DB_PROPERTIES);
-
-			// Allow to override values via upper cased environment variables
-			replaceWithUpperCasedSystemValues(propertiesConfiguration);
-
-			// Allow to override values via java variables
-			replaceWithJavaVariablesValues(propertiesConfiguration);
+			// Allow to override value via environment variables
+			replaceWithSystemValues(propertiesConfiguration);
 			
 			// Merge all configuration into one with prefix
 			appendPropertiesWithPrefix(mergedPropertiesConfiguration, propertiesConfiguration, prefix);
@@ -178,42 +167,12 @@ public class PersistanceFactoryService implements BaseFactoryService {
 		return persistenceConfiguration;
 	}
 
-	private void replaceWithSystemValues(PropertiesConfiguration propertiesConfiguration, List<String> additionalKeys) {
+	private void replaceWithSystemValues(PropertiesConfiguration propertiesConfiguration) {
 		Iterator<?> keys = propertiesConfiguration.getKeys();
         while (keys.hasNext()) {
             String key = (String) keys.next();
 			if (System.getenv(key) != null) {
 				propertiesConfiguration.setProperty(key, System.getenv(key));
-			}
-        }
-        
-        if (additionalKeys != null) {
-        	for (String key : additionalKeys) {
-    			if (System.getenv(key) != null) {
-    				propertiesConfiguration.setProperty(key, System.getenv(key));
-    			}
-
-        	}
-        }
-	}
-
-	private void replaceWithUpperCasedSystemValues(PropertiesConfiguration propertiesConfiguration) {
-		Iterator<?> keys = propertiesConfiguration.getKeys();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            String envKey = key.toUpperCase().replaceAll("\\.", "\\_").replaceAll("\\-", "\\_");
-			if (System.getenv(envKey) != null) {
-				propertiesConfiguration.setProperty(key, System.getenv(envKey));
-			}
-        }
-	}
-
-	private void replaceWithJavaVariablesValues(PropertiesConfiguration propertiesConfiguration) {
-		Iterator<?> keys = propertiesConfiguration.getKeys();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-			if (System.getProperty(key) != null) {
-				propertiesConfiguration.setProperty(key, System.getProperty(key));
 			}
         }
 	}

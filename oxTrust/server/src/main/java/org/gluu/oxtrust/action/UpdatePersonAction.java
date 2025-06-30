@@ -37,7 +37,6 @@ import org.gluu.model.attribute.AttributeValidation;
 import org.gluu.oxauth.model.fido.u2f.protocol.DeviceData;
 import org.gluu.oxtrust.exception.DuplicateEmailException;
 import org.gluu.oxtrust.model.Device;
-import org.gluu.oxtrust.model.GluuBoolean;
 import org.gluu.oxtrust.model.GluuCustomAttribute;
 import org.gluu.oxtrust.model.GluuCustomPerson;
 import org.gluu.oxtrust.model.GluuFido2Device;
@@ -179,9 +178,6 @@ public class UpdatePersonAction implements Serializable {
 
 	@Inject
 	private JsonService jsonService;
-	
-	@Inject
-	private LogoutAction logoutAction;
 
 	private String gluuStatus;
 
@@ -234,8 +230,6 @@ public class UpdatePersonAction implements Serializable {
 	private List<String> externalAuthCustomAttributes = new ArrayList<String>();
 	private List<String> oxExternalUids = new ArrayList<String>();
 	private DeviceData deviceDetail;
-
-	private String oldUid;
 
 	public DeviceData getDeviceDetail() {
 		return deviceDetail;
@@ -311,7 +305,6 @@ public class UpdatePersonAction implements Serializable {
 			addFido2Devices();
 			addOtpDevices();
 			addMobileDevices();
-			this.oldUid = person.getUid();
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			return OxTrustConstants.RESULT_FAILURE;
@@ -566,16 +559,9 @@ public class UpdatePersonAction implements Serializable {
 		for (GluuCustomAttribute customAttribute : customAttributes) {
 			if (customAttribute.getName().equalsIgnoreCase("gluuStatus")) {
 				customAttribute.setValue(gluuStatus);
+				break;
 			}
-			if (customAttribute.getName().equalsIgnoreCase("oxTrustActive")) {
-				if(gluuStatus.equalsIgnoreCase("active")) {
-					customAttribute.setValue(GluuBoolean.TRUE);
-					customAttribute.setBooleanValue(GluuBoolean.TRUE);
-				}else {
-					customAttribute.setValue(GluuBoolean.FALSE);
-					customAttribute.setBooleanValue(GluuBoolean.FALSE);
-				}
-			}
+
 		}
 		this.person.setCustomAttributes(customAttributeAction.getCustomAttributes());
 		this.person.getCustomAttributes().addAll(removedAttributes);
@@ -594,13 +580,6 @@ public class UpdatePersonAction implements Serializable {
 						(HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest());
 				if (runScript) {
 					externalUpdateUserService.executeExternalPostUpdateUserMethods(this.person);
-				}
-				if(identity.getUser().getUid().equals(this.oldUid)) {
-						
-						facesMessages.add(FacesMessage.SEVERITY_INFO,
-								"Profile '#{userProfileAction.person.displayName}' updated successfully");
-						logoutAction.processLogout();
-						return OxTrustConstants.RESULT_SUCCESS;
 				}
 			} catch (DuplicateEmailException ex) {
 				log.error("Failed to update person {}", inum, ex);
@@ -694,14 +673,15 @@ public class UpdatePersonAction implements Serializable {
 		} else {
 			Set<String> mailSet = new HashSet<String>();
 			if (mail.getValues() != null)
-				mailSet.addAll(Arrays.asList(mail.getStringValues()));
+				mailSet.addAll(Arrays.asList(mail.getValues()));
 
 			Set<String> mailSetCopy = new HashSet<String>(mailSet);
 			Set<String> oxTrustEmailSet = new HashSet<String>();
 			List<Email> oxTrustEmails = new ArrayList<Email>();
 
 			if (oxTrustEmail != null && oxTrustEmail.getValues() != null) {
-				for (String oxTrustEmailJson : oxTrustEmail.getStringValues()) {
+
+				for (String oxTrustEmailJson : oxTrustEmail.getValues()) {
 					oxTrustEmails.add(jsonService.jsonToObject(oxTrustEmailJson, Email.class));
 				}
 
@@ -894,7 +874,6 @@ public class UpdatePersonAction implements Serializable {
 		} else if (comp.getClientId().endsWith("custconfirmpasswordId")) {
 			this.confirmPassword = (String) value;
 		}
-		this.confirmPassword = this.confirmPassword == null ? "" : this.confirmPassword;
 		if (canValidate) {
 			pattern = Pattern.compile(validation.getRegexp());
 		}
@@ -999,7 +978,7 @@ public class UpdatePersonAction implements Serializable {
 						map.put("phones", phones);
 						String jsonInString = mapper.writeValueAsString(map);
 						this.person.setOxMobileDevices(jsonInString);
-						String[] mobiles = this.person.getAttributeStringValues(MOBILE);
+						String[] mobiles = this.person.getAttributes(MOBILE);
 						if (mobiles != null && mobiles.length > 0) {
 							List<String> values = new ArrayList<String>(Arrays.asList(mobiles));
 							for (String mobile : values) {
@@ -1073,7 +1052,7 @@ public class UpdatePersonAction implements Serializable {
 		return obj;
 	}
 
-	public void fetchFidoRecord(String id) throws Exception {
+	public void fetchFidoRecord(String id) {
 		this.fidoDevice = fidoDeviceService.getGluuCustomFidoDeviceById(this.person.getInum(), id);
 		if (this.fidoDevice.getDeviceData() != null) {
 			this.deviceDetail = getDeviceata(this.fidoDevice.getDeviceData());

@@ -14,7 +14,7 @@ from generator import SchemaGenerator
 localdir = os.path.dirname(os.path.abspath(__file__))
 
 
-def generate(infile, schema_type=None, out_file=None):
+def generate(infile, schema_type=None):
     """Function generates the LDAP schema definitions from the JSON data
 
     Args:
@@ -28,11 +28,7 @@ def generate(infile, schema_type=None, out_file=None):
         schema_str = gen.generate_ldif()
     else:
         schema_str = gen.generate_schema()
-    if out_file:
-        with open(out_file, 'w') as w:
-            w.write(schema_str)
-    else:
-        print(schema_str)
+    print(schema_str)
 
 
 def autogenerate():

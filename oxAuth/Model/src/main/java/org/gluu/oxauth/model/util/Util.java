@@ -252,14 +252,10 @@ public class Util {
     }
 
     public static int parseIntSilently(String intString) {
-        return parseIntSilently(intString, -1);
-    }
-
-    public static int parseIntSilently(String intString, int defaultValue) {
         try {
             return Integer.parseInt(intString);
         } catch (Exception e) {
-            return defaultValue;
+            return -1;
         }
     }
 
@@ -286,4 +282,17 @@ public class Util {
         return result;
     }
 
+    public static Integer getNumberOfSecondFromNow(Date date) {
+        if (date == null) {
+            return 0;
+        }
+
+        long now = new Date().getTime();
+        final long time = date.getTime();
+        if (time > now) {
+            return (int) (time - now) / 1000;
+        }
+
+        return null;
+    }
 }

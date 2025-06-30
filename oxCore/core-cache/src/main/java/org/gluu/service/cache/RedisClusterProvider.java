@@ -7,11 +7,10 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
-
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Important : keep it weld free. It's reused by oxd !
@@ -34,22 +33,12 @@ public class RedisClusterProvider extends AbstractRedisProvider {
 
             JedisPoolConfig poolConfig = createPoolConfig();
             String password = redisConfiguration.getPassword();
-
-            if (redisConfiguration.getUseSSL()) {
-                RedisProviderFactory.setSSLSystemProperties(redisConfiguration);
-
-                pool = new JedisCluster(hosts(getRedisConfiguration().getServers()), redisConfiguration.getConnectionTimeout(),
-                        redisConfiguration.getSoTimeout(), redisConfiguration.getMaxRetryAttempts(),
-                        password, UUID.randomUUID().toString(), poolConfig, true);
-            } else {
-                pool = new JedisCluster(hosts(getRedisConfiguration().getServers()), redisConfiguration.getConnectionTimeout(),
-                        redisConfiguration.getSoTimeout(), redisConfiguration.getMaxRetryAttempts(), password, poolConfig);
-            }
+            pool = new JedisCluster(hosts(getRedisConfiguration().getServers()), redisConfiguration.getConnectionTimeout(), redisConfiguration.getSoTimeout(), redisConfiguration.getMaxRetryAttempts(), password, poolConfig);
 
             testConnection();
             LOG.debug("RedisClusterProvider started.");
         } catch (Exception e) {
-            LOG.error("Failed to start RedisClusterProvider.", e);
+            LOG.error("Failed to start RedisClusterProvider.");
             throw new IllegalStateException("Error starting RedisClusterProvider", e);
         }
     }
@@ -70,7 +59,12 @@ public class RedisClusterProvider extends AbstractRedisProvider {
     public void destroy() {
         LOG.debug("Destroying RedisClusterProvider");
 
-        pool.close();
+        try {
+            pool.close();
+        } catch (IOException e) {
+            LOG.error("Failed to destroy RedisClusterProvider", e);
+            return;
+        }
 
         LOG.debug("Destroyed RedisClusterProvider");
     }

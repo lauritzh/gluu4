@@ -1,6 +1,5 @@
 package org.gluu.oxauth.authorize.ws.rs;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.gluu.oxauth.model.authorize.AuthorizeParamsValidator;
@@ -9,7 +8,6 @@ import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.DeviceAuthorizationService;
 import org.gluu.oxauth.service.RedirectUriResponse;
@@ -30,7 +28,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseType.INVALID_REQUEST;
 
 /**
@@ -57,15 +54,8 @@ public class AuthorizeRestWebServiceValidator {
     @Inject
     private AppConfiguration appConfiguration;
 
-    public Client validateClient(AuthzRequest authzRequest) {
-        final Client client = validateClient(authzRequest.getClientId(), authzRequest.getState());
-        authzRequest.setClient(client);
-        return client;
-    }
-
     public Client validateClient(String clientId, String state) {
         if (StringUtils.isBlank(clientId)) {
-            log.debug("client_id is empty or blank {}.", clientId);
             throw new WebApplicationException(Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.UNAUTHORIZED_CLIENT, state, "client_id is empty or blank."))
@@ -76,7 +66,6 @@ public class AuthorizeRestWebServiceValidator {
         try {
             final Client client = clientService.getClient(clientId);
             if (client == null) {
-                log.debug("Unable to find client by id {}.", clientId);
                 throw new WebApplicationException(Response
                         .status(Response.Status.UNAUTHORIZED)
                         .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.UNAUTHORIZED_CLIENT, state, "Unable to find client."))
@@ -84,7 +73,6 @@ public class AuthorizeRestWebServiceValidator {
                         .build());
             }
             if (client.isDisabled()) {
-                log.debug("Client {} is disabled.", clientId);
                 throw new WebApplicationException(Response
                         .status(Response.Status.UNAUTHORIZED)
                         .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.DISABLED_CLIENT, state, "Client is disabled."))
@@ -94,7 +82,6 @@ public class AuthorizeRestWebServiceValidator {
 
             return client;
         } catch (EntryPersistenceException e) { // Invalid clientId
-            log.debug("Unable to find client on AS by client_id: {}", clientId);
             throw new WebApplicationException(Response
                     .status(Response.Status.UNAUTHORIZED)
                     .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.UNAUTHORIZED_CLIENT, state, "Unable to find client on AS."))
@@ -103,29 +90,20 @@ public class AuthorizeRestWebServiceValidator {
         }
     }
 
-    public boolean isAuthnMaxAgeValid(Integer maxAge, SessionId sessionUser, Client client) {
+    public boolean validateAuthnMaxAge(Integer maxAge, SessionId sessionUser, Client client) {
         if (maxAge == null) {
             maxAge = client.getDefaultMaxAge();
         }
-        if (maxAge == null) { // if not set, it's still valid
-            return true;
-        }
-
-        if (maxAge == 0) { // issue #2361: allow authentication for max_age=0
-            if (BooleanUtils.isTrue(appConfiguration.getDisableAuthnForMaxAgeZero())) {
-                return false;
-            }
-            return true;
-        }
-
 
         GregorianCalendar userAuthnTime = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         if (sessionUser.getAuthenticationTime() != null) {
             userAuthnTime.setTime(sessionUser.getAuthenticationTime());
         }
-
-        userAuthnTime.add(Calendar.SECOND, maxAge);
-        return userAuthnTime.after(ServerUtil.now());
+        if (maxAge != null) {
+            userAuthnTime.add(Calendar.SECOND, maxAge);
+            return userAuthnTime.after(ServerUtil.now());
+        }
+        return true;
     }
 
     public void validateRequestJwt(String request, String requestUri, RedirectUriResponse redirectUriResponse) {
@@ -287,39 +265,6 @@ public class AuthorizeRestWebServiceValidator {
         throw new WebApplicationException(Response
                 .status(Response.Status.BAD_REQUEST)
                 .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST_REDIRECT_URI, state, ""))
-                .build());
-    }
-
-    public void validateRequestParameterSupported(String request, String state) {
-        if (StringUtils.isBlank(request)) {
-            return;
-        }
-
-        if (isTrue(appConfiguration.getRequestParameterSupported())) {
-            return;
-        }
-
-        log.debug("'request' support is switched off by requestParameterSupported=false configuration property.");
-        throw new WebApplicationException(Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.REQUEST_NOT_SUPPORTED, state, "request processing is denied by AS."))
-                .build());
-
-    }
-
-    public void validateRequestUriParameterSupported(String requestUri, String state) {
-        if (StringUtils.isBlank(requestUri)) {
-            return;
-        }
-
-        if (isTrue(appConfiguration.getRequestUriParameterSupported())) {
-            return;
-        }
-
-        log.debug("'request_uri' support is switched off by requestUriParameterSupported=false configuration property.");
-        throw new WebApplicationException(Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity(errorResponseFactory.getErrorAsJson(AuthorizeErrorResponseType.REQUEST_URI_NOT_SUPPORTED, state, "request_uri processing is denied by AS"))
                 .build());
     }
 }

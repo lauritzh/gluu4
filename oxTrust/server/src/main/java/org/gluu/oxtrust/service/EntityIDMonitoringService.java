@@ -22,7 +22,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.model.GluuStatus;
 import org.gluu.oxtrust.model.GluuSAMLTrustRelationship;
 import org.gluu.oxtrust.model.GluuValidationStatus;
@@ -54,8 +53,7 @@ public class EntityIDMonitoringService {
 	@Inject
 	private Event<TimerEvent> timerEvent;
 
-	@Inject
-	private AppConfiguration appConfiguration;
+	
 
 	@Inject
 	private ServiceUtil serviceUtil;
@@ -94,15 +92,9 @@ public class EntityIDMonitoringService {
 		}
 
 		try {
-			boolean isConfigGeneration = appConfiguration.isConfigGeneration();
-			if(isConfigGeneration) {
-				process();
-			}else {
-				log.debug("EntityID monitoring config generation disabled");
-			}
+			process();
 		} catch (Throwable ex) {
 			log.error("Exception happened while monitoring EntityId", ex);
-			ex.printStackTrace();
 		} finally {
 			this.isActive.set(false);
 		}
@@ -112,7 +104,7 @@ public class EntityIDMonitoringService {
 		log.trace("Starting entityId monitoring process.");
 		log.trace("EVENT_METADATA_ENTITY_ID_UPDATE Starting");
 		for (GluuSAMLTrustRelationship tr : trustService.getAllTrustRelationships().stream()
-				.filter(e -> e.isFederation()).filter(e -> !e.isMdqFederation()).collect(Collectors.toList())) {
+				.filter(e -> e.isFederation()).collect(Collectors.toList())) {
 			log.info("==========================CURRENT TR " + tr.getInum());
 			String idpMetadataFolder = shibboleth3ConfService.getIdpMetadataDir();
 			String metadataFile = idpMetadataFolder + tr.getSpMetaDataFN();
@@ -125,7 +117,7 @@ public class EntityIDMonitoringService {
 				log.trace("EntityIds disjunction: " + serviceUtil.iterableToString(disjunction));
 				if (!disjunction.isEmpty()) {
 					log.trace("EntityIds disjunction is not empty. Somthing has changed. Processing further.");
-					tr.setUniqueGluuEntityId(fromFileEntityIds);
+					tr.setGluuEntityId(fromFileEntityIds);
 					List<GluuSAMLTrustRelationship> federatedTrs = trustService.getChildTrusts(tr);
 					for (GluuSAMLTrustRelationship federatedTr : federatedTrs) {
 						log.trace("Processing TR part: " + federatedTr.getDn());

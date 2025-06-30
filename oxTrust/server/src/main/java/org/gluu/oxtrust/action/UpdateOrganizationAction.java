@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ConversationScoped;
 import javax.faces.application.FacesMessage;
@@ -37,7 +36,6 @@ import org.gluu.config.oxtrust.LdapOxAuthConfiguration;
 import org.gluu.jsf2.message.FacesMessages;
 import org.gluu.jsf2.service.ConversationService;
 import org.gluu.model.SmtpConfiguration;
-import org.gluu.orm.util.ArrayHelper;
 import org.gluu.oxtrust.service.config.ConfigurationFactory;
 import org.gluu.oxtrust.model.GluuConfiguration;
 import org.gluu.oxtrust.model.GluuOrganization;
@@ -71,10 +69,9 @@ import org.w3c.dom.NodeList;
 @Secure("#{permissionService.hasPermission('configuration', 'access')}")
 public class UpdateOrganizationAction implements Serializable {
 
-	private static final long serialVersionUID = -4470460481895022468L;
+	String THE_CHANGE_MAY_TAKE_UP_TO_30MIN_TO_BE_EFFECTIVE_DUE_TO_CACHING = "The change may take up to 30min to be effective due to caching.You can use Ctrl+F5 to force cache reload.";
 
-	private String THE_CHANGE_MAY_TAKE_UP_TO_30MIN_TO_BE_EFFECTIVE_DUE_TO_CACHING = "The change may take up to 30min to be effective due to caching.You can use Ctrl+F5 to force cache reload.";
-	private String DEFAULT_CONTACT_EMAIL = "example@orgname.com";
+	private static final long serialVersionUID = -4470460481895022468L;
 
 	@Inject
 	private Logger log;
@@ -114,22 +111,9 @@ public class UpdateOrganizationAction implements Serializable {
 
 	private SmtpConfiguration smtpConfiguration;
 
-	private String smtpPasswordDecrypted;
-	private String keyStorePasswordDecrypted;
+	private String passwordDecrypted;
 
-	private String contactEmail;
-
-	@PostConstruct
-	void init() {
-			GluuConfiguration configurationUpdate = configurationService.getConfiguration();
-			smtpConfiguration = configurationUpdate.getSmtpConfiguration();
-
-			configurationService.decryptSmtpPassword(smtpConfiguration);
-			configurationService.decryptKeyStorePassword(smtpConfiguration);
-
-			smtpPasswordDecrypted = smtpConfiguration.getPasswordDecrypted();
-			keyStorePasswordDecrypted = smtpConfiguration.getKeyStorePasswordDecrypted();
-	}
+	private String contactEmail = "example@orgname.com";
 
 	public String modify() {
 		if (this.initialized) {
@@ -199,15 +183,12 @@ public class UpdateOrganizationAction implements Serializable {
 		try {
 			setCustomMessages();
 			organizationService.updateOrganization(this.organization);
-			if(StringUtils.isNotEmpty(smtpPasswordDecrypted)){
-				smtpConfiguration.setPasswordDecrypted(smtpPasswordDecrypted);
+			if(StringUtils.isNotEmpty(passwordDecrypted) && passwordDecrypted!=null){
+				smtpConfiguration.setPasswordDecrypted(passwordDecrypted);
+				passwordDecrypted=null;
 			}
-			if(StringUtils.isNotEmpty(keyStorePasswordDecrypted)){
-				smtpConfiguration.setKeyStorePasswordDecrypted(keyStorePasswordDecrypted);
-			}
-			configuration.setContactEmail(new String[] { getContactEmail()} );
-			configurationService.encryptSmtpPassword(smtpConfiguration);
-			configurationService.encryptKeyStorePassword(smtpConfiguration);
+			configuration.setContactEmail(getContactEmail());
+			configurationService.encryptedSmtpPassword(smtpConfiguration);
 			updateConfiguration();
 			saveWebKeySettings();
 		} catch (BasePersistenceException ex) {
@@ -230,7 +211,7 @@ public class UpdateOrganizationAction implements Serializable {
 		configurationUpdate.setProfileManagment(configuration.isProfileManagment());
 		configurationUpdate.setConfigurationDnsServer(configuration.getConfigurationDnsServer());
 		configurationUpdate.setMaxLogSize(configuration.getMaxLogSize());
-		configurationUpdate.setContactEmail(new String[] { contactEmail });
+		configurationUpdate.setContactEmail(configuration.getContactEmail());
 		configurationUpdate.setSamlEnabled(configuration.isSamlEnabled());
 		configurationUpdate.setSmtpConfiguration(smtpConfiguration);
 		configurationService.updateConfiguration(configurationUpdate);
@@ -248,44 +229,22 @@ public class UpdateOrganizationAction implements Serializable {
 	}
 
 	public String verifySmtpConfiguration() {
-		if (StringUtils.isNotEmpty(smtpPasswordDecrypted)) {
-			smtpConfiguration.setPasswordDecrypted(smtpPasswordDecrypted);
+		if(StringUtils.isNotEmpty(passwordDecrypted) && passwordDecrypted!=null){
+			smtpConfiguration.setPasswordDecrypted(passwordDecrypted);
 		}
-		configurationService.encryptSmtpPassword(smtpConfiguration);
+		configurationService.encryptedSmtpPassword(smtpConfiguration);
+		boolean result = mailService.sendMail(smtpConfiguration, smtpConfiguration.getFromEmailAddress(),
+				smtpConfiguration.getFromName(), smtpConfiguration.getFromEmailAddress(), null,
+				facesMessages.evalResourceAsString("#{msgs['mail.verify.message.subject']}"),
+				facesMessages.evalResourceAsString("#{msgs['mail.verify.message.plain.body']}"),
+				facesMessages.evalResourceAsString("#{msgs['mail.verify.message.html.body']}"));
 
-		if (StringUtils.isNotEmpty(keyStorePasswordDecrypted)) {
-			smtpConfiguration.setKeyStorePasswordDecrypted(keyStorePasswordDecrypted);
-		}
-		configurationService.encryptKeyStorePassword(smtpConfiguration);
-
-		boolean result = false;
-
-		String keystoreFile = smtpConfiguration.getKeyStore();
-		String keystoreSecret = smtpConfiguration.getKeyStorePasswordDecrypted();
-		String kjeyStoreAlias = smtpConfiguration.getKeyStoreAlias();
-
-		if (StringUtils.isNotEmpty(keystoreFile) &&
-				StringUtils.isNotEmpty(keystoreSecret) &&
-				StringUtils.isNotEmpty(kjeyStoreAlias)) {
-			result = mailService.sendMailSigned(smtpConfiguration, smtpConfiguration.getFromEmailAddress(),
-					smtpConfiguration.getFromName(), smtpConfiguration.getFromEmailAddress(), null,
-					facesMessages.evalResourceAsString("#{msgs['mail.verify.message.subject']}"),
-					facesMessages.evalResourceAsString("#{msgs['mail.verify.message.plain.body']}"),
-					facesMessages.evalResourceAsString("#{msgs['mail.verify.message.html.body']}"));
-		}
-		else {
-			result = mailService.sendMail(smtpConfiguration, smtpConfiguration.getFromEmailAddress(),
-					smtpConfiguration.getFromName(), smtpConfiguration.getFromEmailAddress(), null,
-					facesMessages.evalResourceAsString("#{msgs['mail.verify.message.subject']}"),
-					facesMessages.evalResourceAsString("#{msgs['mail.verify.message.plain.body']}"),
-					facesMessages.evalResourceAsString("#{msgs['mail.verify.message.html.body']}"));
-		}
 		if (result) {
 			log.info("Connection Successful");
 			facesMessages.add(FacesMessage.SEVERITY_INFO, "SMTP Test succeeded!");
 			return OxTrustConstants.RESULT_SUCCESS;
 		}
-		facesMessages.add(FacesMessage.SEVERITY_ERROR, "SMTP Test Failed");
+		facesMessages.add(FacesMessage.SEVERITY_ERROR, "Failed to connect to SMTP server");
 		return OxTrustConstants.RESULT_FAILURE;
 	}
 
@@ -295,11 +254,6 @@ public class UpdateOrganizationAction implements Serializable {
 		}
 		try {
 			this.configuration = configurationService.getConfiguration();
-			if (ArrayHelper.isEmpty(configuration.getContactEmail())) {
-				this.contactEmail = DEFAULT_CONTACT_EMAIL;
-			} else {
-				this.contactEmail = configuration.getContactEmail()[0];
-			}
 			if (this.configuration == null) {
 				return OxTrustConstants.RESULT_FAILURE;
 			}
@@ -309,7 +263,6 @@ public class UpdateOrganizationAction implements Serializable {
 				this.configuration.setSmtpConfiguration(smtpConfiguration);
 			}
 			configurationService.decryptSmtpPassword(smtpConfiguration);
-			configurationService.decryptKeyStorePassword(smtpConfiguration);
 			return OxTrustConstants.RESULT_SUCCESS;
 		} catch (Exception ex) {
 			log.error("an error occured", ex);
@@ -336,7 +289,7 @@ public class UpdateOrganizationAction implements Serializable {
 	}
 
 	public String getContactEmail() {
-		return contactEmail;
+		return configuration.getContactEmail()!=null ? configuration.getContactEmail() : contactEmail;
 	}
 
 	public void setContactEmail(String contactEmail) {
@@ -566,20 +519,12 @@ public class UpdateOrganizationAction implements Serializable {
 		this.welcomeTitleText = welcomeTitleText;
 	}
 
-	public String getSmtpPasswordDecrypted() {
-		return smtpPasswordDecrypted;
+	public String getPasswordDecrypted() {
+		return passwordDecrypted;
 	}
 
-	public void setSmtpPasswordDecrypted(String smtpPasswordDecrypted) {
-		this.smtpPasswordDecrypted = smtpPasswordDecrypted;
-	}
-
-	public String getKeyStorePasswordDecrypted() {
-		return keyStorePasswordDecrypted;
-	}
-
-	public void setKeyStorePasswordDecrypted(String keyStorePasswordDecrypted) {
-		this.keyStorePasswordDecrypted = keyStorePasswordDecrypted;
+	public void setPasswordDecrypted(String passwordDecrypted) {
+		this.passwordDecrypted = passwordDecrypted;
 	}
 
 	public GluuConfiguration getConfiguration() {

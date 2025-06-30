@@ -8,7 +8,6 @@ package org.gluu.service.document.store.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -33,17 +32,17 @@ public abstract class BaseDocumentStoreService implements DocumentStore {
 	}
 
 	@Override
-	public boolean saveDocument(String path, String documentContent, Charset charset, List moduleList) {
+	public boolean saveDocument(String path, String documentContent, Charset charset) {
     	DocumentStoreProvider documentStoreProvider = getDocumentStoreProvider();
 
-		return documentStoreProvider.saveDocument(path, documentContent, charset, moduleList);
+		return documentStoreProvider.saveDocument(path, documentContent, charset);
 	}
 
 	@Override
-	public boolean saveDocumentStream(String path, InputStream documentStream, List moduleList) {
+	public boolean saveDocumentStream(String path, InputStream documentStream) {
     	DocumentStoreProvider documentStoreProvider = getDocumentStoreProvider();
 
-		return documentStoreProvider.saveDocumentStream(path, documentStream, moduleList);
+		return documentStoreProvider.saveDocumentStream(path, documentStream);
 	}
 
 	@Override

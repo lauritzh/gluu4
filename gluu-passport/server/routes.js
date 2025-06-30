@@ -40,11 +40,6 @@ router.get('/auth/:provider/:token',
   validateToken,
   authenticateRequest)
 
-router.get('/auth/:provider/:token/:state',
-  validateProvider,
-  validateToken,
-  authenticateRequest)
-
 router.get('/casa/:provider/:token',
   (req, res, next) => {
     req.failureUrl = '/casa/rest/pl/account-linking/idp-linking'
@@ -104,10 +99,6 @@ function validateProvider (req, res, next) {
 
   if (providerConfData) {
     // Attach some info for later use
-    if (providerConfData.type === 'openid-client') {
-      const scope = providerConfData.options.scope
-      providerConfData.passportAuthnParams.scope = scope && scope.length > 1 && scope.join(' ')
-    }
     req.passportAuthenticateParams = providerConfData.passportAuthnParams
     next()
   } else {
@@ -118,10 +109,6 @@ function validateProvider (req, res, next) {
 
 function authenticateRequest (req, res, next) {
   logger.log2('verbose', `Authenticating request against ${req.params.provider}`)
-  if (req.params.state) {
-    logger.log2('debug', `Authenticating request against ${req.params.provider} and state ${req.params.state}`)
-    req.passportAuthenticateParams.state = req.params.state
-  }
   passport.authenticate(req.params.provider, req.passportAuthenticateParams)(req, res, next)
 }
 
@@ -185,7 +172,7 @@ function callbackResponse (req, res) {
   const now = new Date().getTime()
   const jwt = misc.getRpJWT({
     iss: postUrl,
-    sub,
+    sub: sub,
     aud: global.basicConfig.clientId,
     jti: uuidv4(),
     exp: now / 1000 + 30,

@@ -49,7 +49,7 @@ public class ClientCredentialsGrant extends AuthorizationGrant {
      * The authorization server MUST NOT issue a refresh token.
      */
     @Override
-    public RefreshToken createRefreshToken(ExecutionContext executionContext) {
+    public RefreshToken createRefreshToken() {
         throw new UnsupportedOperationException(
                 "The authorization server MUST NOT issue a refresh token.");
     }

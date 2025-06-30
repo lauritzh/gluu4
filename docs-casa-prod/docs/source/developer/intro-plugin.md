@@ -1,6 +1,6 @@
 # Introduction to plugin development
  
-This page covers basic notions required for Gluu Casa plugin development. In practice, writing plugins is easy but requires understanding of some key concepts. If you skip the background part and proceed straight to [Writing your first plugin](./writing-first.md), you will get bounced here very soon.
+This page covers basic notions required for Gluu Casa plugin development. In practice, writing plugins is easy but requires understanding of some key concepts. If you skip the background part and proceed straight to [Writing your first plugin](writing-first.md), you will get bounced here very soon.
  
 ## Requirements and tools
  
@@ -34,7 +34,7 @@ By default .zul templates are cached for a very long period, however, for develo
     ```
     # jar -uf casa.war WEB-INF/zk.xml
     ```
-1. [Restart](https://gluu.org/docs/gluu-server/4.4/operation/services/#restart) casa
+1. [Restart](https://gluu.org/docs/gluu-server/4.3/operation/services/#restart) casa
 
 The above guarantees changes in .zul files are picked very often (5 seconds is default ZK cache refresh time).
 
@@ -49,7 +49,7 @@ In case you cannot establish the tunnel mentioned in the docs you can do this if
 
 - Run `/opt/opendj/bin/dsconfig -h localhost -p 4444 -D "cn=directory manager" -w PASSWORD -n set-connection-handler-prop --handler-name="LDAPS Connection Handler" --set listen-address:0.0.0.0 -X` in chroot
 - Open port 1636 in your VM firewall
-- [Restart](https://gluu.org/docs/gluu-server/4.4/operation/services/#restart) LDAP
+- [Restart](https://gluu.org/docs/gluu-server/4.3/operation/services/#restart) LDAP
 
 ### LDAP notions
 
@@ -207,7 +207,7 @@ Package `org.gluu.casa.service` of `casa-shared` provides a couple of interfaces
 
 The class `org.gluu.casa.core.model.BasePerson` represents an entry in the *people* LDAP branch, or its equivalent table in case of other databases. It only exposes attributes `inum` and `uid` so you might extend this class and add the attributes your plugin needs to handle. Note that field attributes may require annotations so that the framework automatically populates and/or persists values appropriately.
 
-For an example on `BasePerson` derivation, check [Owner](https://github.com/GluuFederation/casa/blob/version_4.4.0/plugins/samples/clients-management/src/main/java/org/gluu/casa/plugins/clientmanager/model/Owner.java) class from the client management sample plugin, which in addition to `BasePerson` fields, handles `givenName`, and `sn` attributes.
+For an example on `BasePerson` derivation, check [Owner](https://github.com/GluuFederation/casa/blob/version_4.3.0/plugins/samples/clients-management/src/main/java/org/gluu/casa/plugins/clientmanager/model/Owner.java) class from the client management sample plugin, which in addition to `BasePerson` fields, handles `givenName`, and `sn` attributes.
 
 ##### CustomScript
 
@@ -283,11 +283,11 @@ To know the dependencies already available at runtime, do the following:
 
 1. Create `app` and `shared` folders in it
 
-1. Download file `https://maven.gluu.org/maven/org/gluu/casa-base/4.4.0.Final/casa-base-4.4.0.Final.pom` and save it as `pom.xml`. If you are on linux, you can use `wget` passing `-O pom.xml`
+1. Download file `https://maven.gluu.org/maven/org/gluu/casa-base/4.3.0.Final/casa-base-4.3.0.Final.pom` and save it as `pom.xml`. If you are on linux, you can use `wget` passing `-O pom.xml`
 
-1. `cd` to `shared` and download `https://maven.gluu.org/maven/org/gluu/casa-shared/4.4.0.Final/casa-shared-4.4.0.Final.pom` (save as `pom.xml`)
+1. `cd` to `shared` and download `https://maven.gluu.org/maven/org/gluu/casa-shared/4.3.0.Final/casa-shared-4.3.0.Final.pom` (save as `pom.xml`)
 
-1. `cd` to `../app` and download `https://maven.gluu.org/maven/org/gluu/casa/4.4.0.Final/casa-4.4.0.Final.pom` saving again as `pom.xml`
+1. `cd` to `../app` and download `https://maven.gluu.org/maven/org/gluu/casa/4.3.0.Final/casa-4.3.0.Final.pom` saving again as `pom.xml`
 
 1. Do `cd ..` and run `mvn dependency:tree -pl app`. It will take some minutes until all dependencies are downloaded to your local maven repository. Finally the tree will be printed on the screen.
 
@@ -336,7 +336,7 @@ Method `void save()` will persist modifications performed on the object referenc
 
 ## Accessing cache facilities
 
-Plugins can access the underlying cache provider in use by the Gluu Server installation at no cost. This is helpful when access to a quick key/value store is required. Click [here](https://gluu.org/docs/gluu-server/4.4/reference/cache-provider-prop/) to learn more about the cache types supported by the server.
+Plugins can access the underlying cache provider in use by the Gluu Server installation at no cost. This is helpful when access to a quick key/value store is required. Click [here](https://gluu.org/docs/gluu-server/4.3/reference/cache-provider-prop/) to learn more about the cache types supported by the server.
 
 To access the cache handler, do the following:
 
@@ -346,7 +346,7 @@ In your `pom.xml` add:
 <dependency>
 	<groupId>org.gluu</groupId>
 	<artifactId>oxcore-cache</artifactId>
-	<version>4.4.0.Final</version>
+	<version>4.3.0.Final</version>
 	<scope>provided</scope>
 </dependency>
 ```
@@ -359,7 +359,7 @@ import org.gluu.service.cache.CacheProvider;
 CacheProvider cache = Utils.managedBean(CacheProvider.class);
 ```
 
-With `cache` object it is possible, for example, to retrieve values (`get` method), set values (`set` methods), and remove values by key (`remove`). By default a key/value pair has an expiration time defined at the server level in the [oxTrust admin UI](https://gluu.org/docs/gluu-server/4.4/reference/cache-provider-prop/). A different expiration time (in seconds) can be supplied using `put` method of signature `void put(int, String, Object)`.
+With `cache` object it is possible, for example, to retrieve values (`get` method), set values (`set` methods), and remove values by key (`remove`). By default a key/value pair has an expiration time defined at the server level in the [oxTrust admin UI](https://gluu.org/docs/gluu-server/4.3/reference/cache-provider-prop/). A different expiration time (in seconds) can be supplied using `put` method of signature `void put(int, String, Object)`.
 
 !!! Note
     `Object`s to be stored in cache have to implement the interface `java.io.Serializable`.
@@ -370,7 +370,7 @@ The following are some important considerations to account:
 
 ### CDI
 
-[Earlier](./architecture.md#backend) we mentioned the usage of Weld for contexts and dependency injection. While Weld 3.0 API is available in `casa-shared` module, you **cannot** include managed beans, producer methods, or producer fields in your plugins. Weld is only aware of the beans discovered in the scanning phase at startup of Gluu Casa, while your classes are added dynamically at a later stage. Also injection simply won't take place.
+[Earlier](architecture.md#backend) we mentioned the usage of Weld for contexts and dependency injection. While Weld 3.0 API is available in `casa-shared` module, you **cannot** include managed beans, producer methods, or producer fields in your plugins. Weld is only aware of the beans discovered in the scanning phase at startup of Gluu Casa, while your classes are added dynamically at a later stage. Also injection simply won't take place.
 
 To obtain references of already defined [service objects](#service-objects), use `Utils.managedBean`.
 

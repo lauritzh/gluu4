@@ -6,7 +6,6 @@
 
 package org.gluu.persist;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +16,9 @@ import javax.persistence.FlushModeType;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 
-import org.gluu.persist.annotation.AttributesList;
 import org.gluu.persist.event.DeleteNotifier;
-import org.gluu.persist.extension.PersistenceExtension;
+import org.gluu.persist.exception.extension.PersistenceExtension;
 import org.gluu.persist.model.AttributeData;
-import org.gluu.persist.model.AttributeType;
 import org.gluu.persist.model.BatchOperation;
 import org.gluu.persist.model.PagedResult;
 import org.gluu.persist.model.SearchScope;
@@ -89,7 +86,6 @@ public interface PersistenceEntryManager extends EntityManager {
 
 	@Deprecated
 	void remove(String dn);
-	<T> void removeByDn(String dn, String[] objectClasses);
 	<T> void remove(String primaryKey, Class<T> entryClass);
 
 	<T> int remove(String primaryKey, Class<T> entryClass, Filter filter, int count);
@@ -98,7 +94,6 @@ public interface PersistenceEntryManager extends EntityManager {
     void removeRecursively(String primaryKey);
 
 	<T> void removeRecursively(String primaryKey, Class<T> entryClass);
-	<T> void removeRecursivelyFromDn(String primaryKey, String[] objectClasses);
 
     boolean hasBranchesSupport(String primaryKey);
     boolean hasExpirationSupport(String primaryKey);
@@ -131,14 +126,6 @@ public interface PersistenceEntryManager extends EntityManager {
     PersistenceEntryManager getPersistenceEntryManager(String persistenceType);
 
     void setPersistenceExtension(PersistenceExtension persistenceExtension);
-
-    <T> AttributeType getAttributeType(String primaryKey, Class<T> entryClass, String propertyName);
-
-	Class<?> getCustomAttributesListItemType(Object entry, AttributesList attributesList, String propertyName);
-	List<AttributeData> getAttributeDataListFromCustomAttributesList(Object entry, AttributesList attributesList,
-			String propertyName);
-	List<Object> getCustomAttributesListFromAttributeDataList(Object entry, AttributesList attributesList,
-			String propertyName, Collection<AttributeData> attributes);
 
     boolean destroy();
 

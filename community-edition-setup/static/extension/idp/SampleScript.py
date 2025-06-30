@@ -43,7 +43,7 @@ class IdpExtension(IdpType):
         return True
 
     def getApiVersion(self):
-        return 14
+        return 13
 
     # Translate attributes from user profile
     #   context is org.gluu.idp.externalauth.TranslateAttributesContext (https://github.com/GluuFederation/shib-oxauth-authn3/blob/master/src/main/java/org/gluu/idp/externalauth/TranslateAttributesContext.java)
@@ -123,16 +123,4 @@ class IdpExtension(IdpType):
             print "Idp extension. Method: postAuthentication. usedAcr '%s' is not allowed" % usedAcr
             return False
 
-        return True
-    
-    # Event handler invoked when the authentication context is re-used 
-    #   context is org.gluu.idp.externalauth.ReuseAuthnResultContext
-    #   configurationAttributes is java.util.Map<String,SimpleCustomProperty>
-    #   minimum required api version is 14 
-    def onReuseAuthnResult(self, context, configurationAttributes):
-        print "Idp extension. Method: onReuseAuthnResult"
-        usedAcr = context.getUsedAcr()
-        requestedAcr = context.getRequestedAcr()
-        hintedName = context.getAuthenticationContext().getHintedName()
-        print "Idp extension. Method: onReuseAuthnResult. usedAcr '%s', requestedAcr '%s', hintedName '%s'" % (usedAcr, requestedAcr, hintedName)
         return True

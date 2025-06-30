@@ -136,7 +136,7 @@ public final class StringHelper {
         String[] result = new String[array.length];
         
         for (int i = 0; i < result.length; i++) {
-        	result[i] = toString(array[i]);
+        	result[i] = String.valueOf(array[i]);
         }
 
         return result;
@@ -514,19 +514,11 @@ public final class StringHelper {
     }
 
     public static boolean isNotEmptyString(Object string) {
-    	if (string == null) {
-    		return false;
-    	}
-
         return !(string instanceof String) || isNotEmpty((String) string);
     }
 
     public static String toString(Object object) {
-    	if (object instanceof String) {
-    		return (String) object;
-    	}
-
-    	return (object == null) ? null : object.toString();
+        return (object == null) ? null : object.toString();
     }
 
     public static String qualify(final String prefix, String name) {

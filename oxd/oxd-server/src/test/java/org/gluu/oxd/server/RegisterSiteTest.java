@@ -2,7 +2,6 @@ package org.gluu.oxd.server;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxd.client.ClientInterface;
 import org.gluu.oxd.common.params.RegisterSiteParams;
@@ -139,7 +138,7 @@ public class RegisterSiteTest {
         params.setTlsClientAuthSubjectDn("www.test.com");
         params.setSubjectType("pairwise");
 
-        /*params.setIdTokenSignedResponseAlg("PS256");
+        params.setIdTokenSignedResponseAlg("PS256");
         params.setIdTokenEncryptedResponseAlg("A128KW");
         params.setIdTokenEncryptedResponseEnc("A128CBC+HS256");
         params.setUserInfoSignedResponseAlg("HS256");
@@ -154,7 +153,7 @@ public class RegisterSiteTest {
         params.setAuthorizedOrigins(Lists.newArrayList("beem://www.test-updated.com", "fb://updated.local.url"));
         params.setAccessTokenLifetime(200000000);
         params.setSoftwareId("4NRB1-0XZABZI9E6-5SM3R");
-        params.setSoftwareVersion("3.0");*/
+        params.setSoftwareVersion("3.0");
 
         Map<String, String> customAttributes = new HashMap<>();
         customAttributes.put("key1", "v1");
@@ -181,7 +180,6 @@ public class RegisterSiteTest {
         params.setGrantTypes(Lists.newArrayList(
                 GrantType.AUTHORIZATION_CODE.getValue(),
                 GrantType.OXAUTH_UMA_TICKET.getValue(),
-                GrantType.IMPLICIT.getValue(),
                 GrantType.CLIENT_CREDENTIALS.getValue()));
         params.setSyncClientFromOp(syncClientFromOp);
         params.setSyncClientPeriodInSeconds(0);
@@ -202,11 +200,9 @@ public class RegisterSiteTest {
         params.setIdTokenSignedResponseAlg(idTokenSignedResponseAlg);
         params.setGrantTypes(Lists.newArrayList(
                 GrantType.AUTHORIZATION_CODE.getValue(),
-                GrantType.CLIENT_CREDENTIALS.getValue(),
                 GrantType.OXAUTH_UMA_TICKET.getValue(),
-                GrantType.CLIENT_CREDENTIALS.getValue(),
-                GrantType.IMPLICIT.getValue()));
-        params.setClientTokenEndpointAuthMethod("client_secret_post");
+                GrantType.CLIENT_CREDENTIALS.getValue()));
+
         final RegisterSiteResponse resp = client.registerSite(params);
         assertNotNull(resp);
         assertTrue(!Strings.isNullOrEmpty(resp.getOxdId()));

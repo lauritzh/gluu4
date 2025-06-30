@@ -39,15 +39,16 @@ import org.gluu.oxauth.model.jwk.JSONWebKey;
 import org.gluu.oxauth.model.jwk.JSONWebKeySet;
 import org.gluu.oxauth.model.jwk.KeyType;
 import org.gluu.oxauth.model.jwk.Use;
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.gluu.util.StringHelper;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * Command example:
- * java -cp bcprov-jdk18on-1.54.jar:.jar:bcpkix-jdk18on-1.54.jar:commons-cli-1.2.jar:commons-codec-1.5.jar:commons-lang-2.6.jar:jettison-1.3.jar:log4j-1.2.14.jar:oxauth-model.jar:oxauth.jar org.gluu.oxauth.util.KeyGenerator -h
+ * java -cp bcprov-jdk15on-1.54.jar:.jar:bcpkix-jdk15on-1.54.jar:commons-cli-1.2.jar:commons-codec-1.5.jar:commons-lang-2.6.jar:jettison-1.3.jar:log4j-1.2.14.jar:oxauth-model.jar:oxauth.jar org.gluu.oxauth.util.KeyGenerator -h
  * <p/>
  * KeyGenerator -sig_keys RS256 RS384 RS512 ES256 ES384 ES512 PS256 PS384 PS512 -enc_keys RSA_OAEP RSA1_5 -keystore /Users/JAVIER/tmp/mykeystore.jks -keypasswd secret -dnname "CN=oxAuth CA Certificates" -expiration 365
  * <p/>
@@ -68,8 +69,6 @@ public class KeyGenerator {
     private static final String OXELEVEN_GENERATE_KEY_ENDPOINT = "ox11";
     private static final String EXPIRATION = "expiration";
     private static final String EXPIRATION_HOURS = "expiration_hours";
-    private static final String KEY_LENGTH = "key_length";
-    private static final String KEY_STORE_FILE_TYPE = "keystore_type";
     private static final String HELP = "h";
     private static final Logger log;
 
@@ -106,10 +105,8 @@ public class KeyGenerator {
             options.addOption(OXELEVEN_GENERATE_KEY_ENDPOINT, true, "oxEleven Generate Key Endpoint.");
             options.addOption(EXPIRATION, true, "Expiration in days.");
             options.addOption(EXPIRATION_HOURS, true, "Expiration in hours.");
-            options.addOption(KEY_LENGTH, true, "Key length");
-            options.addOption(KEY_STORE_FILE_TYPE, true, "Key Store type");
             options.addOption(HELP, false, "Show help.");
-       }
+        }
 
         public void parse() {
             CommandLineParser parser = new BasicParser();
@@ -135,19 +132,8 @@ public class KeyGenerator {
                     help();
                 }
 
-                int keyLength = StringHelper.toInt(cmd.getOptionValue(KEY_LENGTH), 2048);
                 int expiration = StringHelper.toInt(cmd.getOptionValue(EXPIRATION), 0);
                 int expiration_hours = StringHelper.toInt(cmd.getOptionValue(EXPIRATION_HOURS), 0);
-
-                if(cmd.hasOption(KEY_STORE_FILE_TYPE)) {
-                    String keyStoreFileType = cmd.getOptionValue(KEY_STORE_FILE_TYPE);
-                    SecurityProviderUtility.KeyStorageType keyStorageType = SecurityProviderUtility.KeyStorageType.fromString(keyStoreFileType);
-                    if (keyStorageType == null) {
-                        throw new ParseException(String.format("Wrong option =  %s value = %s", KEY_STORE_FILE_TYPE, keyStoreFileType));
-                    }
-                    SecurityProviderUtility.SecurityModeType securityMode = keyStorageType.getSecurityMode();
-                    SecurityProviderUtility.setSecurityMode(securityMode);
-                }
 
                 if (cmd.hasOption(OXELEVEN_ACCESS_TOKEN) && cmd.hasOption(OXELEVEN_GENERATE_KEY_ENDPOINT)) {
                     String accessToken = cmd.getOptionValue(OXELEVEN_ACCESS_TOKEN);
@@ -157,7 +143,7 @@ public class KeyGenerator {
                         OxElevenCryptoProvider cryptoProvider = new OxElevenCryptoProvider(generateKeyEndpoint,
                                 null, null, null, accessToken);
 
-                        generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours, keyLength);
+                        generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours);
                     } catch (Exception e) {
                         log.error("Failed to generate keys", e);
                         help();
@@ -173,7 +159,7 @@ public class KeyGenerator {
                         SecurityProviderUtility.installBCProvider(true);
 
                         OxAuthCryptoProvider cryptoProvider = new OxAuthCryptoProvider(keystore, keypasswd, dnName);
-                        generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours, keyLength);
+                        generateKeys(cryptoProvider, signatureAlgorithms, encryptionAlgorithms, expiration, expiration_hours);
                     } catch (Exception e) {
                         e.printStackTrace();
                         log.error("Failed to generate keys", e);
@@ -189,7 +175,7 @@ public class KeyGenerator {
         }
 
 		private void generateKeys(AbstractCryptoProvider cryptoProvider, List<Algorithm> signatureAlgorithms,
-				List<Algorithm> encryptionAlgorithms, int expiration, int expiration_hours, int keyLength) throws Exception {
+				List<Algorithm> encryptionAlgorithms, int expiration, int expiration_hours) throws Exception, JSONException {
 			JSONWebKeySet jwks = new JSONWebKeySet();
 
 			Calendar calendar = new GregorianCalendar();
@@ -198,7 +184,7 @@ public class KeyGenerator {
 
 			for (Algorithm algorithm : signatureAlgorithms) {
 				SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.fromString(algorithm.name());
-				JSONObject result = cryptoProvider.generateKey(algorithm, calendar.getTimeInMillis(), Use.SIGNATURE, keyLength);
+				JSONObject result = cryptoProvider.generateKey(algorithm, calendar.getTimeInMillis(), Use.SIGNATURE);
 
 				JSONWebKey key = new JSONWebKey();
 				key.setKid(result.getString(KEY_ID));
@@ -220,7 +206,8 @@ public class KeyGenerator {
 
 			for (Algorithm algorithm : encryptionAlgorithms) {
 			    KeyEncryptionAlgorithm encryptionAlgorithm = KeyEncryptionAlgorithm.fromName(algorithm.getParamName());
-			    JSONObject result = cryptoProvider.generateKey(algorithm, calendar.getTimeInMillis(), Use.ENCRYPTION, keyLength);
+			    JSONObject result = cryptoProvider.generateKey(algorithm,
+			            calendar.getTimeInMillis(), Use.ENCRYPTION);
 
 			    JSONWebKey key = new JSONWebKey();
 			    key.setKid(result.getString(KEY_ID));
@@ -246,7 +233,7 @@ public class KeyGenerator {
             HelpFormatter formatter = new HelpFormatter();
 
             formatter.printHelp(
-                    "KeyGenerator -sig_keys alg ... -enc_keys alg ... -expiration n_days [-expiration_hours n_hours] [-ox11 url] [-keystore path -keystore_type ks_type -keypasswd secret -dnname dn_name]",
+                    "KeyGenerator -sig_keys alg ... -enc_keys alg ... -expiration n_days [-expiration_hours n_hours] [-ox11 url] [-keystore path -keypasswd secret -dnname dn_name]",
                     options);
             System.exit(0);
         }

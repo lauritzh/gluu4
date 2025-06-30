@@ -21,9 +21,4 @@ spec:
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
-    loadBalancer:
-      consistentHash:
-        httpCookie:
-          name: casa-route
-          ttl: {{ .Values.istioDestinationRuleCookieTTL }}
 {{- end }}

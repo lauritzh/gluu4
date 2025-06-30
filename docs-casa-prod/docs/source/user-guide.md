@@ -141,10 +141,6 @@ Enter a phone number and click 'Send SMS' to get the passcode. Enter the code re
 
 Once it's added, the new mobile number will appear in a list on the same page. Click the pencil to edit the mobile number's nickname or the trashcan to delete the mobile number.
 
-### Registered e-mails
-
-If the administrator has enabled the e-mail 2FA plugin, you can associate one or more e-mails to your account. Navigate to `2FA credentials` > `Email 2FA`. From there you can add or remove e-mails. At authentication time, if you choose to login using the e-mail option, a one-time passcode will be delivered to your inbox which you will  have to enter in order to get access to Casa.  
-
     
 ## Password Reset
 
@@ -171,7 +167,7 @@ Once an account is linked, it can be removed when necessary.
 
 ### Sign in with a linked account
 
-If the administrator has enabled the Account Linking plugin, a list with the configured external sites will be displayed  in the authentication web page. Click on an entry to trigger the given site's authentication process. After this is finished, you will be taken back to Casa.
+If the administrator has enabled the Account Linking plugin, a list with the configured external sites will be displayed on the right panel in the authentication web page. Click on an entry to trigger the given site's authentication process. After this is finished, you will be taken back to Casa.
 
 Note that users without a local password set yet don't have access to enroll credentials because the username + password combination is a prerequisite for multi-factor authentication. The user will be prompted to create a new password.
 

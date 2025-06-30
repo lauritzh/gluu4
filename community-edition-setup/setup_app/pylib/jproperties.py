@@ -37,13 +37,9 @@ import os
 import re
 import sys
 import time
-import six
+from collections import MutableMapping, namedtuple
 
-from collections import namedtuple
-try:
-    from collections import MutableMapping
-except Exception:
-    from collections.abc import MutableMapping
+import six
 
 
 # This represents a combination of a value and metadata for a property key.

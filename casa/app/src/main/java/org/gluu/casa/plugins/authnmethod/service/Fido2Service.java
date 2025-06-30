@@ -7,7 +7,7 @@ import org.gluu.casa.plugins.authnmethod.SecurityKey2Extension;
 import org.gluu.casa.rest.RSUtils;
 import org.gluu.fido2.client.AttestationService;
 import org.gluu.casa.core.model.Fido2RegistrationEntry;
-import org.gluu.persist.model.fido2.Fido2RegistrationStatus;
+import org.gluu.fido2.model.entry.Fido2RegistrationStatus;
 import org.gluu.search.filter.Filter;
 import org.slf4j.Logger;
 
@@ -42,6 +42,7 @@ public class Fido2Service extends BaseService {
     }
 
     public void reloadConfiguration() {
+
         props = persistenceService.getCustScriptConfigProperties(SecurityKey2Extension.ACR);
         String tmp = getScriptPropertyValue("fido2_server_uri");
 
@@ -73,7 +74,7 @@ public class Fido2Service extends BaseService {
         String state = active ? Fido2RegistrationStatus.registered.getValue() : Fido2RegistrationStatus.pending.getValue();
         logger.trace("Finding Fido 2 devices with state={} for user={}", state, userId);
         Filter filter = Filter.createANDFilter(
-                Filter.createEqualityFilter("jansStatus", state),
+                Filter.createEqualityFilter("oxStatus", state),
                 Filter.createEqualityFilter("personInum", userId));
 
         List<FidoDevice> devices = new ArrayList<>();
@@ -84,16 +85,17 @@ public class Fido2Service extends BaseService {
             for (Fido2RegistrationEntry entry : list) {
             	FidoDevice device = null;
             	if (Optional.ofNullable(entry.getRegistrationData().getAttenstationRequest())
-            	       .map(ar -> ar.contains("platform")).orElse(false)) {
-            	    device = new PlatformAuthenticator();
+            	    .map(ar -> ar.contains("platform")).orElse(false)) {
+            		 device = new PlatformAuthenticator();
             	} else {
             		device = new SecurityKey();
             	}
             	device.setId(entry.getId());
             	device.setCreationDate(entry.getCreationDate());
             	device.setNickName(entry.getDisplayName());
-            	logger.trace("device name - "+device.getNickName());
                 devices.add(device);
+
+            	logger.trace("device name - "+device.getNickName());
             }
             return devices.stream().sorted().collect(Collectors.toList());
         } catch (Exception e) {

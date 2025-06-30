@@ -271,9 +271,9 @@ public class UserProfileAction implements Serializable {
 		List<GluuCustomAttribute> customAttributes = getPerson().getCustomAttributes();
 		for (GluuCustomAttribute attribute : customAttributes) {
 			if (attribute.getName().equalsIgnoreCase(name)) {
-				List<String> values = Arrays.asList(attribute.getStringValues());
+				List<String> values = new ArrayList<>(Arrays.asList(attribute.getValues()));
 				values.remove(value);
-				attribute.setValues(values.toArray(new String[0]));
+				attribute.setValues(values);
 				getPerson().setCustomAttributes(customAttributes);
 				if (values.isEmpty()) {
 					return true;

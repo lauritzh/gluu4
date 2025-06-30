@@ -31,7 +31,6 @@ import org.gluu.oxtrust.service.ClientService;
 import org.gluu.oxtrust.service.uma.ResourceSetService;
 import org.gluu.oxtrust.service.uma.UmaScopeService;
 import org.gluu.oxtrust.util.OxTrustConstants;
-import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.exception.BasePersistenceException;
 import org.gluu.service.LookupService;
 import org.gluu.service.security.Secure;
@@ -213,7 +212,7 @@ public class UpdateResourceAction implements Serializable {
 				facesMessages.add(FacesMessage.SEVERITY_ERROR, "A resource with same name already exist 1.");
 				return OxTrustConstants.RESULT_FAILURE;
 			}
-			resource.setRev(resource.getRev() + 1);
+			resource.setRev(String.valueOf(StringHelper.toInteger(resource.getRev(), 0) + 1));
 			try {
 				umaResourcesService.updateResource(this.resource);
 			} catch (BasePersistenceException ex) {
@@ -235,7 +234,7 @@ public class UpdateResourceAction implements Serializable {
 			String resourceSetDn = umaResourcesService.getDnForResource(id);
 			this.resource.setDn(resourceSetDn);
 			this.resource.setId(id);
-			this.resource.setRev(1);
+			this.resource.setRev(String.valueOf(0));
 			this.resource.setCreator(identity.getUser().getDn());
 			try {
 				umaResourcesService.addResource(this.resource);
@@ -379,8 +378,8 @@ public class UpdateResourceAction implements Serializable {
 
 	private List<DisplayNameEntry> getScopesDisplayNameEntries() {
 		List<DisplayNameEntry> result = new ArrayList<DisplayNameEntry>();
-		List<ScopeDisplayNameEntry> tmp = lookupService.getDisplayNameEntries(scopeDescriptionService.getDnForScope(null),
-				ScopeDisplayNameEntry.class, this.resource.getScopes());
+		List<DisplayNameEntry> tmp = lookupService.getDisplayNameEntries(scopeDescriptionService.getDnForScope(null),
+				this.resource.getScopes());
 		if (tmp != null) {
 			result.addAll(tmp);
 		}
@@ -473,8 +472,8 @@ public class UpdateResourceAction implements Serializable {
 
 	private List<DisplayNameEntry> getClientDisplayNameEntries() {
 		List<DisplayNameEntry> result = new ArrayList<DisplayNameEntry>();
-		List<ClientDisplayNameEntry> tmp = lookupService.getDisplayNameEntries(clientService.getDnForClient(null),
-				ClientDisplayNameEntry.class, this.resource.getClients());
+		List<DisplayNameEntry> tmp = lookupService.getDisplayNameEntries(clientService.getDnForClient(null),
+				this.resource.getClients());
 		if (tmp != null) {
 			result.addAll(tmp);
 		}
@@ -567,22 +566,6 @@ public class UpdateResourceAction implements Serializable {
 
 	public void setOxId(String oxId) {
 		this.oxId = oxId;
-	}
-
-	@ObjectClass(value = "oxAuthCustomScope")
-	class ScopeDisplayNameEntry extends DisplayNameEntry {
-
-		public ScopeDisplayNameEntry() {
-			super();
-		}
-	}
-
-	@ObjectClass(value = "oxAuthClient")
-	class ClientDisplayNameEntry extends DisplayNameEntry {
-
-		public ClientDisplayNameEntry() {
-			super();
-		}
 	}
 
 }

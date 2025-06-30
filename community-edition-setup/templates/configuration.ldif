@@ -49,9 +49,4 @@ oxLogViewerConfig: {
       "description":""
     }
   ]}
-oxSmtpConfiguration: {
-    "key-store":"%(smtp_jks_fn)s",
-    "key-store-password":"%(smtp_jks_pass_enc)s",
-    "key-store-alias":"%(smtp_alias)s",
-    "signing-algorithm":"%(smtp_signing_alg)s"
-    }
+

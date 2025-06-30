@@ -8,8 +8,7 @@
 	xmlns:ox="http://xmlns.jcp.org/jsf/composite/ox"
 	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
 	xmlns:gluufn="http://www.gluu.org/jsf/functions"
-	xmlns:p="http://primefaces.org/ui"
-	xmlns:a4j="http://richfaces.org/a4j">
+	xmlns:p="http://primefaces.org/ui">
 
 	<h:outputStylesheet>
         .addConfig {
@@ -83,11 +82,11 @@
 				iconAwesome="fa-university" collapsible="false">
 				<div class="nav-tabs-custom" style="margin-bottom: 0px;">
 					<ul class="nav nav-tabs" id="organizationFormtab">
-						<li><a href="#sys-config" data-bs-toggle="tab" class="active">#{msgs['organizationForm.systemConfiguration']}</a></li>
-						<li><a href="#smtp-server" data-bs-toggle="tab">#{msgs['organizationForm.smtpServerConfiguration']}</a></li>
-						<li><a href="#ox-trust" data-bs-toggle="tab">Organization
+						<li class="active"><a href="#sys-config" data-toggle="tab">#{msgs['organizationForm.systemConfiguration']}</a></li>
+						<li><a href="#smtp-server" data-toggle="tab">#{msgs['organizationForm.smtpServerConfiguration']}</a></li>
+						<li><a href="#ox-trust" data-toggle="tab">Organization
 								Settings</a></li>
-						<li><a href="#libs" data-bs-toggle="tab">Extra libraries</a></li>
+						<li><a href="#libs" data-toggle="tab">Extra libraries</a></li>
 					</ul>
 					<div class="tab-content">
 						<div class="tab-pane active" id="sys-config">
@@ -173,43 +172,22 @@
 										styleClass="form-control smtpUserNameTextBox" />
 								</ox:decorate>
 								<ox:decorate label="#{msgs['organizationForm.smtpPassword']}">
-									<h:inputSecret value="#{_organizationAction.smtpPasswordDecrypted}" autocomplete="off" redisplay="true"
+									<h:inputSecret value="#{_organizationAction.passwordDecrypted}" autocomplete="off" redisplay="true"
 										styleClass="form-control smtpPasswordTextBox" />
 								</ox:decorate>
-								<ox:decorate id="connectProtection" label="#{msgs['organizationForm.smtpConnectProtection']}">
-									<h:selectOneMenu styleClass="form-control connectProtectionSelectOneMenu"
-										value="#{_smtp.connectProtection}" required="true"
-										id="connectPtotectionTypeId" converter="omnifaces.GenericEnumConverter">
-										<f:selectItems
-											value="#{_smtp.connectProtectionList}"
-											var="_type" itemLabel="#{_type.displayName}" />
-										<a4j:ajax event="change" render="metadataType, spSingleGroup"
-											execute="@this" />
-									</h:selectOneMenu>
+								<ox:decorate label="#{msgs['organizationForm.requiresSSL']}">
+									<h:selectBooleanCheckbox value="#{_smtp.requiresSsl}"
+										styleClass="requiresSSLCheckBox" />
 								</ox:decorate>
+
 								<ox:decorate label="#{msgs['organizationForm.trustserver']}">
 									<h:selectBooleanCheckbox value="#{_smtp.serverTrust}"
 										styleClass="trustserverCheckBox" />
 								</ox:decorate>
+
 								<ox:decorate label="#{msgs['organizationForm.smtpPort']}">
 									<h:inputText value="#{_smtp.port}"
 										styleClass="form-control smtpPortTextBox" />
-								</ox:decorate>
-								<ox:decorate label="#{msgs['organizationForm.keyStore']}">
-									<h:inputText value="#{_smtp.keyStore}"
-										styleClass="form-control" />
-								</ox:decorate>
-								<ox:decorate label="#{msgs['organizationForm.keyStorePassword']}">
-									<h:inputSecret value="#{_organizationAction.keyStorePasswordDecrypted}" autocomplete="off" redisplay="true"
-										styleClass="form-control" />
-								</ox:decorate>
-								<ox:decorate label="#{msgs['organizationForm.keyStoreAlias']}">
-									<h:inputText value="#{_smtp.keyStoreAlias}"
-										styleClass="form-control" />
-								</ox:decorate>
-								<ox:decorate label="#{msgs['organizationForm.signingAlgorithm']}">
-									<h:inputText value="#{_smtp.signingAlgorithm}"
-										styleClass="form-control" />
 								</ox:decorate>
 								<h:commandButton
 									value="#{msgs['organizationForm.testConfiguration']}"
@@ -238,7 +216,7 @@
 								<b:panel title="oxTrust Logo/Favicon" look="primary"
 									iconAwesome="fa-sliders">
 									<div class="row">
-										<div class="col-sm-6 col-lg-6" style="padding-right: 15px !important;">
+										<div class="col-sm-6 col-lg-6">
 											<b:panel id="oxTrustLogoPanelId" title="Current oxTrust Logo"
 												look="success" collapsible="true" collapsed="true">
 												<div class="row">
@@ -296,7 +274,7 @@
 								<b:panel title="oxAuth Logo/Favicon" look="primary"
 									iconAwesome="fa-sliders">
 									<div class="row">
-										<div class="col-sm-6 col-lg-6" style="padding-right: 15px !important;">
+										<div class="col-sm-6 col-lg-6">
 											<b:panel id="oxAuthLogoPanelId" title="Current oxAuth Logo"
 												look="success" collapsible="true" collapsed="true">
 												<div class="row">

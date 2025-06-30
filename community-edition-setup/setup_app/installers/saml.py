@@ -4,7 +4,7 @@ import shutil
 
 from setup_app import paths
 from setup_app.static import PersistenceType
-from setup_app.static import AppType, InstallOption, SetupProfiles
+from setup_app.static import AppType, InstallOption
 from setup_app.config import Config
 from setup_app.utils import base
 from setup_app.installers.jetty import JettyInstaller
@@ -12,7 +12,6 @@ from setup_app.installers.jetty import JettyInstaller
 class SamlInstaller(JettyInstaller):
 
     def __init__(self):
-        setattr(base.current_app, self.__class__.__name__, self)
         self.service_name = 'idp'
         self.app_type = AppType.SERVICE
         self.install_type = InstallOption.OPTONAL
@@ -35,8 +34,7 @@ class SamlInstaller(JettyInstaller):
         self.ldif_oxidp = os.path.join(self.output_folder, 'oxidp.ldif')
         self.oxidp_config_json = os.path.join(self.output_folder, 'oxidp-config.json')
 
-        self.shib_data_store_fn = os.path.join(Config.certFolder, 'shibIDP.jks')
-
+        self.shibJksFn = os.path.join(Config.certFolder, 'shibIDP.jks')
         self.shibboleth_version = 'v3'
 
         self.data_source_properties = os.path.join(self.output_folder, 'datasource.properties')
@@ -65,10 +63,6 @@ class SamlInstaller(JettyInstaller):
         self.idp_encryption_crt_file = os.path.join(Config.certFolder, 'idp-encryption.crt')
         self.idp_signing_crt_file = os.path.join(Config.certFolder, 'idp-signing.crt')
 
-        Config.templateRenderingDict['sealer_data_store_fn'] = 'sealer.jks'
-        Config.templateRenderingDict['shib_data_store_fn'] = self.shib_data_store_fn
-
-
     def install(self):
         self.logIt("Install SAML Shibboleth IDP v3...")
 
@@ -85,11 +79,10 @@ class SamlInstaller(JettyInstaller):
             self.gen_cert('idp-signing', Config.shibJksPass, 'jetty')
 
             self.gen_keystore('shibIDP',
-                              self.shib_data_store_fn,
+                              self.shibJksFn,
                               Config.shibJksPass,
                               self.shib_key_file,
-                              self.shib_crt_file,
-                              store_type='JKS'
+                              self.shib_crt_file
                               )
 
 
@@ -115,6 +108,11 @@ class SamlInstaller(JettyInstaller):
             self.renderTemplateInOut(self.idp3_metadata, self.staticIDP3FolderMetadata, self.idp3MetadataFolder)
 
         self.installJettyService(self.jetty_app_configuration[self.service_name], True)
+        jettyServiceWebapps = os.path.join(self.jetty_base, self.service_name,  'webapps')
+        self.copyFile(self.source_files[0][0], jettyServiceWebapps)
+        self.war_for_jetty10(os.path.join(jettyServiceWebapps, os.path.basename(self.source_files[0][0])))
+        # Prepare libraries needed to for command line IDP3 utilities
+
         self.install_saml_libraries()
 
 
@@ -123,7 +121,7 @@ class SamlInstaller(JettyInstaller):
             # there is one throuble with Shibboleth IDP 3.x - it doesn't load keystore from /etc/certs. It accepts %{idp.home}/credentials/sealer.jks  %{idp.home}/credentials/sealer.kver path format only.
             cmd = [Config.cmd_java,'-classpath', '"{}"'.format(os.path.join(self.idp3Folder,'webapp/WEB-INF/lib/*')),
                 'net.shibboleth.utilities.java.support.security.BasicKeystoreKeyStrategyTool',
-                '--storefile', os.path.join(self.idp3Folder,'credentials', Config.templateRenderingDict['sealer_data_store_fn']),
+                '--storefile', os.path.join(self.idp3Folder,'credentials/sealer.jks'),
                 '--versionfile',  os.path.join(self.idp3Folder, 'credentials/sealer.kver'),
                 '--alias secret',
                 '--storepass', Config.shibJksPass]
@@ -136,8 +134,7 @@ class SamlInstaller(JettyInstaller):
             self.saml_couchbase_settings()
 
         self.saml_persist_configurations()
-        user_group = 'identity:gluu' if Config.profile == SetupProfiles.DISA_STIG else 'jetty:gluu'
-        self.run([paths.cmd_chown, '-R', user_group, self.idp3Folder])
+        self.run([paths.cmd_chown, '-R', 'jetty:jetty', self.idp3Folder])
         self.enable()
 
     def unpack_idp3(self):
@@ -226,14 +223,6 @@ class SamlInstaller(JettyInstaller):
             if Config.persistence_type == 'sql':
                 self.data_source_properties = self.data_source_properties + '.sql'
                 bean_formatter = 'rdbm'
-                if Config.rdbm_type == 'pgsql':
-                    Config.non_setup_properties['rdbm_driver_class'] = 'org.postgresql.Driver'
-                    Config.non_setup_properties['rdbm_name'] = 'postgresql'
-                    Config.non_setup_properties['sql_search_filter'] = '''select * from "gluuPerson" where ((LOWER("uid") = '$requestContext.principalName') OR (LOWER("mail") = '$requestContext.principalName')) AND ("objectClass" = 'gluuPerson')'''
-                else:
-                     Config.non_setup_properties['rdbm_driver_class'] = 'com.{}.jdbc.Driver'.format(Config.rdbm_type)
-                     Config.non_setup_properties['rdbm_name'] = Config.rdbm_type
-                     Config.non_setup_properties['sql_search_filter'] = '''select * from `gluuPerson` where ((LOWER(uid) = "$requestContext.principalName") OR (LOWER(mail) = "$requestContext.principalName")) AND (objectClass = "gluuPerson")'''
             else:
                 bean_formatter = 'couchbase'
 

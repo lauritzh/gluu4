@@ -20,15 +20,15 @@ public class NativePersistenceCacheEntity extends DeletableEntity implements Ser
     @AttributeName(name = "dat")
     private String data;
 
-	public Integer getTtl() {
-		return ttl;
-	}
+    public Integer getTtl() {
+        return ttl;
+    }
 
-	public void setTtl(Integer ttl) {
-		this.ttl = ttl;
-	}
+    public void setTtl(Integer ttl) {
+        this.ttl = ttl;
+    }
 
-	public String getId() {
+    public String getId() {
         return id;
     }
 

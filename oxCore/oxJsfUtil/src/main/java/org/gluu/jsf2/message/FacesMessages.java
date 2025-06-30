@@ -18,7 +18,6 @@ import javax.inject.Inject;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.gluu.service.el.ExpressionEvaluator;
-import org.gluu.util.StringHelper;
 
 /**
  * @author Yuriy Movchan
@@ -50,20 +49,12 @@ public class FacesMessages implements Serializable {
     }
 
     public void add(String clientId, Severity severity, String message) {
-    	boolean escape = StringHelper.isNotEmpty(clientId);
-        add(clientId, severity, message, escape);
-    }
-
-    public void add(String clientId, Severity severity, String message, boolean escape) {
         if (facesContext == null) {
             return;
         }
 
         String evaluatedMessage = evalAsString(message);
-    	String encodedMessage = evaluatedMessage;
-        if (escape) {
-        	encodedMessage = StringEscapeUtils.escapeHtml4(evaluatedMessage);
-        }
+        String encodedMessage = StringEscapeUtils.escapeHtml4(evaluatedMessage);
         FacesMessage facesMessage = new FacesMessage(severity, encodedMessage, encodedMessage);
         facesContext.addMessage(clientId, facesMessage);
         

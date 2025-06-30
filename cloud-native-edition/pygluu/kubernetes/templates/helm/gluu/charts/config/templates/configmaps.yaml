@@ -2,7 +2,7 @@
 # https://www.apache.org/licenses/LICENSE-2.0
 apiVersion: v1
 kind: ConfigMap
-metadata:
+metadata: 
   name: {{ .Release.Name }}-config-cm
   namespace: {{ .Release.Namespace }}
   labels:
@@ -15,7 +15,6 @@ metadata:
 {{ toYaml .Values.additionalAnnotations | indent 4 }}
 {{- end }}
 data:
-  GLUU_SQL_DB_SCHEMA: {{ .Values.configmap.cnSqlDbSchema | quote }}
   GLUU_SQL_DB_DIALECT: {{ .Values.configmap.cnSqlDbDialect }}
   GLUU_SQL_DB_HOST: {{ .Values.configmap.cnSqlDbHost }}
   GLUU_SQL_DB_PORT: {{ .Values.configmap.cnSqlDbPort | quote }}
@@ -23,40 +22,22 @@ data:
   GLUU_SQL_DB_USER: {{ .Values.configmap.cnSqlDbUser }}
   GLUU_SQL_DB_TIMEZONE: {{ .Values.configmap.cnSqlDbTimezone }}
   GLUU_SQL_PASSWORD_FILE: {{ .Values.configmap.cnSqlPasswordFile }}
-  {{ if or (eq .Values.global.configAdapterName "google") (eq .Values.global.configSecretAdapter "google") (eq .Values.global.gluuPersistenceType "spanner") }}
-  # [google_envs] Envs related to using Google 
-  GOOGLE_APPLICATION_CREDENTIALS: {{ .Values.global.cnGoogleApplicationCredentials | quote }}
-  GOOGLE_PROJECT_ID: {{ .Values.configmap.cnGoogleProjectId | quote }}
-  {{- end }}
-  {{ if eq .Values.global.gluuPersistenceType "spanner" }}
-  # [google_spanner_envs] Envs related to using Google Cloud Spanner  
-  GLUU_GOOGLE_SPANNER_INSTANCE_ID: {{ .Values.configmap.cnGoogleSpannerInstanceId | quote }}
-  GLUU_GOOGLE_SPANNER_DATABASE_ID: {{ .Values.configmap.cnGoogleSpannerDatabaseId | quote }}
-  SPANNER_EMULATOR_HOST: {{ .Values.configmap.cnGoogleSpannerEmulatorHost | quote }}
-  # [google_spanner_envs] END
-  {{- end }}
-  {{ if or (eq .Values.global.configSecretAdapter "google") (eq .Values.global.configAdapterName "google") }}
-  # [google_secret_manager_envs] Envs related to using Google Secret Manager to store config and secret layer  
-  GLUU_GOOGLE_SECRET_VERSION_ID: {{ .Values.configmap.cnSecretGoogleSecretVersionId | quote }}
-  GLUU_GOOGLE_SECRET_NAME_PREFIX: {{ .Values.configmap.cnSecretGoogleSecretNamePrefix | quote }}
-  # [google_secret_manager_envs] END
-  {{- end }}
-  {{ if or (eq .Values.global.configSecretAdapter "aws") (eq .Values.global.configAdapterName "aws") }}
-  # [aws_envs] Envs related to using AWS
-  {{- if .Values.configmap.cnAwsSecretsEndpointUrl }}
-  GLUU_AWS_SECRETS_ENDPOINT_URL: {{ .Values.configmap.cnAwsSecretsEndpointUrl }}
-  {{- end }}
-  GLUU_AWS_SECRETS_PREFIX: {{ .Values.configmap.cnAwsSecretsNamePrefix }}
-  GLUU_AWS_SECRETS_REPLICA_FILE: {{ .Values.global.cnAwsSecretsReplicaRegionsFile }}
-  AWS_DEFAULT_REGION: {{ .Values.configmap.cnAwsDefaultRegion }}
-  AWS_SHARED_CREDENTIALS_FILE: {{ .Values.global.cnAwsSharedCredentialsFile }}
-  AWS_CONFIG_FILE: {{ .Values.global.cnAwsConfigFile }}
-  #AWS_PROFILE
-  # [aws_envs] END
-  {{- end }}
   GLUU_CONFIG_ADAPTER: {{ .Values.global.configAdapterName }}
   GLUU_SECRET_ADAPTER: {{ .Values.global.configSecretAdapter }}
-  GLUU_SSL_CERT_FROM_DOMAIN: {{ .Values.global.sslCertFromDomain | quote }}
+  # [google_envs] Envs related to using Google
+  GOOGLE_APPLICATION_CREDENTIALS: {{ .Values.global.cnGoogleApplicationCredentials | quote }}
+  GOOGLE_PROJECT_ID: {{ .Values.configmap.cnGoogleProjectId | quote }}
+  # [google_spanner_envs] Envs related to using Google Secret Manager to store config and secret layer
+  GLUU_GOOGLE_SPANNER_INSTANCE_ID: {{ .Values.configmap.cnGoogleSpannerInstanceId | quote }}
+  GLUU_GOOGLE_SPANNER_DATABASE_ID: {{ .Values.configmap.cnGoogleSpannerDatabaseId | quote }}
+  # [google_spanner_envs] END
+  # [google_secret_manager_envs] Envs related to using Google Secret Manager to store config and secret layer
+  GLUU_SECRET_GOOGLE_SECRET_VERSION_ID: {{ .Values.configmap.cnSecretGoogleSecretVersionId | quote }}
+  GLUU_SECRET_GOOGLE_SECRET_MANAGER_PASSPHRASE: {{ .Values.configmap.cnGoogleSecretManagerPassPhrase | quote }}
+  GLUU_SECRET_GOOGLE_SECRET_NAME_PREFIX: {{ .Values.configmap.cnSecretGoogleSecretNamePrefix | quote }}
+  GLUU_CONFIG_GOOGLE_SECRET_VERSION_ID: {{ .Values.configmap.cnConfigGoogleSecretVersionId | quote }}
+  GLUU_CONFIG_GOOGLE_SECRET_NAME_PREFIX: {{ .Values.configmap.cnConfigGoogleSecretNamePrefix | quote }}
+  # [google_secret_manager_envs] END
   GLUU_CONFIG_KUBERNETES_NAMESPACE: {{ .Release.Namespace | quote }}
   GLUU_SECRET_KUBERNETES_NAMESPACE: {{ .Release.Namespace | quote }}
   GLUU_CONTAINER_METADATA: {{ .Values.configmap.containerMetadataName | quote }}
@@ -85,7 +66,6 @@ data:
   | replace "auditStatsLogLevel" "audit_log_level"
   | replace "cleanerLogTarget" "cleaner_log_target"
   | replace "cleanerLogLevel" "cleaner_log_level"
-  | replace "enableStdoutLogPrefix" "enable_stdout_log_prefix"
   | squote
   }}
   GLUU_OXD_SERVER_URL: {{ .Values.configmap.gluuOxdServerUrl | quote }}
@@ -118,11 +98,7 @@ data:
   GLUU_KEY_ROTATION_CHECK: "3600"
   GLUU_KEY_ROTATION_INTERVAL: "48"
   GLUU_CONTAINER_MAIN_NAME: {{ .Release.Name }}-oxauth
-  {{- if eq .Values.global.isDomainRegistered "false" }}
   GLUU_SSL_CERT_FROM_SECRETS: "true"
-  {{- else }}
-  GLUU_SSL_CERT_FROM_SECRETS: "false"
-  {{- end }}
   # options: default/user/site/cache/statistic used only if GLUU_PERSISTENCE_TYPE is hybrid or hybrid
   {{- if or (eq .Values.global.gluuPersistenceType "hybrid") (eq .Values.global.gluuPersistenceType "ldap") }}
   GLUU_PERSISTENCE_LDAP_MAPPING: {{ .Values.configmap.gluuPersistenceLdapMapping | quote }}
@@ -158,7 +134,6 @@ data:
   | replace "cacheRefreshPythonLogTarget" "cache_refresh_python_log_target"
   | replace "apachehcLogLevel" "apachehc_log_level"
   | replace "apachehcLogTarget" "apachehc_log_target"
-  | replace "enableStdoutLogPrefix" "enable_stdout_log_prefix"
   | squote
   }}
   GLUU_FIDO2_APP_LOGGERS: {{ .Values.global.fido2.appLoggers
@@ -167,20 +142,11 @@ data:
   | replace "fido2LogLevel" "fido2_log_level"
   | replace "persistenceLogTarget" "persistence_log_target"
   | replace "persistenceLogLevel" "persistence_log_level"
-  | replace "enableStdoutLogPrefix" "enable_stdout_log_prefix"
   | squote
   }}
   GLUU_SYNC_SHIB_MANIFESTS: {{ .Values.configmap.gluuSyncShibManifests | quote }}
   GLUU_OXTRUST_API_ENABLED: {{ .Values.configmap.gluuOxtrustApiEnabled | quote }}
   GLUU_OXTRUST_API_TEST_MODE: {{ .Values.configmap.gluuOxtrustApiTestMode | quote }}
-  {{ if .Values.global.jackrabbit.enabled }}
-  GLUU_JACKRABBIT_APP_LOGGERS: {{ .Values.global.jackrabbit.appLoggers
-  | toJson
-  | replace "jackrabbitLogTarget" "jackrabbit_log_target"
-  | replace "jackrabbitLogLevel" "jackrabbit_log_level"
-  | squote
-  }}
-  {{- end }}
   {{ if eq .Values.global.gluuJackrabbitCluster "true" }}
   GLUU_JACKRABBIT_ADMIN_ID: {{ .Values.configmap.gluuJackrabbitAdminId | quote }}
   GLUU_JACKRABBIT_ADMIN_PASSWORD_FILE: {{ .Values.configmap.gluuJackrabbitAdminPassFile | quote }}
@@ -206,7 +172,6 @@ data:
   | replace "persistenceDurationLogLevel" "persistence_duration_log_level"
   | replace "scriptLogTarget" "script_log_target"
   | replace "scriptLogLevel" "script_log_level"
-  | replace "enableStdoutLogPrefix" "enable_stdout_log_prefix"
   | squote
   }}
   {{- if .Values.global.oxshibboleth.enabled }}
@@ -221,7 +186,6 @@ data:
   | replace "idpLogLevel" "idp_log_level"
   | replace "scriptLogTarget" "script_log_target"
   | replace "scriptLogLevel" "script_log_level"
-  | replace "enableStdoutLogPrefix" "enable_stdout_log_prefix"
   | squote
   }}
   {{- end }}
@@ -238,6 +202,7 @@ data:
   GLUU_COUCHBASE_TRUSTSTORE_ENABLE: "false"
   GLUU_LDAP_USE_SSL: "false"
   {{- end }}
+  # BELOW TEMP ENV. TO BE REMOVED IN 4.3
   GLUU_PASSPORT_FAILURE_REDIRECT_URL: {{ .Values.configmap.gluuPassportFailureRedirectUrl | quote }}
 
 ---
@@ -247,9 +212,6 @@ data:
   tls_generator.py: |-
     from kubernetes import config, client
     import logging
-    import base64
-
-    from pygluu.containerlib import get_manager
 
     log_format = '%(asctime)s - %(name)8s - %(levelname)5s - %(message)s'
     logging.basicConfig(format=log_format, level=logging.INFO)
@@ -300,32 +262,25 @@ data:
             return False
 
     # check if gluu secret exists
-    def get_certs():
-        """Get cert and key from secret layer.
-
-        :return: ssl cert and key (if any)
+    def get_certs(secret_name, namespace):
         """
-        def b64encode(value):
-            return base64.b64encode(value.encode()).decode()
 
-        manager = get_manager()
+        :param namespace:
+        :return:  ssl cert and key from gluu secrets
+        """
+        ssl_cert = None
+        ssl_key = None
+        if core_cli.read_namespaced_secret(secret_name, namespace):
+            ssl_cert = core_cli.read_namespaced_secret(secret_name, namespace).data['ssl_cert']
+            ssl_key = core_cli.read_namespaced_secret(secret_name, namespace).data['ssl_key']
 
-        # returns empty string if not found
-        ssl_cert = manager.secret.get("ssl_cert")
-        if ssl_cert:
-            ssl_cert = b64encode(ssl_cert)
-
-        # returns empty string if not found
-        ssl_key = manager.secret.get("ssl_key")
-        if ssl_key:
-            ssl_key = b64encode(ssl_key)
         return ssl_cert, ssl_key
 
 
     def main():
         namespace = {{.Release.Namespace | quote}}
         secret_name = "gluu"
-        cert, key = get_certs()
+        cert, key = get_certs(secret_name, namespace)
         # global vars
         name = "tls-certificate"
 

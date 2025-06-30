@@ -36,9 +36,6 @@ class ClientRegistration(ClientRegistrationType):
         redirectUris = client.getRedirectUris()
         print "Casa client registration. Redirect Uris: %s" % redirectUris
 
-        if redirectUris == None:
-            return True
-
         credManagerClient = False
         for redirectUri in redirectUris:
             if self.clientRedirectUrisSet.contains(redirectUri):

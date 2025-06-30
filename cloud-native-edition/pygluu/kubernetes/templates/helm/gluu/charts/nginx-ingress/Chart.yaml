@@ -2,8 +2,8 @@
 # https://www.apache.org/licenses/LICENSE-2.0
 apiVersion: v2
 name: nginx-ingress
-version: 1.8.45
-kubeVersion: ">=v1.22.0-0"
+version: 1.6.19
+kubeVersion: ">=v1.21.0-0"
 description: Nginx ingress definitions chart
 type: application
 keywords:
@@ -13,10 +13,10 @@ home: https://gluu.org/docs/gluu-server
 sources:
   - https://github.com/kubernetes/ingress-nginx
   - https://kubernetes.io/docs/concepts/services-networking/ingress/
-  - https://github.com/GluuFederation/gluu4/tree/4.5/cloud-native-edition
+  - https://github.com/GluuFederation/cloud-native-edition/tree/4.3/pygluu/kubernetes/templates/helm/gluu/charts/nginx-ingress
 maintainers:
   - name: Mohammad Abudayyeh
     email: support@gluu.org
     url: https://github.com/moabu
 icon: https://gluu.org/docs/gluu-server/favicon.ico
-appVersion: "4.5.11"
+appVersion: "4.3.1"

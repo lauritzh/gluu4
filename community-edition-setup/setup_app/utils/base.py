@@ -16,7 +16,6 @@ import shutil
 import socket
 import multiprocessing
 import ssl
-import shlex
 
 from pathlib import Path
 from collections import OrderedDict
@@ -38,6 +37,9 @@ ces_dir = Path(__file__).parent.parent.as_posix()
 par_dir = Path(__file__).parent.parent.parent.as_posix()
 
 current_app = SimpleNamespace()
+
+snap = os.environ.get('SNAP','')
+snap_common = snap_common_dir = os.environ.get('SNAP_COMMON','')
 
 re_split_host = re.compile(r'[^,\s,;]+')
 
@@ -62,7 +64,7 @@ with open(os_release_fn) as f:
                     os_type = 'red'
                 elif 'ubuntu-core' in os_type:
                     os_type = 'ubuntu'
-                elif 'sles' in os_type or 'suse' in os_type:
+                elif 'sles' in os_type:
                     os_type = 'suse'
             elif row[0] == 'VERSION_ID':
                 os_version = row[1].split('.')[0]
@@ -72,8 +74,7 @@ if not (os_type and os_version):
     sys.exit()
 
 os_name = os_type + os_version
-deb_sysd_clone = os_name.startswith(('ubuntu', 'debian'))
-
+deb_sysd_clone = os_name in ('ubuntu18', 'ubuntu20', 'debian9', 'debian10')
 
 # Determine service path
 if (os_type in ('centos', 'red', 'fedora', 'suse') and os_initdaemon == 'systemd') or deb_sysd_clone:
@@ -90,14 +91,12 @@ else:
     clone_type = 'deb'
     httpd_name = 'apache2'
 
-def get_os_description():
-    desc_dict = { 'suse': 'SUSE', 'red': 'RHEL', 'ubuntu': 'Ubuntu', 'deb': 'Debian', 'centos': 'CentOS', 'fedora': 'Fedora' }
-    descs = desc_dict.get(os_type, os_type)
-    descs += ' ' + os_version
-    fipsl = subprocess.getoutput("sysctl crypto.fips_enabled").strip().split()
-    if fipsl and fipsl[0] == 'crypto.fips_enabled' and fipsl[-1] == '1':
-        descs += ' [FIPS]'
-    return descs
+if os_type == 'suse':
+    httpd_name = 'apache2'
+
+
+if snap:
+    snapctl = shutil.which('snapctl')
 
 # resources
 current_file_max = int(open("/proc/sys/fs/file-max").read().strip())
@@ -105,7 +104,7 @@ current_mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
 current_mem_size = round(current_mem_bytes / (1024.**3), 1) #in GB
 current_number_of_cpu = multiprocessing.cpu_count()
 
-disk_st = os.statvfs('/')
+disk_st = os.statvfs(snap_common if snap else '/')
 current_free_disk_space = round(disk_st.f_bavail * disk_st.f_frsize / (1024 * 1024 *1024), 1)
 
 def check_resources():
@@ -161,7 +160,7 @@ def determineApacheVersion(full=False):
     httpd_cmd = shutil.which(httpd_name)
     cmd = httpd_name + " -v | egrep '^Server version'"
     output = run(cmd, shell=True)
-    apache_version_re = re.search(r'Apache/(\d).(\d).(\d)', output.strip())
+    apache_version_re = re.search('Apache/(\d).(\d).(\d)', output.strip())
     if apache_version_re:
         (major, minor, pathc) =  apache_version_re.groups()
         if full:
@@ -222,6 +221,9 @@ def get_clean_args(args):
 
 # args = command + args, i.e. ['ls', '-ltr']
 def run(args, cwd=None, env=None, useWait=False, shell=False, get_stderr=False):
+    if snap and args[0] in [paths.cmd_chown]:
+        return ''
+
     output = ''
     log_arg = ' '.join(args) if type(args) is list else args
     logIt('Running: %s' % log_arg)
@@ -282,7 +284,7 @@ def readJsonFile(jsonFile, ordered=False):
 
 def find_script_names(ldif_file):
     name_list = []
-    rec = re.compile(r'\%\((.+?)\)s')
+    rec = re.compile('\%\(((?s).*)\)s')
     with open(ldif_file) as f:
         for l in f:
             if l.startswith('oxScript::'):
@@ -322,71 +324,3 @@ def check_port_available(port_list, host='localhost'):
         socket_object.close()
 
     return open_ports
-
-def extract_file(zip_file, source, target, ren=False):
-    fn = None
-    zip_obj = zipfile.ZipFile(zip_file, "r")
-
-    for member in zip_obj.infolist():
-        if not member.is_dir() and member.filename.endswith(source):
-            if ren:
-                target_p = Path(target)
-            else:
-                p = Path(member.filename)
-                target_p = Path(target).joinpath(p.name)
-                if not target_p.parent.exists():
-                    target_p.parent.mkdir(parents=True)
-            logIt(f"Extracting {source} from {zip_file} to {target}")
-            target_p.write_bytes(zip_obj.read(member))
-            fn = target_p.as_posix()
-            break
-
-    zip_obj.close()
-
-    return fn
-
-
-def extract_subdir(zip_fn, sub_dir, target_dir, par_dir=None, overwrite=False):
-    target_fp = os.path.join(target_dir, os.path.basename(sub_dir))
-
-    logIt(f"Extracting {zip_fn} to {target_dir}")
-
-    zip_obj = zipfile.ZipFile(zip_fn, "r")
-    members = zip_obj.infolist()
-
-    if par_dir is None:
-        par_dir = members[0].filename
-
-    subdir_with_parent = os.path.join(par_dir, sub_dir) if par_dir else sub_dir
-
-    for member in members:
-        if member.filename.startswith(subdir_with_parent):
-            if sub_dir:
-                n = sub_dir.count('/') + 1
-                member_path = Path(member.filename)
-                extract_path = Path(*member_path.parts[n:]).as_posix()
-            else:
-                extract_path = member.filename
-
-            extracted_path = os.path.join(target_dir, extract_path)
-            if not overwrite and os.path.exists(extracted_path):
-                logIt(f"Overwrite disabled, not extracting {member.filename}")
-                continue
-
-            if member.is_dir():
-                if not os.path.exists(extracted_path):
-                    logIt(f"Creating directory {extracted_path}")
-                    os.makedirs(extracted_path)
-            else:
-                member.filename = extract_path
-                logIt(f"Extracting {member.filename} to {target_dir}")
-                zip_obj.extract(member, target_dir)
-
-            if member.external_attr >  0xffff:
-                 os.chmod(extracted_path, member.external_attr >> 16)
-
-    zip_obj.close()
-
-app_info_fn = os.environ.get('GLUU_APP_INFO') or os.path.join(par_dir, 'app_info.json')
-current_app.app_info = readJsonFile(app_info_fn)
-current_app.gluu_zip = os.path.join(Config.distFolder, f'gluu/gluu-{current_app.app_info["APPS_GIT_BRANCH"]}.zip')

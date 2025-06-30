@@ -45,7 +45,7 @@ For domain verification purposes you will be given a file that it is supposed to
     1. Create file `apple-ing.yaml` with the following content.
     
         ```yaml
-        apiVersion: networking.k8s.io/v1
+        apiVersion: extensions/v1beta1
         kind: Ingress
         metadata:
           annotations:

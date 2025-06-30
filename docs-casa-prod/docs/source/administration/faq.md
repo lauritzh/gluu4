@@ -21,7 +21,7 @@ During normal use, the app will show feedback to users if operations were succes
 
 ### How do I restart the application?
 
-Just [restart](https://gluu.org/docs/ce/4.4/operation/services/#restart) casa service.
+Just [restart](https://gluu.org/docs/ce/4.3/operation/services/#restart) casa service.
 
 ### How do I custom brand Casa?
 

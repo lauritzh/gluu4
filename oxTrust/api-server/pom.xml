@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.gluu</groupId>
 		<artifactId>oxtrust</artifactId>
-		<version>4.5.11-SNAPSHOT</version>
+		<version>4.3.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>oxtrust-api-server</artifactId>
 	<name>API Server</name>
@@ -100,11 +100,9 @@
 						<skipTests>true</skipTests>  <!-- set it to false when test sources appear -->
 					</configuration>
 				</plugin>
-				<!-- Ensures we are compiling at 1.8 level -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.1</version>
 					<configuration>
 						<source>1.8</source>
 						<target>1.8</target>

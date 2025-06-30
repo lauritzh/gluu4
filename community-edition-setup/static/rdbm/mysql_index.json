@@ -10,6 +10,7 @@
       "sn"
     ],
     "custom": [
+      "(CAST(address->'$.v' AS CHAR(48) ARRAY))",
       "(lower(`uid`))",
       "(lower(`mail`))"
     ]
@@ -192,26 +193,10 @@
     ],
     "custom": []
   },
-  "jansFido2AuthnEntry": {
-    "fields": [
-      "creationDate",
-      "jansStatus",
-      "personInum"
-    ],
-    "custom": []
-  },
   "oxFido2RegistrationEntry": {
     "fields": [
       "creationDate",
       "oxStatus",
-      "personInum"
-    ],
-    "custom": []
-  },
-  "jansFido2RegistrationEntry": {
-    "fields": [
-      "creationDate",
-      "jansStatus",
       "personInum"
     ],
     "custom": []
@@ -233,10 +218,10 @@
   },
    "__common__": {
     "JSON": [
-      "CAST($field->'$.v' AS CHAR(128) ARRAY)",
-      "CAST($field->'$.v[0]' AS CHAR(128))",
-      "CAST($field->'$.v[1]' AS CHAR(128))",
-      "CAST($field->'$.v[2]' AS CHAR(128))"
+      "CAST($field->'$.v' AS $data_type ARRAY)",
+      "CAST($field->'$.v[0]' AS $data_type)",
+      "CAST($field->'$.v[1]' AS $data_type)",
+      "CAST($field->'$.v[2]' AS $data_type)"
     ],
     "fields": [
       "uid"

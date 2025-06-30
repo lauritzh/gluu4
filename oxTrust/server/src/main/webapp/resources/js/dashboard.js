@@ -8,11 +8,13 @@ $(function() {
 	try {
 
 		var authChartData = JSON.parse($("#authenticationChartJson").val());
-		//console.log("authentication chart data");
-		//console.log(authChartData);
+		console.log("authentication chart data");
+		console.log(authChartData);
+
 		var authenticationRequestsChartData = {
 			labels : authChartData.labels,
 			datasets : [
+
 			{
 				label : "Successful Logins",
 				fill : false,
@@ -26,6 +28,7 @@ $(function() {
 				backgroundColor : "#FF0000",
 				data : authChartData.failure
 			}
+
 			]
 		};
 
@@ -40,8 +43,9 @@ $(function() {
 				} ]
 			}
 		};
-		//console.log(authenticationRequestsChartData);
-		//console.log(authenticationRequestsChartOptions);
+		console.log(authenticationRequestsChartData);
+		console.log(authenticationRequestsChartOptions);
+
 		// Get context with jQuery - using jQuery's .get() method.
 		var authenticationRequestsChartCanvas = $(
 				"#authenticationRequestsChart").get(0).getContext("2d");
@@ -55,9 +59,7 @@ $(function() {
 				});
 
 	} catch (error) {
-	    console.log("========================================");
 		console.log(error);
-		console.log("========================================");
 	}
 
 });

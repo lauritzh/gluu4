@@ -9,7 +9,6 @@ package org.gluu.oxauth.filter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -109,14 +108,15 @@ public class CorsFilter extends AbstractCorsFilter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
+        Collection<String> globalAllowedOrigins = null;
         if (this.filterEnabled) {
             try {
-                Collection<String> clientAllowedOrigins = doFilterImpl(servletRequest);
-                setContextClientAllowedOrigins(servletRequest, clientAllowedOrigins);
+				globalAllowedOrigins = doFilterImpl(servletRequest);
 			} catch (Exception ex) {
 				log.error("Failed to process request", ex);
 			}
             super.doFilter(servletRequest, servletResponse, filterChain);
+            setAllowedOrigins(globalAllowedOrigins);
         } else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
@@ -124,7 +124,7 @@ public class CorsFilter extends AbstractCorsFilter {
 
     protected Collection<String> doFilterImpl(ServletRequest servletRequest)
             throws UnsupportedEncodingException, IOException, ServletException {
-    	List<String> clientAuthorizedOrigins = null;
+        Collection<String> globalAllowedOrigins = getAllowedOrigins();
 
         if (StringHelper.isNotEmpty(servletRequest.getParameter("client_id"))) {
             String clientId = servletRequest.getParameter("client_id");
@@ -132,7 +132,8 @@ public class CorsFilter extends AbstractCorsFilter {
             if (client != null) {
                 String[] authorizedOriginsArray = client.getAuthorizedOrigins();
                 if (authorizedOriginsArray != null && authorizedOriginsArray.length > 0) {
-                    clientAuthorizedOrigins = Arrays.asList(authorizedOriginsArray);
+                    List<String> clientAuthorizedOrigins = Arrays.asList(authorizedOriginsArray);
+                    setAllowedOrigins(clientAuthorizedOrigins);
                 }
             }
         } else {
@@ -155,14 +156,15 @@ public class CorsFilter extends AbstractCorsFilter {
                     if (client != null) {
                         String[] authorizedOriginsArray = client.getAuthorizedOrigins();
                         if (authorizedOriginsArray != null && authorizedOriginsArray.length > 0) {
-                            clientAuthorizedOrigins = Arrays.asList(authorizedOriginsArray);
+                            List<String> clientAuthorizedOrigins = Arrays.asList(authorizedOriginsArray);
+                            setAllowedOrigins(clientAuthorizedOrigins);
                         }
                     }
                 }
             }
         }
-        
-        return clientAuthorizedOrigins;
+
+        return globalAllowedOrigins;
     }
 }
 

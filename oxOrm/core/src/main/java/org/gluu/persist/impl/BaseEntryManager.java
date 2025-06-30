@@ -11,14 +11,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,25 +33,21 @@ import org.gluu.persist.annotation.DataEntry;
 import org.gluu.persist.annotation.Expiration;
 import org.gluu.persist.annotation.JsonObject;
 import org.gluu.persist.annotation.ObjectClass;
-import org.gluu.persist.annotation.Password;
 import org.gluu.persist.annotation.SchemaEntry;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.exception.InvalidArgumentException;
 import org.gluu.persist.exception.MappingException;
-import org.gluu.persist.extension.PersistenceExtension;
+import org.gluu.persist.exception.extension.PersistenceExtension;
 import org.gluu.persist.model.AttributeData;
 import org.gluu.persist.model.AttributeDataModification;
 import org.gluu.persist.model.SearchScope;
 import org.gluu.persist.model.AttributeDataModification.AttributeModificationType;
-import org.gluu.persist.model.AttributeType;
-import org.gluu.persist.model.PasswordAttributeData;
 import org.gluu.persist.operation.PersistenceOperationService;
 import org.gluu.persist.reflect.property.Getter;
 import org.gluu.persist.reflect.property.PropertyAnnotation;
 import org.gluu.persist.reflect.property.Setter;
 import org.gluu.persist.reflect.util.ReflectHelper;
 import org.gluu.search.filter.Filter;
-import org.gluu.search.filter.FilterProcessor;
 import org.gluu.orm.util.ArrayHelper;
 import org.gluu.orm.util.StringHelper;
 import org.slf4j.Logger;
@@ -66,22 +60,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Yuriy Movchan Date: 10.07.2010
  */
-public abstract class BaseEntryManager<O extends PersistenceOperationService> implements PersistenceEntryManager {
+public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BaseEntryManager.class);
 
-	private static final Class<?>[] LDAP_ENTRY_TYPE_ANNOTATIONS = { DataEntry.class, SchemaEntry.class, 
+	private static final Class<?>[] LDAP_ENTRY_TYPE_ANNOTATIONS = { DataEntry.class, SchemaEntry.class,
 			ObjectClass.class };
 	private static final Class<?>[] LDAP_ENTRY_PROPERTY_ANNOTATIONS = { AttributeName.class, AttributesList.class,
-			JsonObject.class, Password.class };
+			JsonObject.class };
 	private static final Class<?>[] LDAP_CUSTOM_OBJECT_CLASS_PROPERTY_ANNOTATION = { CustomObjectClass.class };
 	private static final Class<?>[] LDAP_DN_PROPERTY_ANNOTATION = { DN.class };
 	private static final Class<?>[] LDAP_EXPIRATION_PROPERTY_ANNOTATION = { Expiration.class };
 
 	public static final String OBJECT_CLASS = "objectClass";
-	public static final String USER_PASSWORD = "userPassword";
-	private static final String MASKED = "*masked*";
-
 	public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
 	private static final Class<?>[] GROUP_BY_ALLOWED_DATA_TYPES = { String.class, Date.class, Integer.class,
@@ -106,10 +97,8 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 
 	protected static final int DEFAULT_PAGINATION_SIZE = 100;
 	
-	protected O operationService = null;
+	protected PersistenceOperationService operationService = null;
 	protected PersistenceExtension persistenceExtension = null;
-
-	protected FilterProcessor filterProcessor = new FilterProcessor();
 
 	@Override
 	public void persist(Object entry) {
@@ -132,9 +121,8 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		String[] objectClasses = getObjectClasses(entry, entryClass);
 		attributes.add(new AttributeData(OBJECT_CLASS, objectClasses, true));
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug(String.format("LDAP attributes for persist: %s", maskSensetiveData(attributes)));
-		}
+		LOG.debug(String.format("LDAP attributes for persist: %s", attributes));
+
 		persist(dnValue.toString(), objectClasses, attributes, expirationValue);
 	}
 
@@ -476,7 +464,7 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 
 	protected abstract void merge(String dn, String[] objectClasses, List<AttributeDataModification> attributeDataModifications, Integer expiration);
 
-	public abstract <T> void removeByDn(String dn, String[] objectClasses);
+	protected abstract <T> void removeByDn(String dn, String[] objectClasses);
 
 	@Deprecated
 	public void remove(String primaryKey) {
@@ -496,7 +484,7 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		removeByDn(primaryKey, objectClasses);
 	}
 
-	public abstract <T> void removeRecursivelyFromDn(String primaryKey, String[] objectClasses);
+	protected abstract <T> void removeRecursivelyFromDn(String primaryKey, String[] objectClasses);
 
 	@Deprecated
 	public void removeRecursively(String primaryKey) {
@@ -519,7 +507,7 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 	@Override
 	public boolean contains(Object entry) {
 		if (entry == null) {
-			throw new MappingException("Entry for check if exists is null");
+			throw new MappingException("Entry to persist is null");
 		}
 
 		// Check entry class
@@ -648,8 +636,8 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 					if (entry == null) {
 						return null;
 					} else {
-						List<AttributeData> attributesList = getAttributeDataListFromCustomAttributesList(entry,
-								(AttributesList) ldapAttribute, propertyName);
+						List<AttributeData> attributesList = getAttributesFromAttributesList(entry,
+								ldapAttribute, propertyName);
 						for (AttributeData attributeData : attributesList) {
 							String ldapAttributeName = attributeData.getName();
 							if (!attributes.containsKey(ldapAttributeName)) {
@@ -971,12 +959,7 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 			T entry;
 			List<String> customObjectClasses = null;
 			try {
-				Class<?> declaringClass = entryClass.getDeclaringClass();
-				if (declaringClass == null) {
-					entry = ReflectHelper.createObjectByDefaultConstructor(entryClass);
-				} else {
-					entry = (T) ReflectHelper.getConstructor(entryClass, declaringClass).newInstance((Object) null);
-				}
+				entry = ReflectHelper.createObjectByDefaultConstructor(entryClass);
 			} catch (Exception ex) {
 				throw new MappingException(String.format("Entry %s should has default constructor", entryClass));
 			}
@@ -1039,14 +1022,36 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 						ldapAttributesConfiguration.put(ldapAttributeConfiguration.name(), ldapAttributeConfiguration);
 					}
 
-					// Process objectClass first
-					for (Iterator<Entry<String, AttributeData>> it = attributesMap.entrySet().iterator(); it.hasNext();) {
-						Entry<String, AttributeData> attributeEntry = it.next();
+					Setter setter = getSetter(entryClass, propertyName);
+					if (setter == null) {
+						throw new MappingException("Entry should has setter for property " + propertyName);
+					}
 
-						AttributeData entryAttribute = attributeEntry.getValue(); 
+					List<Object> propertyValue = new ArrayList<Object>();
+					setter.set(entry, propertyValue);
+
+					Class<?> entryItemType = ReflectHelper.getListType(setter);
+					if (entryItemType == null) {
+						throw new MappingException(
+								"Entry property " + propertyName + " should has setter with specified element type");
+					}
+
+					String entryPropertyName = ((AttributesList) ldapAttribute).name();
+					Setter entryPropertyNameSetter = getSetter(entryItemType, entryPropertyName);
+					if (entryPropertyNameSetter == null) {
+						throw new MappingException(
+								"Entry should has setter for property " + propertyName + "." + entryPropertyName);
+					}
+
+					String entryPropertyValue = ((AttributesList) ldapAttribute).value();
+					Setter entryPropertyValueSetter = getSetter(entryItemType, entryPropertyValue);
+					if (entryPropertyValueSetter == null) {
+						throw new MappingException(
+								"Entry should has getter for property " + propertyName + "." + entryPropertyValue);
+					}
+
+					for (AttributeData entryAttribute : attributesMap.values()) {
 						if (OBJECT_CLASS.equalsIgnoreCase(entryAttribute.getName())) {
-							it.remove();
-
 							String[] objectClasses = entryAttribute.getStringValues();
 							if (ArrayHelper.isEmpty(objectClasses)) {
 								continue;
@@ -1067,27 +1072,40 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 									customObjectClasses.add(objectClass);
 								}
 							}
+
+							continue;
 						}
-					}
 
-					List<Object> propertyValue = getCustomAttributesListFromAttributeData(entryClass, (AttributesList) ldapAttribute, propertyName,
-							attributesMap.values(), ldapAttributesConfiguration);
+						AttributeName ldapAttributeConfiguration = ldapAttributesConfiguration
+								.get(entryAttribute.getName());
+						if ((ldapAttributeConfiguration != null) && ldapAttributeConfiguration.ignoreDuringRead()) {
+							continue;
+						}
 
-					Setter setter = getSetter(entryClass, propertyName);
-					if (setter == null) {
-						throw new MappingException("Entry should has setter for property " + propertyName);
+						String entryPropertyMultivalued = ((AttributesList) ldapAttribute).multiValued();
+						Setter entryPropertyMultivaluedSetter = null;
+						if (StringHelper.isNotEmpty(entryPropertyMultivalued)) {
+							entryPropertyMultivaluedSetter = getSetter(entryItemType, entryPropertyMultivalued);
+						}
+						if (entryPropertyMultivaluedSetter != null) {
+							Class<?> parameterType = ReflectHelper.getSetterType(entryPropertyMultivaluedSetter);
+							if (!parameterType.equals(Boolean.TYPE)) {
+								throw new MappingException(
+										"Entry should has getter for property " + propertyName + "." + entryPropertyMultivalued + " with boolean type");
+							}
+						}
+
+						Object listItem = getListItem(propertyName, entryPropertyNameSetter, entryPropertyValueSetter,
+								entryPropertyMultivaluedSetter, entryItemType, entryAttribute);
+						if (listItem != null) {
+							propertyValue.add(listItem);
+						}
 					}
 
 					if (doSort) {
-						Class<?> entryItemType = ReflectHelper.getListType(setter);
-						if (entryItemType == null) {
-							throw new MappingException(
-									"Entry property " + propertyName + " should has setter with specified element type");
-						}
 						sortAttributesListIfNeeded((AttributesList) ldapAttribute, entryItemType,
 								propertyValue);
 					}
-					setter.set(entry, propertyValue);
 				}
 			}
 
@@ -1097,78 +1115,6 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		}
 
 		return results;
-	}
-
-	private <T> List<Object> getCustomAttributesListFromAttributeData(Class<T> entryClass, AttributesList attributesList,
-			String propertyName, Collection<AttributeData> attributes, Map<String, AttributeName> ldapAttributesConfiguration) {
-		List<Object> resultList = new ArrayList<Object>();
-
-		Setter setter = getSetter(entryClass, propertyName);
-		if (setter == null) {
-			throw new MappingException("Entry should has setter for property " + propertyName);
-		}
-
-		Class<?> entryItemType = ReflectHelper.getListType(setter);
-		if (entryItemType == null) {
-			throw new MappingException(
-					"Entry property " + propertyName + " should has setter with specified element type");
-		}
-
-		String entryPropertyName = attributesList.name();
-		Setter entryPropertyNameSetter = getSetter(entryItemType, entryPropertyName);
-		if (entryPropertyNameSetter == null) {
-			throw new MappingException(
-					"Entry should has setter for property " + propertyName + "." + entryPropertyName);
-		}
-
-		String entryPropertyValue = attributesList.value();
-		Setter entryPropertyValueSetter = getSetter(entryItemType, entryPropertyValue);
-		if (entryPropertyValueSetter == null) {
-			throw new MappingException(
-					"Entry should has getter for property " + propertyName + "." + entryPropertyValue);
-		}
-
-		String entryPropertyMultivalued = attributesList.multiValued();
-		Setter entryPropertyMultivaluedSetter = null;
-		if (StringHelper.isNotEmpty(entryPropertyMultivalued)) {
-			entryPropertyMultivaluedSetter = getSetter(entryItemType, entryPropertyMultivalued);
-		}
-
-		if (entryPropertyMultivaluedSetter != null) {
-			Class<?> parameterType = ReflectHelper.getSetterType(entryPropertyMultivaluedSetter);
-			if (!parameterType.equals(Boolean.TYPE)) {
-				throw new MappingException(
-						"Entry should has getter for property " + propertyName + "." + entryPropertyMultivalued + " with boolean type");
-			}
-		}
-
-		for (AttributeData entryAttribute : attributes) {
-			if (ldapAttributesConfiguration != null) {
-				AttributeName ldapAttributeConfiguration = ldapAttributesConfiguration
-						.get(entryAttribute.getName());
-				if ((ldapAttributeConfiguration != null) && ldapAttributeConfiguration.ignoreDuringRead()) {
-					continue;
-				}
-			}
-
-			Object listItem = getListItem(propertyName, entryPropertyNameSetter, entryPropertyValueSetter,
-					entryPropertyMultivaluedSetter, entryItemType, entryAttribute);
-			if (listItem != null) {
-				resultList.add(listItem);
-			}
-		}
-
-		return resultList;
-	}
-
-	public Class<?> getCustomAttributesListItemType(Object entry, AttributesList attributesList, String propertyName) {
-		Class<?> entryClass = entry.getClass();
-		Setter setter = getSetter(entryClass, propertyName);
-		if (setter == null) {
-			throw new MappingException("Entry should has setter for property " + propertyName);
-		}
-
-		return ReflectHelper.getListType(setter);
 	}
 
 	@Override
@@ -1419,14 +1365,8 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		Object[] attributeValues = getAttributeValues(propertyName, jsonObject, propertyValue, multiValued);
 
 		if (LOG.isDebugEnabled()) {
-			String values;
-			if (StringHelper.equalsIgnoreCase(USER_PASSWORD, propertyName)) {
-				values = MASKED;
-			} else {
-				values = Arrays.toString(attributeValues);
-			}
 			LOG.debug(String.format("Property: %s, LdapProperty: %s, PropertyValue: %s", propertyName,
-					ldapAttributeName, values));
+					ldapAttributeName, Arrays.toString(attributeValues)));
 		}
 
 		if (attributeValues.length == 0) {
@@ -1560,7 +1500,7 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 			ldapAttribute = ReflectHelper.getAnnotationByType(propertiesAnnotation.getAnnotations(),
 					AttributesList.class);
 			if (ldapAttribute != null) {
-				List<AttributeData> listAttributes = getAttributeDataListFromCustomAttributesList(entry, (AttributesList) ldapAttribute,
+				List<AttributeData> listAttributes = getAttributesFromAttributesList(entry, ldapAttribute,
 						propertyName);
 				if (listAttributes != null) {
 					attributes.addAll(listAttributes);
@@ -1595,15 +1535,10 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		boolean jsonObject = ldapJsonObject != null;
 		AttributeData attribute = getAttributeData(propertyName, ldapAttributeName, getter, entry, multiValued, jsonObject);
 
-		Annotation passwordObject = ReflectHelper.getAnnotationByType(propertiesAnnotation.getAnnotations(), Password.class);
-		if (passwordObject != null) {
-			attribute = new PasswordAttributeData(attribute, ((Password) passwordObject).skipHashed());
-		}
-
 		return attribute;
 	}
 
-	public List<AttributeData> getAttributeDataListFromCustomAttributesList(Object entry, AttributesList attributesList,
+	private List<AttributeData> getAttributesFromAttributesList(Object entry, Annotation ldapAttribute,
 			String propertyName) {
 		Class<?> entryClass = entry.getClass();
 		List<AttributeData> listAttributes = new ArrayList<AttributeData>();
@@ -1624,21 +1559,21 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 
 		Class<?> elementType = ReflectHelper.getListType(getter);
 
-		String entryPropertyName = attributesList.name();
+		String entryPropertyName = ((AttributesList) ldapAttribute).name();
 		Getter entryPropertyNameGetter = getGetter(elementType, entryPropertyName);
 		if (entryPropertyNameGetter == null) {
 			throw new MappingException(
 					"Entry should has getter for property " + propertyName + "." + entryPropertyName);
 		}
 
-		String entryPropertyValue = attributesList.value();
+		String entryPropertyValue = ((AttributesList) ldapAttribute).value();
 		Getter entryPropertyValueGetter = getGetter(elementType, entryPropertyValue);
 		if (entryPropertyValueGetter == null) {
 			throw new MappingException(
 					"Entry should has getter for property " + propertyName + "." + entryPropertyValue);
 		}
 
-		String entryPropertyMultivalued = attributesList.multiValued();
+		String entryPropertyMultivalued = ((AttributesList) ldapAttribute).multiValued();
 		Getter entryPropertyMultivaluedGetter = null;
 		if (StringHelper.isNotEmpty(entryPropertyMultivalued)) {
 			entryPropertyMultivaluedGetter = getGetter(elementType, entryPropertyMultivalued);
@@ -1671,12 +1606,6 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		}
 
 		return listAttributes;
-	}
-
-	public List<Object> getCustomAttributesListFromAttributeDataList(Object entry, AttributesList attributesList,
-			String propertyName, Collection<AttributeData> attributes) {
-		Class<?> entryClass = entry.getClass();
-		return getCustomAttributesListFromAttributeData(entryClass, attributesList, propertyName, attributes, null);
 	}
 
 	protected <T> List<PropertyAnnotation> getEntryPropertyAnnotations(Class<T> entryClass) {
@@ -2162,10 +2091,6 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		return addObjectClassFilter(attributesFilter, objectClasses);
 	}
 
-	protected Filter excludeObjectClassFilters(Filter genericFilter) {
-		return filterProcessor.excludeFilter(genericFilter, FilterProcessor.OBJECT_CLASS_EQUALITY_FILTER, FilterProcessor.OBJECT_CLASS_PRESENCE_FILTER);
-	}
-
 	protected Filter[] createAttributesFilter(List<AttributeData> attributes) {
 		if ((attributes == null) || (attributes.size() == 0)) {
 			return null;
@@ -2177,8 +2102,8 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 			String attributeName = attribute.getName();
 			for (Object value : attribute.getValues()) {
 				Filter filter = Filter.createEqualityFilter(attributeName, value);
-				if (attribute.getMultiValued() != null) {
-					filter.multiValued(attribute.getMultiValued());
+				if ((attribute.getMultiValued() != null) && attribute.getMultiValued()) {
+					filter.multiValued();
 				}
 
 				results.add(filter);
@@ -2224,11 +2149,6 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		if (this.operationService != null) {
 			this.operationService.setPersistenceExtension(persistenceExtension);
 		}
-	}
-
-	@Override
-	public <T> AttributeType getAttributeType(String primaryKey, Class<T> entryClass, String propertyName) {
-        throw new UnsupportedOperationException("Method not implemented.");
 	}
 
 	protected static final class PropertyComparator<T> implements Comparator<T>, Serializable {
@@ -2357,29 +2277,4 @@ public abstract class BaseEntryManager<O extends PersistenceOperationService> im
 		System.out.println(variableName + ": END");
 	}
 
-	private String maskSensetiveData(List<AttributeData> attributes) {
-		if (attributes == null) {
-			return null;
-		}
-
-		boolean added = false;
-		StringBuilder sb = new StringBuilder("[");
-		for (AttributeData attr : attributes) {
-			if (added) {
-				sb.append(", ");
-			}
-
-			if (StringHelper.equalsIgnoreCase(USER_PASSWORD, attr.getName())) {
-				AttributeData clonedAttr = new AttributeData(
-						attr.getName(), new Object[] { MASKED }, attr.getMultiValued());
-				sb.append(clonedAttr);
-			} else {
-				sb.append(attr);
-			}
-			added = true;
-		}
-		sb.append(']');
-
-		return sb.toString();
-	}
 }

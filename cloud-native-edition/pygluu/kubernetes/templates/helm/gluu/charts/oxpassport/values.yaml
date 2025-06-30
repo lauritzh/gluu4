@@ -29,7 +29,7 @@ image:
   # -- Image  to use for deploying.
   repository: gluufederation/oxpassport
   # -- Image  tag to use for deploying.
-  tag: 4.5.11_dev
+  tag: 4.3.1_01
   # -- Image Pull Secrets
   pullSecrets: [ ]
 # -- Service replica number
@@ -61,20 +61,20 @@ service:
       timeoutSeconds: 10800
 # -- Configure the liveness healthcheck for oxPassport if needed.
 livenessProbe:
-  exec:
-    command:
-      - python3
-      - /app/scripts/healthcheck.py
+  httpGet:
+    # -- http liveness probe endpoint
+    path: /passport/health-check
+    port: http-passport
   initialDelaySeconds: 30
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 20
 # -- Configure the readiness healthcheck for the oxPassport if needed.
 readinessProbe:
-  exec:
-    command:
-      - python3
-      - /app/scripts/healthcheck.py
+  httpGet:
+    # -- http readiness probe endpoint
+    path: /passport/health-check
+    port: http-passport
   initialDelaySeconds: 25
   periodSeconds: 25
   timeoutSeconds: 5
@@ -83,14 +83,7 @@ readinessProbe:
 volumes: []
 # -- Configure any additional volumesMounts that need to be attached to the containers
 volumeMounts: []
-# Actions on lifecycle events such as postStart and preStop
-# Example postStop: https://github.com/GluuFederation/cloud-native-edition/discussions/516
-# Example postStart:
-# lifecycle:
-#   postStart:
-#     exec:
-#       command: ["sh", "-c", "mkdir /opt/gluu/jetty/oxauth/custom/static/stylesheet/"]
-lifecycle: {}
+
 nameOverride: ""
 fullnameOverride: ""
 
@@ -104,7 +97,3 @@ affinity: {}
 additionalLabels: { }
 # -- Additional annotations that will be added across all resources  in the format of {cert-manager.io/issuer: "letsencrypt-prod"}. key app is taken
 additionalAnnotations: { }
-# -- https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
-tolerations: []
-# -- Add custom scripts that have been mounted to run before the entrypoint.
-customScripts: []

@@ -1,11 +1,10 @@
 import os
 import glob
 import shutil
-import ssl
 
 from setup_app import paths
 from setup_app.utils import base
-from setup_app.static import AppType, InstallOption, SetupProfiles
+from setup_app.static import AppType, InstallOption
 from setup_app.config import Config
 from setup_app.utils.setup_utils import SetupUtils
 from setup_app.installers.base import BaseInstaller
@@ -13,7 +12,6 @@ from setup_app.installers.base import BaseInstaller
 class HttpdInstaller(BaseInstaller, SetupUtils):
 
     def __init__(self):
-
         self.service_name = base.httpd_name
         self.pbar_text = "Configuring " + base.httpd_name
         self.app_type = AppType.SERVICE
@@ -32,15 +30,9 @@ class HttpdInstaller(BaseInstaller, SetupUtils):
         self.output_folder = os.path.join(Config.outputFolder, 'apache')
 
         self.apache2_conf = os.path.join(self.output_folder, 'httpd.conf')
-        if Config.profile == SetupProfiles.DISA_STIG:
-            self.apache2_24_conf = os.path.join(self.output_folder, 'httpd_2.4.fips.conf')
-            self.apache2_ssl_conf = os.path.join(self.output_folder, 'https_gluu.fips.conf')
-            self.apache2_ssl_24_conf = os.path.join(self.output_folder, 'https_gluu.fips.conf')
-        else:
-            self.apache2_24_conf = os.path.join(self.output_folder, 'httpd_2.4.conf')
-            self.apache2_ssl_conf = os.path.join(self.output_folder, 'https_gluu.conf')
-            self.apache2_ssl_24_conf = os.path.join(self.output_folder, 'https_gluu.conf')
-
+        self.apache2_ssl_conf = os.path.join(self.output_folder, 'https_gluu.conf')
+        self.apache2_24_conf = os.path.join(self.output_folder, 'httpd_2.4.conf')
+        self.apache2_ssl_24_conf = os.path.join(self.output_folder, 'https_gluu.conf')
         if base.os_type == 'suse':
             self.https_gluu_fn = '/etc/apache2/vhosts.d/_https_gluu.conf'
         elif base.clone_type == 'rpm':
@@ -48,7 +40,7 @@ class HttpdInstaller(BaseInstaller, SetupUtils):
         else:
             self.https_gluu_fn = '/etc/apache2/sites-available/https_gluu.conf'
 
-    def start_installation(self):
+    def configure(self):
         self.logIt(self.pbar_text, pbar=self.service_name)
         self.stop()
 
@@ -56,6 +48,8 @@ class HttpdInstaller(BaseInstaller, SetupUtils):
 
         self.writeFile('/var/www/html/index.html', 'OK')
 
+        if base.snap:
+            icons_conf_fn = '/etc/apache2/mods-available/alias.conf'
         if base.os_type == 'suse':
             icons_conf_fn = '/etc/apache2/default-server.conf'
         elif base.clone_type == 'deb':
@@ -77,21 +71,39 @@ class HttpdInstaller(BaseInstaller, SetupUtils):
         for tmp_fn in error_templates:
             self.copyFile(tmp_fn, '/var/www/html')
 
-        if Config.profile == SetupProfiles.DISA_STIG:
-            self.chown('/var/www/html', 'apache', 'apache', True)
-
         # we only need these modules
         mods_enabled = ['env', 'log_config', 'proxy', 'proxy_http', 'access_compat', 'alias', 'authn_core', 'authz_core', 'authz_host', 'headers', 'mime', 'mpm_event', 'proxy_ajp', 'security2', 'reqtimeout', 'setenvif', 'socache_shmcb', 'ssl', 'unique_id', 'rewrite']
 
         cmd_a2enmod = shutil.which('a2enmod')
         cmd_a2dismod = shutil.which('a2dismod')
 
-        if base.clone_type == 'deb':
-            for mod_load_fn in glob.glob('/etc/apache2/mods-enabled/*'):
+        if base.snap:
+            mods_enabled_dir = os.path.join(base.snap_common, 'etc/apache2/mods-enabled')
+            mods_available_dir = os.path.join(base.snap_common, 'etc/apache2/mods-available')
+
+            for em in os.listdir(mods_enabled_dir):
+                em_n, em_e = os.path.splitext(em)
+                if not em_n in mods_enabled:
+                    os.unlink(os.path.join(mods_enabled_dir, em))
+
+            for m in mods_enabled:
+                load_fn = os.path.join(mods_available_dir, m + '.load')
+                conf_fn = os.path.join(mods_available_dir, m + '.conf')
+                if os.path.exists(load_fn):
+                    target_fn = os.path.join(mods_enabled_dir, m + '.load')
+                    if not os.path.exists(target_fn):
+                        os.symlink(load_fn, target_fn)
+                if os.path.exists(conf_fn):
+                    target_fn = os.path.join(mods_enabled_dir, m + '.conf')
+                    if not os.path.exists(target_fn):
+                        os.symlink(conf_fn, target_fn)
+
+        elif base.clone_type == 'deb':
+            for mod_load_fn in glob.glob('/etc/apache2/mods-enabled/*.load'):
                 mod_load_base_name = os.path.basename(mod_load_fn)
                 f_name, f_ext = os.path.splitext(mod_load_base_name)
-                if f_name not in mods_enabled:
-                    self.run([cmd_a2dismod, mod_load_fn])
+                if not f_name in mods_enabled:
+                    self.run([cmd_a2dismod, '-f', f_name])
             for amod in mods_enabled:
                 if os.path.exists('/etc/apache2/mods-available/{}.load'.format(amod)):
                     self.run([cmd_a2enmod, amod])
@@ -100,10 +112,10 @@ class HttpdInstaller(BaseInstaller, SetupUtils):
             result = self.run([cmd_a2enmod, '-l'])
             current_modules = result.strip().split()
             for amod in current_modules:
-                if amod not in mods_enabled:
-                    self.run([cmd_a2dismod, amod])
+                if not amod in mods_enabled:
+                    self.run([cmd_a2dismod, '-f', amod])
             for amod in mods_enabled:
-                if amod not in current_modules:
+                if not amod in current_modules:
                     self.run([cmd_a2enmod, amod])
             cmd_a2enflag = shutil.which('a2enflag')
             self.run([cmd_a2enflag, 'SSL'])
@@ -136,42 +148,40 @@ class HttpdInstaller(BaseInstaller, SetupUtils):
                         if not lsl[0].startswith('LoadModule'):
                             continue
                         module =  lsl[-1][4:-3]
-                        if module not in mods_enabled:
+                        if not module in mods_enabled:
                             mod_load_content[i] = l.replace('LoadModule', '#LoadModule')
                             modified = True
 
                 if modified:
                     self.writeFile(mod_load_fn, ''.join(mod_load_content))
 
+
         if not Config.get('httpdKeyPass'):
             Config.httpdKeyPass = self.getPW()
+
 
         # generate httpd self signed certificate
         self.gen_cert('httpd', Config.httpdKeyPass, 'jetty')
 
-        service_name = 'apache2' if base.os_type == 'suse' else base.httpd_name
-        self.enable(service_name)
-        self.start(service_name)
+        self.enable()
+        self.start()
 
     def write_httpd_config(self):
-
-        tls_versions = ['+TLSv1.2']
-        if hasattr(ssl, 'HAS_TLSv1_3') and ssl.HAS_TLSv1_3:
-            tls_versions.append('+TLSv1.3')
-        Config.templateRenderingDict['ssl_versions'] = ' '.join(tls_versions)
 
         self.update_rendering_dict()
         for tmp in (self.apache2_conf, self.apache2_ssl_conf, self.apache2_24_conf, self.apache2_ssl_24_conf):
             self.renderTemplateInOut(tmp, self.templates_folder, self.output_folder)
 
+        # CentOS 7.* + systemd + apache 2.4
+        if self.service_name == 'httpd' and self.apache_version == "2.4":
+            self.copyFile(self.apache2_24_conf, '/etc/httpd/conf/httpd.conf')
+            self.copyFile(self.apache2_ssl_24_conf, '/etc/httpd/conf.d/https_gluu.conf')
+
         if base.os_type == 'suse':
             self.copyFile(self.apache2_ssl_conf, self.https_gluu_fn)
 
-        elif base.clone_type == 'rpm': 
-            if self.apache_version == "2.4":
-                self.copyFile(self.apache2_24_conf, '/etc/httpd/conf/httpd.conf')
-            else:
-                self.copyFile(self.apache2_conf, '/etc/httpd/conf/httpd.conf')
+        elif base.clone_type == 'rpm' and base.os_initdaemon == 'init':
+            self.copyFile(self.apache2_conf, '/etc/httpd/conf/httpd.conf')
             self.copyFile(self.apache2_ssl_conf, self.https_gluu_fn)
 
         elif base.clone_type == 'deb':

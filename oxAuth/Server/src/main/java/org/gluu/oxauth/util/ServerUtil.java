@@ -14,11 +14,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
-import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
-import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.uma.persistence.UmaPermission;
-import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.common.ApplicationFactory;
 import org.gluu.oxauth.uma.service.UmaScopeService;
 import org.gluu.persist.PersistenceEntryManager;
@@ -52,30 +49,9 @@ import java.util.concurrent.ThreadFactory;
 
 public class ServerUtil {
 
-    private static final Logger log = LoggerFactory.getLogger(ServerUtil.class);
+    private final static Logger log = LoggerFactory.getLogger(ServerUtil.class);
 
     private ServerUtil() {
-    }
-
-    public static Map<String, String[]> prepareForLogs(Map<String, String[]> parameters) {
-        if (parameters == null || parameters.isEmpty()) {
-            return new HashMap<>();
-        }
-
-        Map<String, String[]> result = new HashMap<>(parameters);
-        if (result.containsKey("client_secret")) {
-            result.put("client_secret", new String[] {"*****"});
-        }
-        if (result.containsKey("password")) {
-            result.put("password", new String[] {"*****"});
-        }
-        return result;
-    }
-
-    public static JSONObject getJwks(Client client) {
-        return Strings.isNullOrEmpty(client.getJwks())
-                ? JwtUtil.getJSONWebKeys(client.getJwksUri())
-                : new JSONObject(client.getJwks());
     }
 
     public static GregorianCalendar now() {

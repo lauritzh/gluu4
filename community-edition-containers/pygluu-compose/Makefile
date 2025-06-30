@@ -1,10 +1,10 @@
 .DEFAULT_GOAL := develop
 
 develop:
-	/usr/bin/env pip install -e .
+	/usr/bin/env python3 setup.py develop
 
 install:
-	/usr/bin/env pip install .
+	/usr/bin/env python3 setup.py install
 
 zipapp:
-	shiv --compressed -o pygluu-compose.pyz -p '/usr/bin/env python3' -e pygluu.compose.cli:cli . --no-cache --no-build-isolation
+	shiv --compressed -o pygluu-compose.pyz -p '/usr/bin/env python3' -e pygluu.compose.cli:cli . --no-cache

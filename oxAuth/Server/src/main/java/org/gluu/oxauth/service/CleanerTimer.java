@@ -6,10 +6,22 @@
 
 package org.gluu.oxauth.service;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.Maps;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.gluu.model.ApplicationType;
 import org.gluu.model.metric.ldap.MetricEntry;
+import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistration;
@@ -17,8 +29,6 @@ import org.gluu.oxauth.model.fido.u2f.RegisterRequestMessageLdap;
 import org.gluu.oxauth.model.ldap.ClientAuthorization;
 import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.AuthorizationChallengeSession;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.uma.persistence.UmaResource;
 import org.gluu.oxauth.service.fido.u2f.RequestService;
 import org.gluu.oxauth.uma.authorization.UmaPCT;
@@ -35,17 +45,8 @@ import org.gluu.service.timer.schedule.TimerSchedule;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Maps;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -199,7 +200,6 @@ public class CleanerTimer {
         cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getAuthorizations(), ClientAuthorization.class);
         cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getScopes(), Scope.class);
         cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getSessions(), SessionId.class);
-        cleanServiceBaseDns.put(staticConfiguration.getBaseDn().getSessions(), AuthorizationChallengeSession.class);
 
         return cleanServiceBaseDns;
     }

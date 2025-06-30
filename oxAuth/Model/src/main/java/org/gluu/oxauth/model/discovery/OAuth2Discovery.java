@@ -99,10 +99,6 @@ public class OAuth2Discovery {
     @XmlElement(name = "op_tos_uri")
     private String opTosUri;
 
-    @JsonProperty(value = "authorization_challenge_endpoint")
-    @XmlElement(name = "authorization_challenge_endpoint")
-    private String authorizationChallengeEndpoint;
-
 //    @JsonProperty(value = "revocation_endpoint")
 //    @XmlElement(name = "revocation_endpoint")
 //    private String revocationEndpoint;
@@ -145,13 +141,6 @@ public class OAuth2Discovery {
 
     public void setAuthorizationEndpoint(String authorizationEndpoint) {
         this.authorizationEndpoint = authorizationEndpoint;
-    }
-
-    public String getAuthorizationChallengeEndpoint() {
-        return authorizationChallengeEndpoint;
-    }
-    public void setAuthorizationChallengeEndpoint(String authorizationChallengeEndpoint) {
-        this.authorizationChallengeEndpoint = authorizationChallengeEndpoint;
     }
 
     public String getTokenEndpoint() {
@@ -323,7 +312,6 @@ public class OAuth2Discovery {
                 ", uiLocalesSupported=" + Arrays.toString(uiLocalesSupported) +
                 ", opPolicyUri='" + opPolicyUri + '\'' +
                 ", opTosUri='" + opTosUri + '\'' +
-                ", authorizationChallengeEndpoint='" + authorizationChallengeEndpoint + '\'' +
 //                ", revocationEndpoint='" + revocationEndpoint + '\'' +
 //                ", revocation_endpoint_auth_methods_supported=" + Arrays.toString(revocation_endpoint_auth_methods_supported) +
 //                ", revocationEndpointAuthSigningAlgValuesSupported=" + Arrays.toString(revocationEndpointAuthSigningAlgValuesSupported) +

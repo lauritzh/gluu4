@@ -8,7 +8,6 @@ package org.gluu.oxauth.register.ws.rs;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.GluuAttribute;
 import org.gluu.model.metric.MetricType;
@@ -66,7 +65,6 @@ import javax.ws.rs.core.SecurityContext;
 import java.net.URI;
 import java.util.*;
 
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
 import static org.gluu.oxauth.model.register.RegisterResponseParam.*;
 import static org.gluu.oxauth.model.util.StringUtils.implode;
@@ -144,11 +142,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
     }
 
     private Response registerClientImpl(String requestParams, HttpServletRequest httpRequest, SecurityContext securityContext) {
-        Response.ResponseBuilder builder = Response.status(Response.Status.CREATED);
-        if (appConfiguration.getReturn200OnClientRegistration()) {
-            builder = Response.ok();
-        }
-
+        Response.ResponseBuilder builder = Response.ok();
         OAuth2AuditLog oAuth2AuditLog = new OAuth2AuditLog(ServerUtil.getIpAddress(httpRequest), Action.CLIENT_REGISTRATION);
         try {
             final JSONObject requestObject = new JSONObject(requestParams);
@@ -213,7 +207,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                     log.debug("The Initiate Login Uri is invalid. The initiate_login_uri must use the https schema: " + r.getInitiateLoginUri());
                     throw errorResponseFactory.createWebApplicationException(
                             Response.Status.BAD_REQUEST,
-                            RegisterErrorResponseType.INVALID_CLIENT_METADATA,
+                            RegisterErrorResponseType.INVALID_CLAIMS_REDIRECT_URI,
                             "The Initiate Login Uri is invalid. The initiate_login_uri must use the https schema.");
                 }
             }
@@ -470,26 +464,24 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         Set<GrantType> grantTypeSet = new HashSet<>();
         grantTypeSet.addAll(requestObject.getGrantTypes());
 
-        if (isTrue(appConfiguration.getGrantTypesAndResponseTypesAutofixEnabled())) {
-            if (appConfiguration.getClientRegDefaultToCodeFlowWithRefresh()) {
-                if (responseTypeSet.size() == 0 && grantTypeSet.size() == 0) {
-                    responseTypeSet.add(ResponseType.CODE);
-                }
-                if (responseTypeSet.contains(ResponseType.CODE)) {
-                    grantTypeSet.add(GrantType.AUTHORIZATION_CODE);
-                    grantTypeSet.add(GrantType.REFRESH_TOKEN);
-                }
-                if (grantTypeSet.contains(GrantType.AUTHORIZATION_CODE)) {
-                    responseTypeSet.add(ResponseType.CODE);
-                    grantTypeSet.add(GrantType.REFRESH_TOKEN);
-                }
+        if (appConfiguration.getClientRegDefaultToCodeFlowWithRefresh()) {
+            if (responseTypeSet.size() == 0 && grantTypeSet.size() == 0) {
+                responseTypeSet.add(ResponseType.CODE);
             }
-            if (responseTypeSet.contains(ResponseType.TOKEN) || responseTypeSet.contains(ResponseType.ID_TOKEN)) {
-                grantTypeSet.add(GrantType.IMPLICIT);
+            if (responseTypeSet.contains(ResponseType.CODE)) {
+                grantTypeSet.add(GrantType.AUTHORIZATION_CODE);
+                grantTypeSet.add(GrantType.REFRESH_TOKEN);
             }
-            if (grantTypeSet.contains(GrantType.IMPLICIT)) {
-                responseTypeSet.add(ResponseType.TOKEN);
+            if (grantTypeSet.contains(GrantType.AUTHORIZATION_CODE)) {
+                responseTypeSet.add(ResponseType.CODE);
+                grantTypeSet.add(GrantType.REFRESH_TOKEN);
             }
+        }
+        if (responseTypeSet.contains(ResponseType.TOKEN) || responseTypeSet.contains(ResponseType.ID_TOKEN)) {
+            grantTypeSet.add(GrantType.IMPLICIT);
+        }
+        if (grantTypeSet.contains(GrantType.IMPLICIT)) {
+            responseTypeSet.add(ResponseType.TOKEN);
         }
 
         Set<Set<ResponseType>> responseTypesSupported = appConfiguration.getResponseTypesSupported();
@@ -651,7 +643,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
                 && appConfiguration.getDynamicRegistrationScopesParamEnabled()) {
             List<String> defaultScopes = scopeService.getDefaultScopesDn();
             List<String> requestedScopes = scopeService.getScopesDn(scopes);
-            Set<String> allowedScopes = new HashSet<>();
+            Set<String> allowedScopes = new HashSet<String>();
 
             for (String requestedScope : requestedScopes) {
                 if (defaultScopes.contains(requestedScope)) {
@@ -661,7 +653,7 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
             scopesDn = new ArrayList<>(allowedScopes);
             p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
-        } else if (BooleanUtils.isFalse(appConfiguration.getDynamicRegistrationDisableFallbackScopesAssigning())) {
+        } else {
             scopesDn = scopeService.getDefaultScopesDn();
             p_client.setScopes(scopesDn.toArray(new String[scopesDn.size()]));
         }
@@ -1046,9 +1038,6 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
 
     @Override
     public Response delete(String clientId, String authorization, HttpServletRequest httpRequest, SecurityContext securityContext) {
-        OAuth2AuditLog auditLog = new OAuth2AuditLog(ServerUtil.getIpAddress(httpRequest), Action.CLIENT_DELETE);
-        auditLog.setClientId(clientId);
-
         try {
             String accessToken = tokenService.getToken(authorization);
 
@@ -1070,7 +1059,6 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
             }
 
             clientService.remove(client);
-            auditLog.setSuccess(true);
 
             return Response
                     .status(Response.Status.NO_CONTENT)
@@ -1084,8 +1072,6 @@ public class RegisterRestWebServiceImpl implements RegisterRestWebService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw errorResponseFactory.createWebApplicationException(Response.Status.INTERNAL_SERVER_ERROR, RegisterErrorResponseType.INVALID_CLIENT_METADATA, "Failed to process request.");
-        } finally {
-            applicationAuditLogger.sendMessage(auditLog);
         }
     }
 

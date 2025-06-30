@@ -12,7 +12,7 @@ class msg:
     DBRDBMForm_label = "RDBM Options"
     DBSpannerForm_label = "Spanner Options"
 
-    version_label = 'Gluu {}'
+    version_label = 'Gluu CE'
     decription = "Use setup.py to configure your Gluu Server and to add initial data required for oxAuth and oxTrust to start. If setup.properties is found in this folder, these properties will automatically be used instead of the interactive setup."
 
     os_type_label = "Detected OS"
@@ -54,7 +54,7 @@ class msg:
     installSaml_label = "Install Saml" 
     installPassport_label = "Install Passport" 
     installGluuRadius_label = "Install Radius"
-    ldap_storages_label = "Store on OpenDJ"
+    wrends_storages_label = "Store on OpenDJ"
     installing_label = "Current"
     installOxd_label = "Install Oxd"
     installCasa_label = "Install Casa"
@@ -100,12 +100,12 @@ class msg:
     ask_installGluuRadius = "Install Gluu Radius"
     ask_installCasa = "Install Casa"
     ask_installOxd = "Install Oxd"
-    ask_ldap_install = "Install OpenDJ"
+    ask_wrends_install = "Install OpenDJ"
     ask_installScimServer = "Install Scim Server"
     ask_installFido2 = "Install Fido2"
 
 
-    ldap_install_options = ["Don't Install","Install Locally","Use Remote OpenDJ"]
+    wrends_install_options = ["Don't Install","Install Locally","Use Remote OpenDJ"]
     ldap_admin_password_label = "LDAP Admin Password"
     ldap_remote_label =  "LDAP Hostname"
     opendj_port_availibility = "Setup needs port{0} {1} {2} free. Please stop services listening {3} port{0}."
@@ -138,7 +138,7 @@ class msg:
 
     installation_description_java = "Corretto is a build of the Open Java Development Kit (OpenJDK) with long-term support from Amazon. Corretto is certified using the Java Technical Compatibility Kit (TCK) to ensure it meets the Java SE standard."
     installation_description_opendj = "OpenDJ is an LDAPv3 compliant directory service, which has been developed for the Java platform, providing a high performance, highly available, and secure store for the identities managed by your organization."
-    installation_description_oxauth = "oxAuth is an open source OpenID Connect Provider (OP) and OAuth Authorization Server (AS). It is the core component that issues access tokens and renders login pages."
+    installation_description_oxauth = "oxAuth is an open source OpenID Connect Provider (OP) and UMA Authorization Server (AS). The project also includes OpenID Connect Client code which can be used by websites to validate tokens."
     installation_description_oxtrust = "oxTrust is a Weld based web application for Gluu Server administration."
     installation_description_saml = "The Gluu Server acts as a SAML identity provider (IDP) to support outbound SAML single sign-on (SSO)."
     installation_description_passport = "Gluu bundles the Passport.js authentication middleware project to support user authentication at external SAML, OAuth, and OpenID Connect providers "
@@ -156,5 +156,4 @@ class msg:
 
     installation_error = "The following error occurred while installing Gluu Server:"
     exit_post_setup = "No service was selected to install. Exit now?"
-
-    used_ports = "Port(s) {} should be free to continue. Please check."
+    mysql_spanner_beta = "Note MySQL and Spanner supports are in beta phase."

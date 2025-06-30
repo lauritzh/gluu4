@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.gluu.oxtrust.api.server.model.GluuGroupApi;
 import org.gluu.oxtrust.api.server.model.GluuPersonApi;
 import org.gluu.oxtrust.api.server.util.ApiConstants;
-import org.gluu.oxtrust.api.server.util.ApiScopeConstants;
 import org.gluu.oxtrust.service.GroupService;
 import org.gluu.oxtrust.service.OrganizationService;
 import org.gluu.oxtrust.service.PersonService;
@@ -47,13 +46,13 @@ public class GroupWebResource extends BaseWebResource {
 
 	public GroupWebResource() {
 	}
-	
+
 	@GET
 	@Operation(summary = "Get groups", description = "Get groups")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuGroupApi[].class)), description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response listGroups(@DefaultValue("0") @QueryParam(ApiConstants.SIZE) int size) {
 		log("Get groups");
 		try {
@@ -74,7 +73,7 @@ public class GroupWebResource extends BaseWebResource {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuGroupApi.class)), description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response getGroupByInum(@PathParam(ApiConstants.INUM) @NotNull String inum) {
 		log("Get group having group" + inum);
 		inum = inum.equalsIgnoreCase("") ? null : inum;
@@ -98,7 +97,7 @@ public class GroupWebResource extends BaseWebResource {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuGroupApi[].class)), description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_READ })
+	@ProtectedApi(scopes = { READ_ACCESS })
 	public Response searchGroups(@QueryParam(ApiConstants.SEARCH_PATTERN) @NotNull String pattern,
 			@DefaultValue("1") @QueryParam(ApiConstants.SIZE) int size) {
 		log("Search groups with pattern= " + pattern + " and size " + size);
@@ -116,7 +115,7 @@ public class GroupWebResource extends BaseWebResource {
 	@Operation(summary = "Delete group", description = "Delete a group")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response deleteGroup(@PathParam(ApiConstants.INUM) @NotNull String inum) {
 		log("Delete group having inum " + inum);
 		try {
@@ -139,7 +138,7 @@ public class GroupWebResource extends BaseWebResource {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuGroupApi.class)), description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response updateGroup(GluuGroupApi group) {
 		String inum = group.getInum();
 		inum = inum.equalsIgnoreCase("") ? null : inum;
@@ -168,7 +167,7 @@ public class GroupWebResource extends BaseWebResource {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = GluuGroupApi.class)), description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response createGroup(GluuGroupApi group) {
 		log("Adding group " + group.getDisplayName());
 		try {
@@ -195,7 +194,7 @@ public class GroupWebResource extends BaseWebResource {
 			@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuPersonApi[].class)), description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
 	@Operation(summary = "Get group members", description = "Get a group members")
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response getGroupMembers(@PathParam(ApiConstants.INUM) @NotNull String inum) {
 		log("Get members of group " + inum);
 		inum = inum.equalsIgnoreCase("") ? null : inum;
@@ -222,7 +221,7 @@ public class GroupWebResource extends BaseWebResource {
 			@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = GluuGroupApi[].class)), description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
 	@Path(ApiConstants.INUM_PARAM_PATH + ApiConstants.GROUP_MEMBERS + ApiConstants.MEMBER_INUM_PARAM_PATH)
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response addGroupMember(@PathParam(ApiConstants.INUM) @NotNull String groupInum,
 			@PathParam(ApiConstants.MEMBER_INUM) @NotNull String memberInum) {
 		log("Add member " + memberInum + " to group" + groupInum);
@@ -254,7 +253,7 @@ public class GroupWebResource extends BaseWebResource {
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Success"),
 			@ApiResponse(responseCode = "500", description = "Server error") })
 	@Path(ApiConstants.INUM_PARAM_PATH + ApiConstants.GROUP_MEMBERS + ApiConstants.MEMBER_INUM_PARAM_PATH)
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response removeGroupMember(@PathParam(ApiConstants.INUM) @NotNull String groupInum,
 			@PathParam(ApiConstants.MEMBER_INUM) @NotNull String memberInum) {
 		log("Remove member " + memberInum + " from group" + groupInum);
@@ -280,7 +279,7 @@ public class GroupWebResource extends BaseWebResource {
 
 	// What this operation does is unclear. We will comment it out and re-evaluate
 	// @DELETE
-	// @ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_WRITE })
+	// @ProtectedApi(scopes = { WRITE_ACCESS })
 	// public Response deleteGroups() {
 	// return Response.status(Response.Status.UNAUTHORIZED).build();
 	// }
@@ -288,7 +287,7 @@ public class GroupWebResource extends BaseWebResource {
 	@DELETE
 	@Operation(summary = "Delete group member", description = "Delete group member")
 	@Path(ApiConstants.INUM_PARAM_PATH + ApiConstants.GROUP_MEMBERS)
-	@ProtectedApi(scopes = { ApiScopeConstants.SCOPE_GROUP_WRITE })
+	@ProtectedApi(scopes = { WRITE_ACCESS })
 	public Response deleteGroupMembers(@PathParam(ApiConstants.INUM) @NotNull String groupInum) {
 		return Response.status(Response.Status.UNAUTHORIZED).build();
 	}
