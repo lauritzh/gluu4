@@ -49,6 +49,7 @@ import java.util.*;
 
 import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
 import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
+import static org.gluu.oxauth.util.ServerUtil.sanitizeUsernameForLog;
 
 /**
  * Authentication service methods
@@ -120,7 +121,7 @@ public class AuthenticationService {
 	 * @return <code>true</code> if success, otherwise <code>false</code>.
 	 */
 	public boolean authenticate(String userName, String password) {
-		log.debug("Authenticating user with LDAP: username: '{}', credentials: '{}'", userName,
+		log.debug("Authenticating user with LDAP: username: '{}', credentials: '{}'", sanitizeUsernameForLog(credentials.getUsername()),
 				System.identityHashCode(credentials));
 
 		boolean authenticated = false;

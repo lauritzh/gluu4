@@ -33,6 +33,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.*;
 
+import static org.gluu.oxauth.util.ServerUtil.sanitizeUsernameForLog;
+
 /**
  * Provides operations with clients.
  *
@@ -89,13 +91,13 @@ public class ClientService {
 	 * @return <code>true</code> if success, otherwise <code>false</code>.
 	 */
 	public boolean authenticate(String clientId, String password) {
-		log.debug("Authenticating Client with LDAP: clientId = {}", clientId);
+		log.debug("Authenticating Client with LDAP: clientId = {}", sanitizeUsernameForLog(clientId));
 		boolean authenticated = false;
 
 		try {
 			Client client = getClient(clientId);
 			if (client == null) {
-				log.debug("Failed to find client = {}", clientId);
+				log.debug("Failed to find client = {}", sanitizeUsernameForLog(clientId));
 				return authenticated;
 			}
 			String decryptedClientSecret = decryptSecret(client.getClientSecret());

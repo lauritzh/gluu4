@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.uma.persistence.UmaPermission;
 import org.gluu.oxauth.service.common.ApplicationFactory;
 import org.gluu.oxauth.uma.service.UmaScopeService;
@@ -52,6 +54,42 @@ public class ServerUtil {
     private final static Logger log = LoggerFactory.getLogger(ServerUtil.class);
 
     private ServerUtil() {
+    }
+
+    /**
+     * Sanitized username before output by logger
+     * @param username username
+     *
+     * @return sanitized username
+     */
+    public static String sanitizeUsernameForLog(String username) {
+        if (username == null) {
+            return "unknown_user";
+        }
+        final int maximumUsernameLength = 50;
+        username = username.length() > maximumUsernameLength ? username.substring(0, maximumUsernameLength) : username;
+        return StringEscapeUtils.escapeJava(username).replaceAll("[\\r\\n]", "_");
+    }
+
+    public static Map<String, String[]> prepareForLogs(Map<String, String[]> parameters) {
+        if (parameters == null || parameters.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        Map<String, String[]> result = new HashMap<>(parameters);
+        if (result.containsKey("client_secret")) {
+            result.put("client_secret", new String[] {"*****"});
+        }
+        if (result.containsKey("password")) {
+            result.put("password", new String[] {"*****"});
+        }
+        return result;
+    }
+
+    public static JSONObject getJwks(Client client) {
+        return Strings.isNullOrEmpty(client.getJwks())
+                ? JwtUtil.getJSONWebKeys(client.getJwksUri())
+                : new JSONObject(client.getJwks());
     }
 
     public static GregorianCalendar now() {
