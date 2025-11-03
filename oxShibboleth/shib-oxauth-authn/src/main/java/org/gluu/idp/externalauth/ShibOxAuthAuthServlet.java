@@ -59,15 +59,15 @@ import org.springframework.webflow.execution.repository.FlowExecutionRepository;
 import org.springframework.webflow.executor.FlowExecutionResult;
 import org.springframework.webflow.executor.FlowExecutorImpl;
 
-import net.shibboleth.idp.attribute.IdPAttribute;
-import net.shibboleth.idp.authn.AuthnEventIds;
-import net.shibboleth.idp.authn.ExternalAuthentication;
-import net.shibboleth.idp.authn.ExternalAuthenticationException;
-import net.shibboleth.idp.authn.principal.UsernamePrincipal;
-import net.shibboleth.idp.authn.context.AuthenticationContext;
-import net.shibboleth.idp.profile.config.ProfileConfiguration;
-import net.shibboleth.idp.profile.context.RelyingPartyContext;
-import net.shibboleth.idp.saml.saml2.profile.config.BrowserSSOProfileConfiguration;
+import net.shibboleth.attribute.IdPAttribute;
+import net.shibboleth.authn.AuthnEventIds;
+import net.shibboleth.authn.ExternalAuthentication;
+import net.shibboleth.authn.ExternalAuthenticationException;
+import net.shibboleth.authn.principal.UsernamePrincipal;
+import net.shibboleth.authn.context.AuthenticationContext;
+import net.shibboleth.profile.config.ProfileConfiguration;
+import net.shibboleth.profile.context.RelyingPartyContext;
+import net.shibboleth.saml.saml2.profile.config.BrowserSSOProfileConfiguration;
 
 /**
  * A Servlet that validates the oxAuth code and then pushes the authenticated

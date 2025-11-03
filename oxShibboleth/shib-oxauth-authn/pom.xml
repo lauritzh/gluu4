@@ -73,36 +73,41 @@
          <version>${javax.servlet.version}</version>
          <scope>provided</scope>
      </dependency>
-     <dependency>
-         <groupId>net.shibboleth.idp</groupId>
-         <artifactId>idp-authn-api</artifactId>
-         <version>${shibboleth.version}</version>
-         <scope>provided</scope>
-     </dependency>
-     <dependency>
-         <groupId>net.shibboleth.idp</groupId>
-         <artifactId>idp-authn-impl</artifactId>
-         <version>${shibboleth.version}</version>
-         <scope>provided</scope>
-     </dependency>
-     <dependency>
-         <groupId>net.shibboleth.idp</groupId>
-         <artifactId>idp-saml-api</artifactId>
-         <version>${shibboleth.version}</version>
-         <scope>provided</scope>
-     </dependency>
-     <dependency>
-         <groupId>net.shibboleth.idp</groupId>
-         <artifactId>idp-saml-impl</artifactId>
-         <version>${shibboleth.version}</version>
-         <scope>provided</scope>
-     </dependency>
      
      <dependency>
-         <groupId>net.shibboleth.idp</groupId>
-         <artifactId>idp-consent-impl</artifactId>
-         <version>${shibboleth.version}</version>
-         <scope>provided</scope>
+        <groupId>net.shibboleth</groupId>
+        <artifactId>shib-profile-api</artifactId>
+        <version>${shibboleth.version}</version>
+     </dependency>
+
+     <dependency>
+        <groupId>net.shibboleth</groupId>
+        <artifactId>shib-attribute-api</artifactId>
+        <version>${shibboleth.version}</version>
+     </dependency>
+
+     <dependency>
+        <groupId>net.shibboleth</groupId>
+        <artifactId>shib-support</artifactId>
+        <version>${shibboleth-shared.version}</version>
+     </dependency>
+
+     <dependency>
+        <groupId>net.shibboleth.idp</groupId>
+        <artifactId>idp-authn-api</artifactId>
+        <version>${shibboleth.version}</version>
+     </dependency>
+
+     <dependency>
+        <groupId>net.shibboleth</groupId>
+        <artifactId>shib-security</artifactId>
+        <version>${shibboleth-shared.version}</version>
+     </dependency>
+
+     <dependency>
+        <groupId>org.opensaml</groupId>
+        <artifactId>opensaml-storage-api</artifactId>
+        <version>${shibboleth.version}</version>
      </dependency>
 
      <dependency>

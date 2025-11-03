@@ -7,7 +7,7 @@ import org.gluu.util.security.SecurityProviderUtility;
  *
  * @author Yuriy Movchan Date: 02/05/2022
  */
-public class BasicKeystoreKeyStrategy extends net.shibboleth.utilities.java.support.security.impl.BasicKeystoreKeyStrategy {
+public class BasicKeystoreKeyStrategy extends net.shibboleth.shared.security.impl.BasicKeystoreKeyStrategy {
 	public BasicKeystoreKeyStrategy() {
 		SecurityProviderUtility.installBCProvider(true);
 	}

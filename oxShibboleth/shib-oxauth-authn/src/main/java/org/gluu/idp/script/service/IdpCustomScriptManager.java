@@ -12,7 +12,7 @@ import org.gluu.util.init.Initializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.shibboleth.utilities.java.support.primitive.TimerSupport;
+import net.shibboleth.shared.primitive.TimerSupport;
 
 /**
  * IDP Custom Script Manager

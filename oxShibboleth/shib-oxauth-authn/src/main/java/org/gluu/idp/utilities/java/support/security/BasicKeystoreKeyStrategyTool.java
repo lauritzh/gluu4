@@ -10,12 +10,12 @@ import org.gluu.util.security.SecurityProviderUtility;
  * @author Yuriy Movchan Date: 02/05/2022
  */
 public class BasicKeystoreKeyStrategyTool
-		extends net.shibboleth.utilities.java.support.security.BasicKeystoreKeyStrategyTool {
+		extends net.shibboleth.shared.security.impl.BasicKeystoreKeyStrategyTool {
 
 	public static void main(@Nonnull final String[] args) throws Exception {
 		SecurityProviderUtility.installBCProvider(true);
 
-		net.shibboleth.utilities.java.support.security.BasicKeystoreKeyStrategyTool.main(args);
+		net.shibboleth.shared.security.impl.BasicKeystoreKeyStrategyTool.main(args);
 	}
 
 }

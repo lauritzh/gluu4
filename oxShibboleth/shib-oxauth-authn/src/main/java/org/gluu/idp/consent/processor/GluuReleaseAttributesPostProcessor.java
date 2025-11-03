@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 import net.shibboleth.idp.attribute.IdPAttribute;
 import net.shibboleth.idp.attribute.context.AttributeContext;
 import net.shibboleth.idp.profile.AbstractProfileAction;
-import net.shibboleth.idp.profile.context.RelyingPartyContext;
-import net.shibboleth.utilities.java.support.logic.Constraint;
+import net.shibboleth.profile.context.RelyingPartyContext;
+import net.shibboleth.shared.logic.Constraint;
 
 public class GluuReleaseAttributesPostProcessor extends AbstractProfileAction {
 
