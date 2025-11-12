@@ -20,6 +20,7 @@
 
 		<weld.version>3.1.9.Final</weld.version>
 		<servlet.version>5.0.0</servlet.version>
+		<jakarta-servlet.version>6.1.0	</jakarta-servlet.version>
 		<jetty-server.version>12.0.27</jetty-server.version>
 
 		<jsp-impl.version>9.0.102</jsp-impl.version>
@@ -285,13 +286,14 @@
 				<scope>import</scope>
 				<type>pom</type>
 			</dependency>
-<!--
+
 			<dependency>
 				<groupId>jakarta.servlet</groupId>
 				<artifactId>jakarta.servlet-api</artifactId>
-				<version>${servlet.version}</version>
+				<version>${jakarta-servlet.version}</version>
+				<scope>provided</scope>
 			</dependency>
--->
+
 			<dependency>
 				<groupId>javax.enterprise</groupId>
 				<artifactId>cdi-api</artifactId>
