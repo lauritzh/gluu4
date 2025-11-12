@@ -13,21 +13,32 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.0.3</maven.min-version>
 
-		<resteasy.version>5.0.10.Final</resteasy.version>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
 
 		<httpcore.version>4.4.16</httpcore.version>
 		<httpclient.version>4.5.14</httpclient.version>
 
-		<weld.version>3.1.9.Final</weld.version>
-		<servlet.version>5.0.0</servlet.version>
-		<jakarta-servlet.version>6.1.0	</jakarta-servlet.version>
-		<jetty-server.version>12.0.27</jetty-server.version>
+		<resteasy.version>6.2.12.Final</resteasy.version>
+		<richfaces.version>4.5.19-gluu.Final</richfaces.version>
+		<weld.version>4.0.3.Final</weld.version>
+	
+		<org.omnifaces.omnifaces.version>4.0</org.omnifaces.omnifaces.version>
+		<org.glassfish.jakarta.json.version>2.0.1</org.glassfish.jakarta.json.version>
+		<org.hibernate.validator.version>7.0.5.Final</org.hibernate.validator.version>
+		<org.hibernate.validator.cdi.version>7.0.5.Final</org.hibernate.validator.cdi.version>
+		<org.jboss.annotations.api.version>2.0.1.Final</org.jboss.annotations.api.version>
+		
+		<jakarta.ejb.api.version>4.0.1</jakarta.ejb.api.version>
+		<jakarta.mail.api.version>2.1.2</jakarta.mail.api.version>
+		<jakarta.mail.version>2.0.1</jakarta.mail.version>
 
-		<jsp-impl.version>9.0.102</jsp-impl.version>
-		<jsf-api.version>2.2.20</jsf-api.version>
-		<jsf-impl.version>2.3.18</jsf-impl.version>
-		<uel-api.version>2.2.1-b04</uel-api.version>
-		<uel-impl.version>2.2.1-b05</uel-impl.version>
+		<jakarta.websocket.api.version>2.1.0</jakarta.websocket.api.version>
+		<jakarta.xml.bind.api.version>3.0.1</jakarta.xml.bind.api.version>
+		<org.glassfish.jakarta.el.api.version>5.0.0-M1</org.glassfish.jakarta.el.api.version>
+		<jakarta.el.api.version>6.0.1</jakarta.el.api.version>
+		<jakarta.servlet.jsp-api.version>4.0.0</jakarta.servlet.jsp-api.version>
+		
 
 		<jackson.bom.version>2.20.0</jackson.bom.version>
 		<jackson.version>2.20.0</jackson.version>
@@ -40,11 +51,14 @@
 
 		<guava.version>33.5.0-jre</guava.version>
 
-		<aws.sns.version>1.12.701</aws.sns.version>
+		<aws.sns.version>1.12.708</aws.sns.version>
 		<jackrabbit.version>2.22.2</jackrabbit.version>
 
+		<bc.version>1.79</bc.version>
 		<junit.jupiter.version>5.9.2</junit.jupiter.version>
 		<mockito.version>5.1.1</mockito.version>
+
+		<jetty.version>11.0.24</jetty.version>
 	</properties>
 
 	<repositories>
@@ -240,22 +254,22 @@
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-jdk18on</artifactId>
-				<version>1.82</version>
+				<version>${bc.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-jdk18on</artifactId>
-				<version>1.82</version>
+				<version>${bc.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcutil-jdk18on</artifactId>
-				<version>1.82</version>
+				<version>${bc.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcmail-jdk18on</artifactId>
-				<version>1.82</version>
+				<version>${bc.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
@@ -287,72 +301,89 @@
 				<type>pom</type>
 			</dependency>
 
+			<!-- Jakarta lib required but not part of Weld dependency -->
 			<dependency>
-				<groupId>jakarta.servlet</groupId>
-				<artifactId>jakarta.servlet-api</artifactId>
-				<version>${jakarta-servlet.version}</version>
-				<scope>provided</scope>
+				<groupId>jakarta.ejb</groupId>
+				<artifactId>jakarta.ejb-api</artifactId>
+				<version>${jakarta.ejb.api.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>javax.enterprise</groupId>
-				<artifactId>cdi-api</artifactId>
-				<version>2.0.SP1</version>
-				<scope>provided</scope>
+				<groupId>jakarta.mail</groupId>
+				<artifactId>jakarta.mail-api</artifactId>
+				<version>${jakarta.mail.api.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>javax.inject</groupId>
-				<artifactId>javax.inject</artifactId>
-				<version>1</version>
+				<groupId>org.eclipse.angus</groupId>
+				<artifactId>angus-mail</artifactId>
+				<version>2.0.4</version>
 			</dependency>
 			<dependency>
-				<groupId>javax.validation</groupId>
-				<artifactId>validation-api</artifactId>
-				<version>2.0.1.Final</version>
+				<groupId>com.sun.mail</groupId>
+				<artifactId>jakarta.mail</artifactId>
+				<version>${jakarta.mail.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>javax.el</groupId>
-				<artifactId>el-api</artifactId>
-				<version>${uel-api.version}</version>
-				<scope>provided</scope>
+				<groupId>jakarta.websocket</groupId>
+				<artifactId>jakarta.websocket-api</artifactId>
+				<version>${jakarta.websocket.api.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.glassfish.web</groupId>
-				<artifactId>el-impl</artifactId>
-				<version>${uel-impl.version}</version>
+				<groupId>jakarta.xml.bind</groupId>
+				<artifactId>jakarta.xml.bind-api</artifactId>
+				<version>${jakarta.xml.bind.api.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>org.mortbay.jasper</groupId>
-			    <artifactId>apache-jsp</artifactId>
-			    <version>${jsp-impl.version}</version>
+			    <groupId>jakarta.ws.rs</groupId>
+			    <artifactId>jakarta.ws.rs-api</artifactId>
+			    <version>3.1.0</version>
+			</dependency>
+
+			<!-- glassfish -->	
+			<dependency>
+    			<groupId>org.glassfish</groupId>
+			    <artifactId>jakarta.el</artifactId>
+				<version>${org.glassfish.jakarta.el.api.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.sun.faces</groupId>
-				<artifactId>jsf-api</artifactId>
-				<version>${jsf-api.version}</version>
+				<groupId>jakarta.el</groupId>
+				<artifactId>jakarta.el-api</artifactId>
+				<version>${jakarta.el.api.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.glassfish</groupId>
-				<artifactId>jakarta.faces</artifactId>
-				<version>${jsf-impl.version}</version>
+				<groupId>jakarta.servlet.jsp</groupId>
+				<artifactId>jakarta.servlet.jsp-api</artifactId>
+				<version>${jakarta.servlet.jsp-api.version}</version>
+			</dependency>
+			<dependency>
+		    	<groupId>org.glassfish</groupId>
+    			<artifactId>jakarta.json</artifactId>
+    			<version>${org.glassfish.jakarta.json.version}</version>
 			</dependency>
 			<dependency>
 			    <groupId>org.jboss.spec.javax.annotation</groupId>
-			    <artifactId>jboss-annotations-api_1.2_spec</artifactId>
-			    <version>1.0.2.Final</version>
+			    <artifactId>jboss-annotations-api_1.3_spec</artifactId>
+			    <version>${org.jboss.annotations.api.version}</version>
 				<scope>provided</scope>
 			</dependency>
 
+			<!-- hibernate -->
 			<dependency>
-				<groupId>javax.websocket</groupId>
-				<artifactId>javax.websocket-api</artifactId>
-				<version>1.1</version>
+			    <groupId>org.hibernate</groupId>
+			    <artifactId>hibernate-validator</artifactId>
+			    <version>${org.hibernate.validator.version}</version>
+			</dependency>
+			<dependency>
+			    <groupId>org.hibernate</groupId>
+			    <artifactId>hibernate-validator-cdi</artifactId>
+			    <version>${org.hibernate.validator.cdi.version}</version>
 			</dependency>
 
+			<!-- omnifaces -->
 			<dependency>
-				<groupId>javax.persistence</groupId>
-				<artifactId>persistence-api</artifactId>
-				<version>1.0.2</version>
+			    <groupId>org.omnifaces</groupId>
+			    <artifactId>omnifaces</artifactId>
+			    <version>${org.omnifaces.omnifaces.version}</version>
 			</dependency>
 
 			<!-- Richfaces. Deprecated-->
@@ -553,44 +584,11 @@
 
 			<!-- RestEasy -->
 			<dependency>
-				<groupId>org.jboss.resteasy</groupId>
-				<artifactId>resteasy-cdi</artifactId>
-				<version>${resteasy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.resteasy</groupId>
-				<artifactId>resteasy-client</artifactId>
-				<version>${resteasy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.resteasy</groupId>
-				<artifactId>resteasy-servlet-initializer</artifactId>
-				<version>${resteasy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.resteasy</groupId>
-				<artifactId>resteasy-jaxb-provider</artifactId>
-				<version>${resteasy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.resteasy</groupId>
-				<artifactId>resteasy-jackson2-provider</artifactId>
-				<version>${resteasy.version}</version>
-			</dependency>
-            <dependency>
-                <groupId>org.jboss.resteasy</groupId>
-                <artifactId>resteasy-guice</artifactId>
-                <version>${resteasy.version}</version>
-            </dependency>
-			<dependency>
-				<groupId>org.jboss.resteasy</groupId>
-				<artifactId>resteasy-links</artifactId>
-                <version>${resteasy.version}</version>
-			</dependency>
-			<dependency>
-			    <groupId>javax.ws.rs</groupId>
-			    <artifactId>javax.ws.rs-api</artifactId>
-			    <version>2.1.1</version>
+			    <groupId>org.jboss.resteasy</groupId>
+			    <artifactId>resteasy-bom</artifactId>
+			    <version>${resteasy.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
 			</dependency>
 
 			<!-- JSON -->
@@ -617,7 +615,7 @@
 			<dependency>
 				<groupId>net.jodah</groupId>
 				<artifactId>expiringmap</artifactId>
-				<version>0.5.9</version>
+				<version>0.5.10</version>
 			</dependency>
 			<dependency>
 				<groupId>net.spy</groupId>
@@ -627,7 +625,7 @@
 			<dependency>
 				<groupId>redis.clients</groupId>
 				<artifactId>jedis</artifactId>
-				<version>3.8.0</version>
+				<version>3.9.0</version>
 			</dependency>
 
 			<!-- HTTP client -->
@@ -792,7 +790,7 @@
 			<dependency>
 				<groupId>org.testng</groupId>
 				<artifactId>testng</artifactId>
-				<version>6.14.3</version>
+				<version>7.8.0</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -855,7 +853,7 @@
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-deploy</artifactId>
-				<version>9.4.49.v20220914</version>
+				<version>12.0.24</version>
 				<scope>provided</scope>
 			</dependency>
 
@@ -876,4 +874,118 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.2.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>3.1.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>3.5.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>3.1.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.3.0</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>test-jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>3.3.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.3.1</version>
+					<configuration>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>4.0.0-M7</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>3.2.1</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-maven-plugin</artifactId>
+					<version>${jetty.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>3.8.0</version>
+					<configuration>
+						<failOnError>false</failOnError>
+						<additionalJOption>-Xdoclint:none</additionalJOption>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.owasp</groupId>
+					<artifactId>dependency-check-maven</artifactId>
+					<version>5.2.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>0.8.10</version>
+				</plugin>
+				<plugin>
+					<groupId>com.github.spotbugs</groupId>
+					<artifactId>spotbugs-maven-plugin</artifactId>
+					<version>4.7.3.4</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>buildnumber-maven-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 </project>
