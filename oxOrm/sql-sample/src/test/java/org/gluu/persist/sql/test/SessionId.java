@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nonnull;
-import javax.persistence.Transient;
+import jakarta.annotation.Nonnull;
+import jakarta.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.persist.annotation.AttributeName;

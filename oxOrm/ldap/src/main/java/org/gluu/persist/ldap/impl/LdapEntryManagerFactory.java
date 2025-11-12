@@ -9,7 +9,7 @@ package org.gluu.persist.ldap.impl;
 import java.util.HashMap;
 import java.util.Properties;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.PersistenceEntryManagerFactory;

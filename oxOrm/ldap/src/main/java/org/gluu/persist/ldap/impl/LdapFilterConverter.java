@@ -6,7 +6,7 @@
 
 package org.gluu.persist.ldap.impl;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import org.gluu.persist.exception.operation.SearchException;
 import org.gluu.search.filter.Filter;
