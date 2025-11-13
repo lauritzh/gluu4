@@ -9,9 +9,9 @@ package org.gluu.oxtrust.service.render;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 //import org.omnifaces.util.Components;
 import org.slf4j.Logger;

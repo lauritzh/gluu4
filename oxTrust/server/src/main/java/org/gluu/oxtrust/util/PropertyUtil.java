@@ -8,9 +8,9 @@ package org.gluu.oxtrust.util;
 
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;

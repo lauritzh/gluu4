@@ -1,11 +1,11 @@
 package org.gluu.oxtrust.auth.oauth;
 
 import java.io.Serializable;
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
 

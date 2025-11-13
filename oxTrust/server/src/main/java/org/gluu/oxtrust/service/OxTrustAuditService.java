@@ -2,9 +2,9 @@ package org.gluu.oxtrust.service;
 
 import java.io.Serializable;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.gluu.oxtrust.model.GluuCustomPerson;
 import org.slf4j.Logger;

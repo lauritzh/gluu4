@@ -6,11 +6,11 @@
 
 package org.gluu.oxtrust.service;
 
-import javax.ejb.Stateless;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.ServletContext;
+import jakarta.ejb.Stateless;
+import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.ServletContext;
 
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.util.StringHelper;

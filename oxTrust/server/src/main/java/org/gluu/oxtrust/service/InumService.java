@@ -9,12 +9,12 @@ package org.gluu.oxtrust.service;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
+import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.model.GluuAttribute;

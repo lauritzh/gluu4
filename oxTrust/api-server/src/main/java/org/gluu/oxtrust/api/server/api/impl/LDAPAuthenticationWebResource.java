@@ -20,12 +20,12 @@ import org.gluu.oxtrust.util.ConnectionStatus;
 import org.gluu.oxtrust.util.LdapConnectionData;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 @Path(ApiConstants.BASE_API_URL + ApiConstants.CONFIGURATION + ApiConstants.LDAP)

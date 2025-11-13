@@ -10,9 +10,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.commons.io.FileUtils;
 import org.gluu.service.security.Secure;

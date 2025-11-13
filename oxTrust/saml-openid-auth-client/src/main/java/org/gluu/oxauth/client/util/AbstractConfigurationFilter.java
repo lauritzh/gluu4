@@ -6,8 +6,8 @@
 
 package org.gluu.oxauth.client.util;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterConfig;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterConfig;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

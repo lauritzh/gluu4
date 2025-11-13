@@ -8,8 +8,8 @@ package org.gluu.oxtrust.service;
 
 import java.io.Serializable;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 
 import org.gluu.oxtrust.model.GluuCustomPerson;
 

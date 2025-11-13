@@ -15,15 +15,15 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.shibboleth.idp.authn.ExternalAuthentication;
 import net.shibboleth.idp.profile.context.RelyingPartyContext;
 
@@ -157,7 +157,7 @@ public class AuthenticationFilter extends AbstractOAuthFilter {
         // Lookup for relying party ID
         final String key = request.getParameter(ExternalAuthentication.CONVERSATION_KEY);
         request.getSession().setAttribute(SESSION_CONVERSATION_KEY, key);
-        ProfileRequestContext prc = ExternalAuthentication.getProfileRequestContext(key, request);
+        ProfileRequestContext prc = ExternalAuthentication.getProfileRequestContext(key, (javax.servlet.http.HttpServletRequest) request);
 
         String relyingPartyId = "";
         final RelyingPartyContext relyingPartyCtx = prc.getSubcontext(RelyingPartyContext.class);

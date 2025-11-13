@@ -10,9 +10,9 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.oxtrust.model.push.PushApplication;
 import org.gluu.oxtrust.service.OrganizationService;

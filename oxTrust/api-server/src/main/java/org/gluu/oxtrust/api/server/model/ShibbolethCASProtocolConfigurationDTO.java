@@ -7,8 +7,8 @@ import org.gluu.oxtrust.api.server.util.SessionStorageTypeSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public class ShibbolethCASProtocolConfigurationDTO {
 

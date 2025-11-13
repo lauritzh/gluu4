@@ -9,12 +9,12 @@ package org.gluu.oxtrust.service;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.faces.application.ViewHandler;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.faces.application.ViewHandler;
+import jakarta.faces.context.ExternalContext;
+import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 /**
  * Provides operations with view id

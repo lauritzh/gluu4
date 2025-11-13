@@ -19,10 +19,10 @@ import org.gluu.service.metric.inject.ReportMetric;
 import org.gluu.service.net.NetworkService;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.text.SimpleDateFormat;
 import java.util.*;
 

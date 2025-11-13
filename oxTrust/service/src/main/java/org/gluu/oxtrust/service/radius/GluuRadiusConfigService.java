@@ -2,8 +2,8 @@ package org.gluu.oxtrust.service.radius;
 
 import java.io.Serializable;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.service.config.ConfigurationFactory;
 import org.gluu.persist.PersistenceEntryManager;

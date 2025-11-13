@@ -6,8 +6,8 @@
 package org.gluu.oxauth.client.validation;
 
 import java.security.Principal;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import java.util.HashMap;
 import java.util.Map;
 import org.gluu.oxauth.client.authentication.SimplePrincipal;

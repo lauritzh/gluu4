@@ -9,9 +9,9 @@ package org.gluu.oxtrust.service;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.ejb.Stateless;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 
 import org.apache.commons.beanutils.BeanUtils;
 

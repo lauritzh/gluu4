@@ -1,9 +1,9 @@
 package org.gluu.oxtrust.auth.oauth;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.Response;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.Response;
 import org.gluu.oxauth.model.common.IntrospectionResponse;
 import org.gluu.oxtrust.auth.IProtectionService;
 

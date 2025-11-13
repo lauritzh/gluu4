@@ -2,7 +2,7 @@ package org.gluu.oxtrust.api.server.model;
 
 import org.apache.logging.log4j.core.config.plugins.validation.constraints.Required;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public class LdapConfigurationDTO {

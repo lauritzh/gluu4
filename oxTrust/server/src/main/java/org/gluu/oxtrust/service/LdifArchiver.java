@@ -12,9 +12,9 @@ import java.io.PrintWriter;
 import java.util.Calendar;
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.persist.PersistenceEntryManager;

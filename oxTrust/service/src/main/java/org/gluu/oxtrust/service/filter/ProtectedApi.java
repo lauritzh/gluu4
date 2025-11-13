@@ -10,7 +10,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.ws.rs.NameBinding;
+import jakarta.ws.rs.NameBinding;
 
 /**
  * Created by jgomer on 2017-11-25.

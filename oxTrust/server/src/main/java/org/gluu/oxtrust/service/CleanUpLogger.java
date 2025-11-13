@@ -2,7 +2,7 @@ package org.gluu.oxtrust.service;
 
 import java.io.Serializable;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.slf4j.Logger;
 

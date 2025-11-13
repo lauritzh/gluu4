@@ -15,11 +15,11 @@ import java.io.InputStream;
 
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import javax.imageio.ImageIO;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.gluu.config.oxtrust.AppConfiguration;

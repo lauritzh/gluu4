@@ -15,9 +15,9 @@ import org.gluu.service.security.SecurityEvaluationException;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.Serializable;
 import java.util.Collections;
 

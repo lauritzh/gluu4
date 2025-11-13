@@ -8,9 +8,9 @@ package org.gluu.oxtrust.action;
 
 import java.io.Serializable;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.jsf2.service.ConversationService;
 import org.gluu.jsf2.service.FacesService;

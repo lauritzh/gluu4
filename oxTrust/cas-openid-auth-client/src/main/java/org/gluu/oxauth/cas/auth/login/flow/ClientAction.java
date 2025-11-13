@@ -6,9 +6,9 @@
 
 package org.gluu.oxauth.cas.auth.login.flow;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 
 import org.gluu.oxauth.cas.auth.client.AuthClient;
 import org.gluu.oxauth.cas.auth.principal.ClientCredential;
@@ -67,8 +67,8 @@ public final class ClientAction extends AbstractAction {
 	 */
 	@Override
 	protected Event doExecute(final RequestContext context) throws Exception {
-		final HttpServletRequest request = WebUtils.getHttpServletRequest(context);
-		final HttpServletResponse response = WebUtils.getHttpServletResponse(context);
+		final HttpServletRequest request = (HttpServletRequest) WebUtils.getHttpServletRequest(/* remove this after IDP migration to jakarta */ context);
+		final HttpServletResponse response = (HttpServletResponse) WebUtils.getHttpServletResponse(/* remove this after IDP migration to jakarta */ context);
 
 		// Web context
 		final WebContext webContext = new J2EContext(request, response);
