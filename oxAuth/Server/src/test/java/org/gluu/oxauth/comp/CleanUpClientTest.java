@@ -9,7 +9,7 @@ package org.gluu.oxauth.comp;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.BaseComponentTest;
 import org.gluu.oxauth.model.registration.Client;

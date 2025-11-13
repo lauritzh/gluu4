@@ -9,7 +9,7 @@ package org.gluu.oxauth.model.common;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.service.CacheService;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * An extension grant with the grant type value: urn:ietf:params:oauth:grant-type:device_code

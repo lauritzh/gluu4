@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.gluu.oxauth.model.configuration.Configuration;
 import org.gluu.oxauth.model.jwk.JSONWebKeySet;
 
-import javax.enterprise.inject.Vetoed;
+import jakarta.enterprise.inject.Vetoed;
 
 /**
  * @author Yuriy Movchan

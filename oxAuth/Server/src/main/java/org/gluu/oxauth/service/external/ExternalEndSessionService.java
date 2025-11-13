@@ -7,7 +7,7 @@ import org.gluu.model.custom.script.type.logout.EndSessionType;
 import org.gluu.oxauth.service.external.context.EndSessionContext;
 import org.gluu.service.custom.script.ExternalScriptService;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * @author Yuriy Zabrovarnyy

@@ -24,8 +24,8 @@ import org.gluu.service.cache.CacheConfiguration;
 import org.gluu.service.cache.CacheProviderType;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.*;
 
 import static org.gluu.oxauth.util.ServerUtil.isTrue;

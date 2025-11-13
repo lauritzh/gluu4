@@ -8,9 +8,9 @@ package org.gluu.oxauth.service.common;
 
 import java.util.Properties;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.util.StringHelper;
 import org.gluu.util.security.PropertiesDecrypter;

@@ -2,7 +2,7 @@ package org.gluu.oxauth.model.auth;
 
 import java.io.Serializable;
 
-import javax.enterprise.inject.Vetoed;
+import jakarta.enterprise.inject.Vetoed;
 
 /**
  * @author Yuriy Movchan

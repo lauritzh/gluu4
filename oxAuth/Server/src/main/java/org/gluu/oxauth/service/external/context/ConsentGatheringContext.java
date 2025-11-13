@@ -9,8 +9,8 @@ package org.gluu.oxauth.service.external.context;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.gluu.jsf2.service.FacesService;
 import org.gluu.model.SimpleCustomProperty;

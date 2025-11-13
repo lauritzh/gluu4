@@ -19,9 +19,9 @@ import org.gluu.service.custom.script.ExternalScriptService;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
 import java.util.List;
 
 /**

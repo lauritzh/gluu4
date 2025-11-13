@@ -7,10 +7,10 @@ import static org.testng.Assert.fail;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.model.gluu.GluuConfiguration;

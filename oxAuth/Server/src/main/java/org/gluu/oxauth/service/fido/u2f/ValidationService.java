@@ -6,9 +6,9 @@
 
 package org.gluu.oxauth.service.fido.u2f;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.fido.u2f.U2fConstants;

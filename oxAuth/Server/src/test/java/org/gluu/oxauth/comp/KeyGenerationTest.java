@@ -6,7 +6,7 @@
 
 package org.gluu.oxauth.comp;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.service.common.EncryptionService;

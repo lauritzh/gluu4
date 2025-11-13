@@ -10,7 +10,7 @@ import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.EXPIRES_IN;
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.INTERVAL;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;

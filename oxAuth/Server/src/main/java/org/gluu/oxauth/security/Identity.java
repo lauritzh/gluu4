@@ -6,11 +6,11 @@
 
 package org.gluu.oxauth.security;
 
-import javax.annotation.Priority;
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.Alternative;
-import javax.inject.Named;
-import javax.interceptor.Interceptor;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.inject.Named;
+import jakarta.interceptor.Interceptor;
 
 import org.gluu.oxauth.model.session.SessionClient;
 import org.gluu.oxauth.model.session.SessionId;

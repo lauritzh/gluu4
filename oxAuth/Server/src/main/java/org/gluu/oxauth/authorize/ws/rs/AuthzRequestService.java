@@ -4,9 +4,9 @@ import org.gluu.oxauth.model.audit.Action;
 import org.gluu.oxauth.model.audit.OAuth2AuditLog;
 import org.gluu.oxauth.util.ServerUtil;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Named;
-import javax.ws.rs.WebApplicationException;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Named;
+import jakarta.ws.rs.WebApplicationException;
 
 /**
  * @author Yuriy Z

@@ -15,7 +15,7 @@ import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingResponseParam.SUC
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;

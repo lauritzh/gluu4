@@ -8,9 +8,9 @@ package org.gluu.oxauth.service.fido.u2f;
 
 import java.io.IOException;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;

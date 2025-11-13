@@ -8,9 +8,9 @@ package org.gluu.oxauth.service;
 
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.User;

@@ -8,7 +8,7 @@ package org.gluu.oxauth.client;
 
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam;
 import org.gluu.oxauth.model.common.AuthenticationMethod;

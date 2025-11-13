@@ -57,7 +57,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import javax.ws.rs.HttpMethod;
+import jakarta.ws.rs.HttpMethod;
 
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.RegisterClient;

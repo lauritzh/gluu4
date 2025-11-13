@@ -29,8 +29,8 @@ import org.testng.annotations.Test;
 import org.testng.collections.Lists;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
-import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
 import java.util.*;
 
 import static org.junit.Assert.assertNotNull;

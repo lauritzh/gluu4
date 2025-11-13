@@ -8,8 +8,8 @@ package org.gluu.oxauth.service.common;
 
 import java.util.UUID;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.model.util.Pair;
 import org.slf4j.Logger;

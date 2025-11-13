@@ -11,7 +11,7 @@ import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.token.JsonWebResponse;
 import org.oxauth.persistence.model.Scope;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 

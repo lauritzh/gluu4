@@ -8,7 +8,7 @@ package org.gluu.oxauth.crypto.random;
 
 import java.security.SecureRandom;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 @Named("randomChallengeGenerator")
 public class RandomChallengeGenerator implements ChallengeGenerator {
