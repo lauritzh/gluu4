@@ -29,22 +29,22 @@
 	</scm>
 
 	<modules>
-		<module>oxUtil</module>
-		<module>oxModel</module>
-		<module>core-cache</module>
-		<module>core-document-store</module>
-		<module>core-standalone</module>
-		<module>oxSaml</module>
-		<module>oxJsfUtil</module>
-		<module>core-java-ext</module>
-		<module>core-cdi</module>
-		<module>core-timer-weld</module>
+		<module>util</module>
+		<module>model</module>
+		<module>cache</module>
+		<module>document-store</module>
+		<module>standalone</module>
+		<module>saml</module>
+		<module>jsf-util</module>
+		<module>java-ext</module>
+		<module>cdi</module>
+		<module>timer-weld</module>
 		<module>security-extension-cdi</module>
 		<module>exception-extension-cdi</module>
-		<module>core-script</module>
-		<module>oxService</module>
+		<module>script</module>
+		<module>service</module>
 		<module>server</module>
-		<module>oxRadius</module>
+		<module>radius</module>
 		<module>demo-cdi</module>
 		<module>doc</module>
 	</modules>
