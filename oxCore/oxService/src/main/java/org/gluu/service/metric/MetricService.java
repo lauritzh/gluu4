@@ -24,8 +24,8 @@ import org.gluu.service.metric.inject.ReportMetric;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;

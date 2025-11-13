@@ -1,7 +1,7 @@
 package org.gluu.service.custom;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.service.OrganizationService;
 import org.gluu.service.custom.script.AbstractCustomScriptService;

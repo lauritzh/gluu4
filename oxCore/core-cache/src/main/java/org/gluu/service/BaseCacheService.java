@@ -10,7 +10,7 @@ import org.gluu.service.cache.CacheProvider;
 import org.gluu.service.cache.CacheProviderType;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Date;
 import java.util.function.Supplier;
 

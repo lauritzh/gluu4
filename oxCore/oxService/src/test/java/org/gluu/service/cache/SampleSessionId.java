@@ -5,8 +5,8 @@ import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.DN;
 import org.gluu.persist.annotation.JsonObject;
 
-import javax.annotation.Nonnull;
-import javax.persistence.Transient;
+import jakarta.annotation.Nonnull;
+import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;

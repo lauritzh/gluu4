@@ -2,7 +2,7 @@ package org.gluu.service.document.store.conf;
 
 import java.io.Serializable;
 
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

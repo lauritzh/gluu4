@@ -2,8 +2,8 @@ package org.gluu.model.security;
 
 import java.io.Serializable;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Named;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Named;
 
 @RequestScoped
 @Named

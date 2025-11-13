@@ -1,8 +1,8 @@
 package org.gluu.service.timer;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;

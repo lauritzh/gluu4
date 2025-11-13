@@ -1,9 +1,9 @@
 package org.gluu.service.cdi.event;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Initialized.Literal;
-import javax.enterprise.util.AnnotationLiteral;
-import javax.inject.Qualifier;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Initialized.Literal;
+import jakarta.enterprise.util.AnnotationLiteral;
+import jakarta.inject.Qualifier;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

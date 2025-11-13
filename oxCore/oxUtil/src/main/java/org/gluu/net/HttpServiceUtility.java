@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 
 import javax.net.ssl.SSLContext;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;

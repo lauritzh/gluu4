@@ -6,10 +6,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.enterprise.context.Dependent;
-import javax.faces.context.ExternalContext;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.Dependent;
+import jakarta.faces.context.ExternalContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.util.StringHelper;
 

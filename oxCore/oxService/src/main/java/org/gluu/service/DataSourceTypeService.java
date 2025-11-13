@@ -2,8 +2,8 @@ package org.gluu.service;
 
 import java.io.Serializable;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.cloud.spanner.impl.SpannerEntryManagerFactory;

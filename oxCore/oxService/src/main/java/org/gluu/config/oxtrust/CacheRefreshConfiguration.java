@@ -9,7 +9,7 @@ package org.gluu.config.oxtrust;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.gluu.model.ldap.GluuLdapConfiguration;
 
-import javax.enterprise.inject.Vetoed;
+import jakarta.enterprise.inject.Vetoed;
 import java.util.List;
 
 /**

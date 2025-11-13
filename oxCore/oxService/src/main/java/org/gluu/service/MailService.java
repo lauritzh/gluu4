@@ -7,55 +7,60 @@ package org.gluu.service;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.security.InvalidParameterException;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateParsingException;
-import java.security.cert.X509Certificate;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import javax.activation.CommandMap;
-import javax.activation.MailcapCommandMap;
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.mail.Message;
-import javax.mail.Multipart;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-
-import org.apache.commons.io.FilenameUtils;
-import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.cms.AttributeTable;
-import org.bouncycastle.asn1.smime.SMIMECapabilitiesAttribute;
-import org.bouncycastle.asn1.smime.SMIMECapability;
-import org.bouncycastle.asn1.smime.SMIMECapabilityVector;
-import org.bouncycastle.asn1.smime.SMIMEEncryptionKeyPreferenceAttribute;
-import org.bouncycastle.cert.jcajce.JcaCertStore;
-import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoGeneratorBuilder;
-import org.bouncycastle.mail.smime.SMIMEException;
-import org.bouncycastle.mail.smime.SMIMESignedGenerator;
-import org.bouncycastle.mail.smime.SMIMEUtil;
-import org.bouncycastle.operator.OperatorCreationException;
-
 import org.gluu.model.SmtpConfiguration;
 import org.gluu.model.SmtpConnectProtectionType;
 import org.gluu.util.StringHelper;
 import org.gluu.util.security.SecurityProviderUtility;
+import org.apache.commons.io.FilenameUtils;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.mail.smime.SMIMEException;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.asn1.smime.SMIMECapabilitiesAttribute;
+import org.bouncycastle.asn1.smime.SMIMECapability;
+import org.bouncycastle.asn1.smime.SMIMECapabilityVector;
+import org.bouncycastle.asn1.smime.SMIMEEncryptionKeyPreferenceAttribute;
+import org.bouncycastle.mail.smime.SMIMEUtil;
+import org.bouncycastle.mail.smime.SMIMESignedGenerator;
+import org.bouncycastle.asn1.cms.AttributeTable;
+import org.bouncycastle.cert.jcajce.JcaCertStore;
+import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoGeneratorBuilder;
 
 import org.slf4j.Logger;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
+import jakarta.activation.CommandMap;
+import jakarta.activation.MailcapCommandMap;
+
+import jakarta.mail.Message;
+import jakarta.mail.Multipart;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.security.InvalidParameterException;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.util.Date;
+import java.util.Properties;
 
 /**
  * Provides operations with sending E-mails
@@ -156,13 +161,13 @@ public class MailService {
         SmtpConnectProtectionType smtpConnectProtect = mailSmtpConfiguration.getConnectProtection();
 
         if (smtpConnectProtect == SmtpConnectProtectionType.START_TLS) {
-            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.socketFactory.class", "com.sun.mail.util.MailSSLSocketFactory");
             props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
             props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
             props.put("mail.smtp.starttls.enable", true);
         }
         else if (smtpConnectProtect == SmtpConnectProtectionType.SSL_TLS) {
-            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.socketFactory.class", "com.sun.mail.util.MailSSLSocketFactory");
             props.put("mail.smtp.socketFactory.port", mailSmtpConfiguration.getPort());
             props.put("mail.smtp.ssl.trust", mailSmtpConfiguration.getHost());
             props.put("mail.smtp.ssl.enable", true);
@@ -175,7 +180,7 @@ public class MailService {
             final String userName = mailSmtpConfiguration.getUserName();
             final String password = mailSmtpConfiguration.getPasswordDecrypted();
 
-            session = Session.getInstance(props, new javax.mail.Authenticator() {
+            session = Session.getInstance(props, new jakarta.mail.Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(userName, password);
                 }
@@ -335,7 +340,7 @@ public class MailService {
             final String userName = mailSmtpConfiguration.getUserName();
             final String password = mailSmtpConfiguration.getPasswordDecrypted();
 
-            session = Session.getInstance(props, new javax.mail.Authenticator() {
+            session = Session.getInstance(props, new jakarta.mail.Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(userName, password);
                 }

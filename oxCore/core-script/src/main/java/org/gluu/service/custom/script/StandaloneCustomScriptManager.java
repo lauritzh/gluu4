@@ -3,7 +3,7 @@ package org.gluu.service.custom.script;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.enterprise.inject.Vetoed;
+import jakarta.enterprise.inject.Vetoed;
 
 import org.gluu.model.custom.script.CustomScriptType;
 import org.gluu.persist.PersistenceEntryManager;

@@ -8,7 +8,7 @@ package org.gluu.config.oxtrust;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.enterprise.inject.Vetoed;
+import jakarta.enterprise.inject.Vetoed;
 import org.gluu.model.LocaleSupported;
 import java.io.Serializable;
 import java.util.Arrays;

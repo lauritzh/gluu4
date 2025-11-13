@@ -13,7 +13,7 @@ import org.gluu.search.filter.Filter;
 import org.gluu.util.OxConstants;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

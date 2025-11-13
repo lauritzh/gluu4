@@ -5,7 +5,7 @@ import java.util.Map;
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.type.BaseExternalType;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 /**
  * @author jgomer2001

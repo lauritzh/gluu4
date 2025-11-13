@@ -1,6 +1,6 @@
 package org.gluu.service.custom.script;
 
-import javax.enterprise.inject.Vetoed;
+import jakarta.enterprise.inject.Vetoed;
 
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.service.PythonService;

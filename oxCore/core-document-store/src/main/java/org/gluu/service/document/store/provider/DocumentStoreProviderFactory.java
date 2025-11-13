@@ -1,10 +1,10 @@
 package org.gluu.service.document.store.provider;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 
 import org.gluu.service.document.store.LocalDocumentStore;
 import org.gluu.service.document.store.conf.DocumentStoreConfiguration;

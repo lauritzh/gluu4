@@ -15,10 +15,10 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.exception.PythonException;
 import org.gluu.persist.reflect.util.ReflectHelper;
@@ -118,8 +118,8 @@ public class PythonService implements Serializable {
         Properties clonedProps = (Properties) props.clone();
         clonedProps.setProperty("java.class.path", ".");
         clonedProps.setProperty("java.library.path", "");
-        clonedProps.remove("javax.net.ssl.trustStore");
-        clonedProps.remove("javax.net.ssl.trustStorePassword");
+        clonedProps.remove("jakarta.net.ssl.trustStore");
+        clonedProps.remove("jakarta.net.ssl.trustStorePassword");
 
         return clonedProps;
     }

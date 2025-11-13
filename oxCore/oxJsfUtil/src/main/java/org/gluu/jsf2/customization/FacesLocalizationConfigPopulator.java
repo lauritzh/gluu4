@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.faces.application.ApplicationConfigurationPopulator;
+import jakarta.faces.application.ApplicationConfigurationPopulator;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;

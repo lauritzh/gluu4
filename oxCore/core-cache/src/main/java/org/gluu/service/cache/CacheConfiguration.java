@@ -2,7 +2,7 @@ package org.gluu.service.cache;
 
 import java.io.Serializable;
 
-import javax.enterprise.inject.Vetoed;
+import jakarta.enterprise.inject.Vetoed;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

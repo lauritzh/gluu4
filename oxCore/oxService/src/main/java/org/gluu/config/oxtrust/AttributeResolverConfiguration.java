@@ -8,7 +8,7 @@ package org.gluu.config.oxtrust;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import javax.enterprise.inject.Vetoed;
+import jakarta.enterprise.inject.Vetoed;
 import java.util.List;
 
 

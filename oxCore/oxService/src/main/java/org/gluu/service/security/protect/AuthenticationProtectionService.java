@@ -2,8 +2,8 @@ package org.gluu.service.security.protect;
 
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 
 import org.gluu.model.security.protect.AuthenticationAttempt;
 import org.gluu.model.security.protect.AuthenticationAttemptList;

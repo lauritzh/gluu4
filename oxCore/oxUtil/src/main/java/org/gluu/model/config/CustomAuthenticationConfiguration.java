@@ -9,7 +9,7 @@ package org.gluu.model.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 import org.gluu.model.AuthenticationScriptUsageType;
 import org.gluu.model.SimpleCustomProperty;

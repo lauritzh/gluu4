@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.service.document.store.conf.DocumentStoreType;
 import org.gluu.service.document.store.provider.DocumentStore;
