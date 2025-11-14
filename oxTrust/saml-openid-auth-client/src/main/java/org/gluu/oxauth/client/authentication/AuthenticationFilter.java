@@ -157,7 +157,7 @@ public class AuthenticationFilter extends AbstractOAuthFilter {
         // Lookup for relying party ID
         final String key = request.getParameter(ExternalAuthentication.CONVERSATION_KEY);
         request.getSession().setAttribute(SESSION_CONVERSATION_KEY, key);
-        ProfileRequestContext prc = ExternalAuthentication.getProfileRequestContext(key, (javax.servlet.http.HttpServletRequest) request);
+        ProfileRequestContext prc = ExternalAuthentication.getProfileRequestContext(key, /* remove this after IDP migration to jakarta */ (javax.servlet.http.HttpServletRequest) request);
 
         String relyingPartyId = "";
         final RelyingPartyContext relyingPartyCtx = prc.getSubcontext(RelyingPartyContext.class);
