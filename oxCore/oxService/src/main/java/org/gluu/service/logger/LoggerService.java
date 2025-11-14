@@ -142,6 +142,13 @@ public abstract class LoggerService {
     }
 
 	private boolean isDisableConfigurationUpdate() {
+		if (isDisableExternalLoggerConfiguration()) {
+			if (System.getProperty(OVERRIDE_JAVA_PROPERTY) != null) {
+	            log.info("Property log4j2.configurationFile is specifed. Ignoring it according to \"disableExternalLoggerConfiguration\" configuration property");
+			}
+			return false;
+		}
+
 		if (System.getProperty(OVERRIDE_JAVA_PROPERTY) != null) {
             log.info("Property log4j2.configurationFile is specifed. Update configuration is turned off");
             return true;
@@ -403,10 +410,12 @@ public abstract class LoggerService {
 
     public abstract boolean isDisableJdkLogger();
 
+    public abstract boolean isDisableExternalLoggerConfiguration();
+
     public abstract String getLoggingLevel();
 
     public abstract String getLoggingLayout();
-    
+
     public abstract String getExternalLoggerConfiguration();
 
 }
