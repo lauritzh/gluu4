@@ -1,4 +1,4 @@
-ppackage org.gluu.service.logger;
+package org.gluu.service.logger;
 
 import java.io.File;
 import java.util.HashMap;
