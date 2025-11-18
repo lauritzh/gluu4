@@ -1,7 +1,0 @@
-{
-    "recaptcha":{
-        "enabled":true,
-        "site_key":"",
-        "secret_key":""
-    }
-}

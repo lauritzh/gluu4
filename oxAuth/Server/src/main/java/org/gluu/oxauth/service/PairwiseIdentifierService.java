@@ -11,15 +11,17 @@ import org.gluu.util.StringHelper;
 import org.oxauth.persistence.model.PairwiseIdentifier;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.List;
 
 /**
  * @author Javier Rojas Blum
  * @version May 7, 2019
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class PairwiseIdentifierService {
 
     @Inject

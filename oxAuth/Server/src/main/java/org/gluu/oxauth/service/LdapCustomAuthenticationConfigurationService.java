@@ -10,8 +10,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.gluu.model.AuthenticationScriptUsageType;
 import org.gluu.model.SimpleCustomProperty;
@@ -30,7 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Yuriy Movchan Date: 08.27.2012
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class LdapCustomAuthenticationConfigurationService implements Serializable {
 
 	private static final long serialVersionUID = -2225890597520443390L;

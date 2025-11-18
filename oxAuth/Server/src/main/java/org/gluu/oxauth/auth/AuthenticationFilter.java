@@ -19,8 +19,6 @@ import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.model.token.ClientAssertion;
 import org.gluu.oxauth.model.token.ClientAssertionType;
 import org.gluu.oxauth.model.token.HttpAuthTokenType;
@@ -62,6 +60,7 @@ import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseT
                 "/restv1/revoke",
                 "/restv1/revoke_session",
                 "/restv1/bc-authorize",
+                "/restv1/internal/*",
                 "/restv1/device_authorization"},
         displayName = "oxAuth")
 public class AuthenticationFilter implements Filter {
@@ -135,16 +134,11 @@ public class AuthenticationFilter implements Filter {
             boolean deviceAuthorizationEndpoint = ServerUtil.isSameRequestPath(requestUrl, appConfiguration.getDeviceAuthzEndpoint());
             boolean umaTokenEndpoint = requestUrl.endsWith("/uma/token");
             boolean revokeSessionEndpoint = requestUrl.endsWith("/revoke_session");
+            boolean statEndpoint = requestUrl.endsWith("/stat");
             String authorizationHeader = httpRequest.getHeader("Authorization");
 
-            try {
-	            if (processMTLS(httpRequest, httpResponse, filterChain)) {
-	                return;
-	            }
-            } catch (Throwable ex) {
-            	// Catch exceptions like org.eclipse.jetty.http.BadMessageException when form is invalid
-            	// https://github.com/GluuFederation/oxAuth/issues/1843
-                log.error(ex.getMessage(), ex);
+            if (processMTLS(httpRequest, httpResponse, filterChain)) {
+                return;
             }
 
             if ((tokenRevocationEndpoint || deviceAuthorizationEndpoint) && clientService.isPublic(httpRequest.getParameter("client_id"))) {
@@ -153,7 +147,7 @@ public class AuthenticationFilter implements Filter {
                 return;
             }
 
-            if (tokenEndpoint || umaTokenEndpoint || revokeSessionEndpoint || tokenRevocationEndpoint || deviceAuthorizationEndpoint) {
+            if (tokenEndpoint || umaTokenEndpoint || revokeSessionEndpoint || tokenRevocationEndpoint || deviceAuthorizationEndpoint || statEndpoint) {
                 log.debug("Starting endpoint authentication {}", requestUrl);
 
                 // #686 : allow authenticated client via user access_token
@@ -336,6 +330,7 @@ public class AuthenticationFilter implements Filter {
                                 || servletRequest.getRequestURI().endsWith("/revoke_session")
                                 || servletRequest.getRequestURI().endsWith("/userinfo")
                                 || servletRequest.getRequestURI().endsWith("/bc-authorize")
+                                || servletRequest.getRequestURI().endsWith("/stat")
                                 || servletRequest.getRequestURI().endsWith("/device_authorization")) {
                             Client client = clientService.getClient(username);
                             if (client == null

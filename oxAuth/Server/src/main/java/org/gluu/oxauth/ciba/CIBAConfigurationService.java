@@ -12,9 +12,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
-
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.*;
 
@@ -22,7 +22,8 @@ import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.*;
  * @author Javier Rojas Blum
  * @version August 20, 2019
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class CIBAConfigurationService {
 
     private final static Logger log = LoggerFactory.getLogger(CIBAConfigurationService.class);

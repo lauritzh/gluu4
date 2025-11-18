@@ -7,9 +7,9 @@
 package org.gluu.oxauth.authorize.ws.rs;
 
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.CookieService;
@@ -17,6 +17,7 @@ import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.slf4j.Logger;
 
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author Yuriy Movchan
  * @version December 8, 2018
  */
+@Stateless
 @Named
 public class ConsentGatheringSessionService {
 
@@ -43,7 +45,7 @@ public class ConsentGatheringSessionService {
 
     public SessionId getConnectSession(HttpServletRequest httpRequest) {
         String cookieId = cookieService.getSessionIdFromCookie(httpRequest);
-        log.trace("Cookie - session_id: {}", cookieId);
+        log.trace("Cookie - session_id: ", cookieId);
         if (StringUtils.isNotBlank(cookieId)) {
             return sessionIdService.getSessionId(cookieId);
         }
@@ -58,15 +60,15 @@ public class ConsentGatheringSessionService {
 
     public SessionId getConsentSession(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String userDn, boolean create) {
         String cookieId = cookieService.getConsentSessionIdFromCookie(httpRequest);
-        log.trace("Cookie - consent_session_id: {}", cookieId);
+        log.trace("Cookie - consent_session_id: ", cookieId);
 
         if (StringUtils.isNotBlank(cookieId)) {
             SessionId sessionId = sessionIdService.getSessionId(cookieId);
             if (sessionId != null) {
-                log.trace("Loaded consent_session_id from cookie, session: {}", sessionId);
+                log.trace("Loaded consent_session_id from cookie, session: ", sessionId);
                 return sessionId;
             } else {
-                log.error("Failed to load consent_session_id from cookie: {}", cookieId);
+                log.error("Failed to load consent_session_id from cookie: ", cookieId);
             }
         } else { 
             if (!create) {
@@ -89,7 +91,7 @@ public class ConsentGatheringSessionService {
 
     public void setAuthenticatedSessionState(HttpServletRequest httpRequest, HttpServletResponse httpResponse, SessionId sessionId) {
         SessionId connectSession = getConnectSession(httpRequest);
-        sessionIdService.setSessionIdStateAuthenticated(httpRequest, httpResponse, sessionId, connectSession.getUserDn());
+        sessionIdService.setSessionIdStateAuthenticated(httpRequest, httpResponse, sessionId, connectSession.getDn());
     }
 
     public boolean isSessionStateAuthenticated(HttpServletRequest httpRequest) {

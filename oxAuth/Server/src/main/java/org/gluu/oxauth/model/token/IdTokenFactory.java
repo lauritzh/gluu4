@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.gluu.model.GluuAttribute;
+import org.gluu.model.attribute.AttributeDataType;
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.model.custom.script.type.auth.PersonAuthenticationType;
 import org.gluu.oxauth.claims.Audience;
@@ -22,23 +23,20 @@ import org.gluu.oxauth.model.exception.InvalidClaimException;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.jwt.JwtSubClaimObject;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.AttributeService;
 import org.gluu.oxauth.service.ScopeService;
 import org.gluu.oxauth.service.SessionIdService;
-import org.gluu.oxauth.service.date.DateFormatterService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.external.ExternalDynamicScopeService;
-import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
 import org.gluu.oxauth.service.external.context.DynamicScopeExternalContext;
-import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
-import org.json.JSONObject;
+import org.json.JSONArray;
 import org.oxauth.persistence.model.Scope;
-import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
-import java.io.Serializable;
+import javax.inject.Named;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
@@ -56,11 +54,9 @@ import static org.gluu.oxauth.model.common.ScopeType.DYNAMIC;
  * @author Yuriy Zabrovarnyy
  * @version 12 Feb, 2020
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class IdTokenFactory {
-
-    @Inject
-    private Logger log;
 
     @Inject
     private ExternalDynamicScopeService externalDynamicScopeService;
@@ -82,12 +78,6 @@ public class IdTokenFactory {
 
     @Inject
     private SessionIdService sessionIdService;
-
-    @Inject
-    private DateFormatterService dateFormatterService;
-
-    @Inject
-    private ExternalUpdateTokenService externalUpdateTokenService;
 
     private void setAmrClaim(JsonWebResponse jwt, String acrValues) {
         List<String> amrList = Lists.newArrayList();
@@ -115,26 +105,12 @@ public class IdTokenFactory {
     private void fillClaims(JsonWebResponse jwr,
                             IAuthorizationGrant authorizationGrant, String nonce,
                             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-                            String state, Set<String> scopes, boolean includeIdTokenClaims,
-                            Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing,
-                            ExecutionContext executionContext) throws Exception {
+                            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) throws Exception {
 
-        final Client client = authorizationGrant.getClient();
         jwr.getClaims().setIssuer(appConfiguration.getIssuer());
-        Audience.setAudience(jwr.getClaims(), client);
+        Audience.setAudience(jwr.getClaims(), authorizationGrant.getClient());
 
         int lifeTime = appConfiguration.getIdTokenLifetime();
-        if (client.getAttributes().getIdTokenLifetime() != null) {
-            lifeTime = client.getAttributes().getIdTokenLifetime();
-            log.trace("Override id token lifetime with value from client: {}", client.getClientId());
-        }
-
-        int lifetimeFromScript = externalUpdateTokenService.getIdTokenLifetimeInSeconds(ExternalUpdateTokenContext.of(executionContext));
-        if (lifetimeFromScript > 0) {
-            lifeTime = lifetimeFromScript;
-            log.trace("Override id token lifetime with value from script: {}", lifetimeFromScript);
-        }
-
         Calendar calendar = Calendar.getInstance();
         Date issuedAt = calendar.getTime();
         calendar.add(Calendar.SECOND, lifeTime);
@@ -147,7 +123,7 @@ public class IdTokenFactory {
         if (preProcessing != null) {
             preProcessing.apply(jwr);
         }
-        final SessionId session = sessionIdService.getSessionByDn(authorizationGrant.getSessionDn(), true);
+        final SessionId session = sessionIdService.getSessionByDn(authorizationGrant.getSessionDn());
         if (session != null) {
             jwr.setClaim("sid", session.getOutsideSid());
         }
@@ -181,7 +157,7 @@ public class IdTokenFactory {
 
         User user = authorizationGrant.getUser();
         List<Scope> dynamicScopes = new ArrayList<>();
-        if (includeIdTokenClaims && client.isIncludeClaimsInIdToken()) {
+        if (includeIdTokenClaims && authorizationGrant.getClient().isIncludeClaimsInIdToken()) {
             for (String scopeName : scopes) {
                 Scope scope = scopeService.getScopeById(scopeName);
                 if (scope == null) {
@@ -193,7 +169,7 @@ public class IdTokenFactory {
                     continue;
                 }
 
-                Map<String, Object> claims = scopeService.getClaims(user, scope);
+                Map<String, Object> claims = getClaims(user, scope);
 
                 if (Boolean.TRUE.equals(scope.isOxAuthGroupClaims())) {
                     JwtSubClaimObject groupClaim = new JwtSubClaimObject();
@@ -214,15 +190,13 @@ public class IdTokenFactory {
                     for (Map.Entry<String, Object> entry : claims.entrySet()) {
                         String key = entry.getKey();
                         Object value = entry.getValue();
-                        log.info("IdToken Factory called: {}", value);
 
                         if (value instanceof List) {
                             jwr.getClaims().setClaim(key, (List) value);
                         } else if (value instanceof Boolean) {
                             jwr.getClaims().setClaim(key, (Boolean) value);
                         } else if (value instanceof Date) {
-                            Serializable formattedValue = dateFormatterService.formatClaim((Date) value, key);
-                            jwr.getClaims().setClaimObject(key, formattedValue, true);
+                            jwr.getClaims().setClaim(key, ((Date) value).getTime());
                         } else {
                             jwr.setClaim(key, (String) value);
                         }
@@ -234,7 +208,6 @@ public class IdTokenFactory {
         }
 
         setClaimsFromJwtAuthorizationRequest(jwr, authorizationGrant, scopes);
-        setClaimsFromRequestedClaims(((AuthorizationGrant) authorizationGrant).getClaims(), jwr, user);
         jwrService.setSubjectIdentifier(jwr, authorizationGrant);
 
         if ((dynamicScopes.size() > 0) && externalDynamicScopeService.isEnabled()) {
@@ -244,41 +217,6 @@ public class IdTokenFactory {
         }
 
         processCiba(jwr, authorizationGrant, refreshToken);
-
-        if (postProcessing != null) {
-        	postProcessing.apply(jwr);
-        }
-    }
-
-    private void setClaimsFromRequestedClaims(String requestedClaims, JsonWebResponse jwr, User user)
-            throws InvalidClaimException {
-        if (requestedClaims != null) {
-            JSONObject claimsObj = new JSONObject(requestedClaims);
-            if (claimsObj.has("id_token")) {
-                JSONObject idTokenObj = claimsObj.getJSONObject("id_token");
-                for (Iterator<String> it = idTokenObj.keys(); it.hasNext(); ) {
-                    String claimName = it.next();
-                    GluuAttribute gluuAttribute = attributeService.getByClaimName(claimName);
-
-                    if (gluuAttribute != null) {
-                        String ldapClaimName = gluuAttribute.getName();
-
-                        Object attribute = user.getAttribute(ldapClaimName, false, gluuAttribute.getOxMultiValuedAttribute());
-
-                        if (attribute instanceof List) {
-                            jwr.getClaims().setClaim(claimName, (List) attribute);
-                        } else if (attribute instanceof Boolean) {
-                            jwr.getClaims().setClaim(claimName, (Boolean) attribute);
-                        } else if (attribute instanceof Date) {
-                            Serializable formattedValue = dateFormatterService.formatClaim((Date) attribute, claimName);
-                            jwr.getClaims().setClaimObject(claimName, formattedValue, true);
-                        } else {
-                            jwr.setClaim(claimName, (String) attribute);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private void processCiba(JsonWebResponse jwr, IAuthorizationGrant authorizationGrant, RefreshToken refreshToken) {
@@ -320,18 +258,12 @@ public class IdTokenFactory {
     public JsonWebResponse createJwr(
             IAuthorizationGrant grant, String nonce,
             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, Set<String> scopes, boolean includeIdTokenClaims,
-            Function<JsonWebResponse, Void> preProcessing, Function<JsonWebResponse, Void> postProcessing,
-            ExecutionContext executionContext) throws Exception {
+            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) throws Exception {
 
         final Client client = grant.getClient();
 
         JsonWebResponse jwr = jwrService.createJwr(client);
-        fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes, includeIdTokenClaims, preProcessing, postProcessing, executionContext);
-
-        if (log.isTraceEnabled())
-            log.trace("Created claims for id_token, claims: " + jwr.getClaims().toJsonString());
-
+        fillClaims(jwr, grant, nonce, authorizationCode, accessToken, refreshToken, state, scopes, includeIdTokenClaims, preProcessing);
         return jwrService.encode(jwr, client);
     }
 
@@ -360,5 +292,55 @@ public class IdTokenFactory {
             }
         }
         return false;
+    }
+
+    public Map<String, Object> getClaims(User user, Scope scope) throws InvalidClaimException, ParseException {
+        Map<String, Object> claims = new HashMap<>();
+
+        if (scope == null || scope.getOxAuthClaims() == null) {
+            return claims;
+        }
+
+        for (String claimDn : scope.getOxAuthClaims()) {
+            GluuAttribute gluuAttribute = attributeService.getAttributeByDn(claimDn);
+
+            String claimName = gluuAttribute.getOxAuthClaimName();
+            String ldapName = gluuAttribute.getName();
+            Object attribute = null;
+
+            if (StringUtils.isNotBlank(claimName) && StringUtils.isNotBlank(ldapName)) {
+                if (ldapName.equals("uid")) {
+                    attribute = user.getUserId();
+                } else if (AttributeDataType.BOOLEAN.equals(gluuAttribute.getDataType())) {
+                    attribute = Boolean.parseBoolean(String.valueOf(user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute())));
+                } else if (AttributeDataType.DATE.equals(gluuAttribute.getDataType())) {
+                    SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss.SSS'Z'");
+                    Object attributeValue = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
+                    if (attributeValue != null) {
+                        attribute = format.parse(attributeValue.toString());
+                    }
+                } else {
+                    attribute = user.getAttribute(gluuAttribute.getName(), true, gluuAttribute.getOxMultiValuedAttribute());
+                }
+
+                if (attribute != null) {
+                    if (attribute instanceof JSONArray) {
+                        JSONArray jsonArray = (JSONArray) attribute;
+                        List<String> values = new ArrayList<>();
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            String value = jsonArray.optString(i);
+                            if (value != null) {
+                                values.add(value);
+                            }
+                        }
+                        claims.put(claimName, values);
+                    } else {
+                        claims.put(claimName, attribute);
+                    }
+                }
+            }
+        }
+
+        return claims;
     }
 }

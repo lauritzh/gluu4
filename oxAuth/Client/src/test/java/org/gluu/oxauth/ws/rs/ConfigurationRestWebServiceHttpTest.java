@@ -6,14 +6,6 @@
 
 package org.gluu.oxauth.ws.rs;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
-import java.util.List;
-import java.util.Map;
-
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.OpenIdConfigurationClient;
@@ -21,9 +13,14 @@ import org.gluu.oxauth.client.OpenIdConfigurationResponse;
 import org.gluu.oxauth.client.OpenIdConnectDiscoveryClient;
 import org.gluu.oxauth.client.OpenIdConnectDiscoveryResponse;
 import org.gluu.oxauth.dev.HostnameVerifierType;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
+import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.testng.Assert.*;
 
 /**
  * Functional tests for OpenId Configuration Web Services (HTTP)
@@ -43,7 +40,7 @@ public class ConfigurationRestWebServiceHttpTest extends BaseTest {
         CloseableHttpClient httpClient = createHttpClient(HostnameVerifierType.ALLOW_ALL);
         OpenIdConnectDiscoveryResponse openIdConnectDiscoveryResponse;
 		try {
-			openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(new ApacheHttpClient43Engine(httpClient));
+			openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(new ApacheHttpClient4Executor(httpClient));
 		} finally {
 			httpClient.close();
 		}

@@ -30,7 +30,10 @@ import java.util.List;
 @ObjectClass(value = "oxAuthClient")
 public class Client extends DeletableEntity implements Serializable {
 
-    private static final long serialVersionUID = -6832496019942067971L;
+    private static final long serialVersionUID = -6832496019942067970L;
+
+    @DN
+    private String dn;
 
     @AttributeName(name = "inum")
     private String clientId;
@@ -225,19 +228,8 @@ public class Client extends DeletableEntity implements Serializable {
     @AttributeName(name = "oxAuthBackchannelUserCodeParameter")
     private Boolean backchannelUserCodeParameter;
 
-    @AttributeName(name = "o")
-    private String organization;
-
     @Expiration
     private Integer ttl;
-
-    public String getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(String organization) {
-        this.organization = organization;
-    }
 
     public ClientAttributes getAttributes() {
         if (attributes == null) {
@@ -284,6 +276,14 @@ public class Client extends DeletableEntity implements Serializable {
 
     public AuthenticationMethod getAuthenticationMethod() {
         return AuthenticationMethod.fromString(tokenEndpointAuthMethod);
+    }
+
+    public String getDn() {
+        return dn;
+    }
+
+    public void setDn(String dn) {
+        this.dn = dn;
     }
 
     /**

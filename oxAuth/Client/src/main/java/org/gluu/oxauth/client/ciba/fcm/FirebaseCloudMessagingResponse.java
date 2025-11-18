@@ -6,23 +6,18 @@
 
 package org.gluu.oxauth.client.ciba.fcm;
 
-import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingResponseParam.FAILURE;
-import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingResponseParam.MESSAGE_ID;
-import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingResponseParam.MULTICAST_ID;
-import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingResponseParam.RESULTS;
-import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingResponseParam.SUCCESS;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.jboss.resteasy.client.ClientResponse;
 import org.gluu.oxauth.client.BaseResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingResponseParam.*;
 
 /**
  * @author Javier Rojas Blum
@@ -37,8 +32,12 @@ public class FirebaseCloudMessagingResponse extends BaseResponse {
     private int failure;
     private List<Result> results;
 
-    public FirebaseCloudMessagingResponse(Response clientResponse) {
+    public FirebaseCloudMessagingResponse(ClientResponse<String> clientResponse) {
         super(clientResponse);
+
+        String entity = clientResponse.getEntity(String.class);
+        setEntity(entity);
+        setHeaders(clientResponse.getMetadata());
         injectDataFromJson(entity);
     }
 

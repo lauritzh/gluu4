@@ -26,9 +26,7 @@ import org.gluu.oxauth.model.token.JwtSigner;
 import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.external.ExternalIntrospectionService;
-import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
 import org.gluu.oxauth.service.external.context.ExternalIntrospectionContext;
-import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
 import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.util.TokenHashUtil;
 import org.gluu.service.CacheService;
@@ -37,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -83,9 +80,6 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
 	@Inject
     private StatService statService;
 
-    @Inject
-    private ExternalUpdateTokenService externalUpdateTokenService;
-
     private boolean isCachedWithNoPersistence = false;
 
     public AuthorizationGrant() {
@@ -103,15 +97,11 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
     public IdToken createIdToken(
             IAuthorizationGrant grant, String nonce,
             AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing,
-            Function<JsonWebResponse, Void> postProcessing, ExecutionContext executionContext) throws Exception {
+            String state, Set<String> scopes, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) throws Exception {
         JsonWebResponse jwr = idTokenFactory.createJwr(grant, nonce, authorizationCode, accessToken, refreshToken,
-                state, scopes, includeIdTokenClaims, preProcessing, postProcessing, executionContext);
-        final IdToken idToken = new IdToken(jwr.toString(), jwr.getClaims().getClaimAsDate(JwtClaimName.ISSUED_AT),
+                state, scopes, includeIdTokenClaims, preProcessing);
+        return new IdToken(jwr.toString(), jwr.getClaims().getClaimAsDate(JwtClaimName.ISSUED_AT),
                 jwr.getClaims().getClaimAsDate(JwtClaimName.EXPIRATION_TIME));
-        if (log.isTraceEnabled())
-            log.trace("Created id_token:" + idToken.getCode() );
-        return idToken;
     }
 
     @Override
@@ -186,54 +176,25 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
     @Override
     public AccessToken createAccessToken(String certAsPem, ExecutionContext context) {
         try {
-            context.setGrant(this);
-
             final AccessToken accessToken = super.createAccessToken(certAsPem, context);
-            if (accessToken.getExpiresIn() < 0) {
-                log.trace("Failed to create access token with negative expiration time");
-                return null;
-            }
-
-            JwtSigner jwtSigner = null;
             if (getClient().isAccessTokenAsJwt()) {
-                jwtSigner = createAccessTokenAsJwt(accessToken, context);
+                accessToken.setCode(createAccessTokenAsJwt(accessToken, context));
             }
-
-            boolean externalOk = externalUpdateTokenService.modifyAccessToken(accessToken, ExternalUpdateTokenContext.of(context, jwtSigner));
-            if (!externalOk) {
-                log.trace("External script forbids access token creation.");
-                return null;
+            if (accessToken.getExpiresIn() > 0) {
+                persist(asToken(accessToken));
             }
-
-            if (getClient().isAccessTokenAsJwt() && jwtSigner != null) {
-                final String accessTokenCode = jwtSigner.sign().toString();
-                if (log.isTraceEnabled())
-                    log.trace("Created access token JWT: {}", accessTokenCode + ", claims: " + jwtSigner.getJwt().getClaims().toJsonString());
-
-                accessToken.setCode(accessTokenCode);
-            }
-
-            final TokenLdap tokenEntity = asToken(accessToken);
-            context.setAccessTokenEntity(tokenEntity);
-
-            persist(tokenEntity);
 
             statService.reportAccessToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_ACCESS_TOKEN_COUNT);
 
-            if (log.isTraceEnabled())
-                log.trace("Created plain access token: {}", accessToken.getCode());
-
             return accessToken;
-        } catch (WebApplicationException e) {
-            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return null;
         }
     }
 
-    private JwtSigner createAccessTokenAsJwt(AccessToken accessToken, ExecutionContext context) throws Exception {
+    private String createAccessTokenAsJwt(AccessToken accessToken, ExecutionContext context) throws Exception {
         final User user = getUser();
         final Client client = getClient();
 
@@ -262,7 +223,7 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
             runIntrospectionScriptAndInjectValuesIntoJwt(jwt, context);
         }
 
-        return jwtSigner;
+        return jwtSigner.sign().toString();
     }
 
     private void runIntrospectionScriptAndInjectValuesIntoJwt(Jwt jwt, ExecutionContext executionContext) {
@@ -282,30 +243,15 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
     }
 
     @Override
-    public RefreshToken createRefreshToken(ExecutionContext executionContext) {
+    public RefreshToken createRefreshToken() {
         try {
-            final int refreshTokenLifetimeInSeconds = externalUpdateTokenService.getRefreshTokenLifetimeInSeconds(ExternalUpdateTokenContext.of(executionContext));
-            executionContext.setRefreshTokenLifetimeFromScript(refreshTokenLifetimeInSeconds);
-
-            final RefreshToken refreshToken = super.createRefreshToken(executionContext);
+            final RefreshToken refreshToken = super.createRefreshToken();
             if (refreshToken.getExpiresIn() > 0) {
-                final TokenLdap entity = asToken(refreshToken);
-                executionContext.setRefreshTokenEntity(entity);
-
-                boolean externalOk = externalUpdateTokenService.modifyRefreshToken(refreshToken, ExternalUpdateTokenContext.of(executionContext));
-                if (!externalOk) {
-                    log.trace("External script forbids refresh token creation.");
-                    return null;
-                }
-
-                persist(entity);
+                persist(asToken(refreshToken));
             }
 
             statService.reportRefreshToken(getGrantType());
             metricService.incCounter(MetricType.OXAUTH_TOKEN_REFRESH_TOKEN_COUNT);
-
-            if (log.isTraceEnabled())
-                log.trace("Created refresh token: " + refreshToken.getCode());
 
             return refreshToken;
         } catch (Exception e) {
@@ -314,7 +260,7 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
         }
     }
 
-    public RefreshToken createRefreshToken(ExecutionContext executionContext, Date expirationDate) {
+    public RefreshToken createRefreshToken(Date expirationDate) {
         try {
             RefreshToken refreshToken = new RefreshToken(HandleTokenFactory.generateHandleToken(), new Date(), expirationDate);
 
@@ -322,22 +268,9 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
             refreshToken.setSessionDn(getSessionDn());
 
             if (refreshToken.getExpiresIn() > 0) {
-                final TokenLdap entity = asToken(refreshToken);
-                executionContext.setRefreshTokenEntity(entity);
-
-                boolean externalOk = externalUpdateTokenService.modifyRefreshToken(refreshToken, ExternalUpdateTokenContext.of(executionContext));
-                if (!externalOk) {
-                    log.trace("External script forbids refresh token creation.");
-                    return null;
-                }
-
-                persist(entity);
+                persist(asToken(refreshToken));
                 statService.reportRefreshToken(getGrantType());
                 metricService.incCounter(MetricType.OXAUTH_TOKEN_REFRESH_TOKEN_COUNT);
-
-                if (log.isTraceEnabled())
-                    log.trace("Created refresh token: " + refreshToken.getCode());
-
                 return refreshToken;
             }
 
@@ -352,11 +285,10 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
     @Override
     public IdToken createIdToken(
             String nonce, AuthorizationCode authorizationCode, AccessToken accessToken, RefreshToken refreshToken,
-            String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing,
-            Function<JsonWebResponse, Void> postProcessing, ExecutionContext executionContext) {
+            String state, AuthorizationGrant authorizationGrant, boolean includeIdTokenClaims, Function<JsonWebResponse, Void> preProcessing) {
         try {
             final IdToken idToken = createIdToken(this, nonce, authorizationCode, accessToken, refreshToken,
-                    state, getScopes(), includeIdTokenClaims, preProcessing, postProcessing, executionContext);
+                    state, getScopes(), includeIdTokenClaims, preProcessing);
             final String acrValues = authorizationGrant.getAcrValues();
             final String sessionDn = authorizationGrant.getSessionDn();
             if (idToken.getExpiresIn() > 0) {
@@ -373,8 +305,6 @@ public abstract class AuthorizationGrant extends AbstractAuthorizationGrant {
             metricService.incCounter(MetricType.OXAUTH_TOKEN_ID_TOKEN_COUNT);
 
             return idToken;
-        } catch (WebApplicationException e) {
-            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return null;

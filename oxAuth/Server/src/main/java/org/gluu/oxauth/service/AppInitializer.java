@@ -16,6 +16,7 @@ import org.gluu.model.ldap.GluuLdapConfiguration;
 import org.gluu.oxauth.model.auth.AuthenticationMode;
 import org.gluu.oxauth.model.config.ConfigurationFactory;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.service.cdi.event.AuthConfigurationEvent;
 import org.gluu.oxauth.service.cdi.event.ReloadAuthScript;
 import org.gluu.oxauth.service.ciba.CibaRequestsProcessorJob;
@@ -24,7 +25,6 @@ import org.gluu.oxauth.service.common.EncryptionService;
 import org.gluu.oxauth.service.expiration.ExpirationNotificatorTimer;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
 import org.gluu.oxauth.service.logger.LoggerService;
-import org.gluu.oxauth.service.stat.StatService;
 import org.gluu.oxauth.service.stat.StatTimer;
 import org.gluu.oxauth.service.status.ldap.LdapStatusTimer;
 import org.gluu.persist.PersistenceEntryManager;
@@ -48,8 +48,7 @@ import org.gluu.service.timer.event.TimerEvent;
 import org.gluu.service.timer.schedule.TimerSchedule;
 import org.gluu.util.OxConstants;
 import org.gluu.util.StringHelper;
-import org.gluu.orm.util.properties.FileConfiguration;
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.util.properties.FileConfiguration;
 import org.gluu.util.security.StringEncrypter;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
 import org.jboss.weld.util.reflection.ParameterizedTypeImpl;
@@ -150,9 +149,6 @@ public class AppInitializer {
 	private KeyGeneratorTimer keyGeneratorTimer;
 
     @Inject
-    private StatService statService;
-
-    @Inject
     private StatTimer statTimer;
 
 	@Inject
@@ -187,7 +183,11 @@ public class AppInitializer {
 
 	@PostConstruct
 	public void createApplicationComponents() {
-		SecurityProviderUtility.installBCProvider();
+		try {
+			SecurityProviderUtility.installBCProvider();
+		} catch (ClassCastException ex) {
+			log.error("Failed to install BC provider properly");
+		}
 	}
 
 	public void applicationInitialized(@Observes @Initialized(ApplicationScoped.class) Object init) {
@@ -214,8 +214,6 @@ public class AppInitializer {
 		supportedCustomScriptTypes.remove(CustomScriptType.USER_REGISTRATION);
 		supportedCustomScriptTypes.remove(CustomScriptType.SCIM);
 		supportedCustomScriptTypes.remove(CustomScriptType.IDP);
-
-        statService.init();
 
 		// Start timer
 		initSchedulerService();
@@ -535,7 +533,7 @@ public class AppInitializer {
 	}
 
 	private Properties prepareAuthConnectionProperties(GluuLdapConfiguration persistenceAuthConfig, String persistenceType) {
-		String prefix = persistenceType + "#";
+		String prefix = persistenceType + ".";
 		FileConfiguration configuration = configurationFactory.getPersistenceConfiguration().getConfiguration();
 
 		Properties properties = (Properties) configuration.getProperties().clone();

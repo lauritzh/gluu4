@@ -1,5 +1,6 @@
 package org.gluu.oxauth.model.uma;
 
+import org.gluu.oxauth.model.uma.JsonLogic;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -10,7 +11,7 @@ import javax.script.ScriptException;
  */
 public class JsonLogicTest {
 
-    @Test(enabled = false)
+    @Test
     public void testJsEngine() throws ScriptException, NoSuchMethodException {
         JsonLogic.eval("var fun1 = function(name) {\n" +
                 "    print('Hi there from Javascript, ' + name);\n" +
@@ -20,7 +21,7 @@ public class JsonLogicTest {
         Assert.assertEquals(result, "greetings from javascript");
     }
 
-    @Test(enabled = false)
+    @Test
     public void testJsonLogic() throws ScriptException, NoSuchMethodException {
         assertTrue("jsonLogic.apply( { \"==\" : [1, 1] } );");
         assertFalse("jsonLogic.apply( { \"==\" : [1, 0] } );");
@@ -36,7 +37,7 @@ public class JsonLogicTest {
                 ");");
     }
 
-    @Test(enabled = false)
+    @Test
     public void umaSimulation() throws ScriptException {
         String rule = "{" +
                 "    \"and\": [ {" +

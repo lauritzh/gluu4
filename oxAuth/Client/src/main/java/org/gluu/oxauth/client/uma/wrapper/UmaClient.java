@@ -6,17 +6,7 @@
 
 package org.gluu.oxauth.client.uma.wrapper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import org.gluu.oxauth.client.AuthorizationRequest;
-import org.gluu.oxauth.client.AuthorizationResponse;
-import org.gluu.oxauth.client.AuthorizeClient;
-import org.gluu.oxauth.client.TokenClient;
-import org.gluu.oxauth.client.TokenRequest;
-import org.gluu.oxauth.client.TokenResponse;
+import org.gluu.oxauth.client.*;
 import org.gluu.oxauth.client.uma.exception.UmaException;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
@@ -28,7 +18,12 @@ import org.gluu.oxauth.model.uma.UmaScopeType;
 import org.gluu.oxauth.model.uma.wrapper.Token;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.util.StringHelper;
-import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.ClientExecutor;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -54,8 +49,8 @@ public class UmaClient {
         return requestPat(tokenUrl, umaClientId, umaClientSecret, null, scopeArray);
     }
 
-    public static Token requestPat(final String tokenUrl, final String umaClientId, final String umaClientSecret, ClientHttpEngine engine, String... scopeArray) throws Exception {
-        return request(tokenUrl, umaClientId, umaClientSecret, UmaScopeType.PROTECTION, engine, scopeArray);
+    public static Token requestPat(final String tokenUrl, final String umaClientId, final String umaClientSecret, ClientExecutor clientExecutor, String... scopeArray) throws Exception {
+        return request(tokenUrl, umaClientId, umaClientSecret, UmaScopeType.PROTECTION, clientExecutor, scopeArray);
     }
 
     @Deprecated
@@ -118,7 +113,7 @@ public class UmaClient {
     }
 
     public static Token request(final String tokenUrl, final String umaClientId, final String umaClientSecret, UmaScopeType scopeType,
-                                ClientHttpEngine engine, String... scopeArray) throws Exception {
+                                ClientExecutor clientExecutor, String... scopeArray) throws Exception {
 
         String scope = scopeType.getValue();
         if (scopeArray != null && scopeArray.length > 0) {
@@ -128,8 +123,8 @@ public class UmaClient {
         }
 
         TokenClient tokenClient = new TokenClient(tokenUrl);
-        if (engine != null) {
-            tokenClient.setExecutor(engine);
+        if (clientExecutor != null) {
+            tokenClient.setExecutor(clientExecutor);
         }
         TokenResponse response = tokenClient.execClientCredentialsGrant(scope, umaClientId, umaClientSecret);
 
@@ -205,16 +200,17 @@ public class UmaClient {
 
 		try {
 			String tmpKeyId = keyId;
-            if (StringHelper.isEmpty(keyId)) {
-                // Get first key
-            	tmpKeyId = cryptoProvider.getKeys().stream().filter(k -> k.contains("_sig_")).findFirst().orElse(null);
-                
-                if (tmpKeyId == null) {
-                    throw new UmaException("Unable to find a key in the keystore with use = sig");
-                }
-            } else if (keyId.contains("_enc_")) {
-                throw new UmaException("Encryption keys not allowed. Supply a key having use = sig");
-            }
+	        if (StringHelper.isEmpty(tmpKeyId)) {
+	        	// Get first key
+	        	List<String> aliases = cryptoProvider.getKeys();
+	        	if (aliases.size() > 0) {
+	        		tmpKeyId = aliases.get(0);
+	        	}
+	        }
+
+	        if (StringHelper.isEmpty(tmpKeyId)) {
+				throw new UmaException("UMA keyId is empty");
+			}
 
 	        SignatureAlgorithm algorithm = cryptoProvider.getSignatureAlgorithm(tmpKeyId);
 	

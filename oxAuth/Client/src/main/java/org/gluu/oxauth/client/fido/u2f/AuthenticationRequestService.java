@@ -6,11 +6,7 @@
 
 package org.gluu.oxauth.client.fido.u2f;
 
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 
 import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateRequestMessage;
 import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateStatus;

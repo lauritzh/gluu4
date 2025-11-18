@@ -7,6 +7,12 @@
 package org.gluu.oxauth.client.model;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
+
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.exception.InvalidJwtException;
@@ -14,7 +20,6 @@ import org.gluu.oxauth.model.jwt.JwtHeader;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.util.ClientUtil;
-import org.json.JSONObject;
 
 /**
  * @author Javier Rojas Blum

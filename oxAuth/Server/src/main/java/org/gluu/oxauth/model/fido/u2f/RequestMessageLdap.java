@@ -17,7 +17,7 @@ import java.util.TimeZone;
  * @author Yuriy Movchan
  * @version August 9, 2017
  */
-@DataEntry(sortBy = "creationDate", sortByName = "creationDate")
+@DataEntry(sortBy = "creationDate")
 @ObjectClass(value = "oxU2fRequest")
 public class RequestMessageLdap extends BaseEntry {
 

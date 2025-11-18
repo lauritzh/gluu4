@@ -6,13 +6,12 @@
 
 package org.gluu.oxauth.ws.rs.uma;
 
-import javax.ws.rs.ClientErrorException;
-
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.uma.UmaClientFactory;
 import org.gluu.oxauth.client.uma.UmaMetadataService;
 import org.gluu.oxauth.model.uma.UmaMetadata;
 import org.gluu.oxauth.model.uma.UmaTestUtil;
+import org.jboss.resteasy.client.ClientResponseFailure;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
@@ -37,8 +36,8 @@ public class MetaDataFlowHttpTest extends BaseTest {
         UmaMetadata c = null;
         try {
             c = metaDataConfigurationService.getMetadata();
-        } catch (ClientErrorException ex) {
-            System.err.println(ex.getResponse().readEntity(String.class));
+        } catch (ClientResponseFailure ex) {
+            System.err.println(ex.getResponse().getEntity(String.class));
             throw ex;
         }
 

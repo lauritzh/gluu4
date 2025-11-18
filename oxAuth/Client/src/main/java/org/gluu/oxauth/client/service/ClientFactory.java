@@ -6,18 +6,20 @@
 
 package org.gluu.oxauth.client.service;
 
-import javax.ws.rs.core.UriBuilder;
-
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.jboss.resteasy.client.ClientExecutor;
+import org.jboss.resteasy.client.ProxyFactory;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
+
+import javax.ws.rs.core.UriBuilder;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -28,7 +30,7 @@ public class ClientFactory {
 
     private final static ClientFactory INSTANCE = new ClientFactory();
 
-    private ApacheHttpClient43Engine engine;
+    private ApacheHttpClient4Engine engine;
 
     private ClientFactory() {
         this.engine = createEngine();
@@ -41,9 +43,13 @@ public class ClientFactory {
     public IntrospectionService createIntrospectionService(String p_url) {
         return createIntrospectionService(p_url, engine);
     }
+
+    public IntrospectionService createIntrospectionService(String p_url, ClientExecutor clientExecutor) {
+        return ProxyFactory.create(IntrospectionService.class, p_url, clientExecutor);
+    }
     
     public IntrospectionService createIntrospectionService(String p_url, ClientHttpEngine engine) {
-        ResteasyClient client = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
+        ResteasyClient client = new ResteasyClientBuilder().httpEngine(engine).build();
         ResteasyWebTarget target = client.target(UriBuilder.fromPath(p_url));
         IntrospectionService proxy = target.proxy(IntrospectionService.class);
 
@@ -55,27 +61,27 @@ public class ClientFactory {
     }
 
     public StatService createStatService(String url, ClientHttpEngine engine) {
-        ResteasyClient client = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
+        ResteasyClient client = new ResteasyClientBuilder().httpEngine(engine).build();
         ResteasyWebTarget target = client.target(UriBuilder.fromPath(url));
         return target.proxy(StatService.class);
     }
 
-    public ApacheHttpClient43Engine createEngine() {
+    public ApacheHttpClient4Engine createEngine() {
         return createEngine(false);
     }
 
-    public ApacheHttpClient43Engine createEngine(boolean followRedirects) {
+    public ApacheHttpClient4Engine createEngine(boolean followRedirects) {
         return createEngine(200, 20, CookieSpecs.STANDARD, followRedirects);
     }
 
-	public ApacheHttpClient43Engine createEngine(int maxTotal, int defaultMaxPerRoute, String cookieSpec, boolean followRedirects) {
+	public ApacheHttpClient4Engine createEngine(int maxTotal, int defaultMaxPerRoute, String cookieSpec, boolean followRedirects) {
 	    PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 	    CloseableHttpClient httpClient = HttpClients.custom()
 				.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(cookieSpec).build())
 	    		.setConnectionManager(cm).build();
 	    cm.setMaxTotal(maxTotal);
 	    cm.setDefaultMaxPerRoute(defaultMaxPerRoute);
-        final ApacheHttpClient43Engine engine = new ApacheHttpClient43Engine(httpClient);
+        final ApacheHttpClient4Engine engine = new ApacheHttpClient4Engine(httpClient);
         engine.setFollowRedirects(followRedirects);
         return engine;
 	}

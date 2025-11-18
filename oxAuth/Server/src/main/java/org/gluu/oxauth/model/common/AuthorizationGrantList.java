@@ -22,7 +22,6 @@ import org.gluu.oxauth.service.common.UserService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.oxauth.util.TokenHashUtil;
 import org.gluu.service.CacheService;
-import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.Dependent;
@@ -173,17 +172,24 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         if (cachedGrant == null) {
             // retry one time : sometimes during high load cache client may be not fast enough
             cachedGrant = cacheService.get(CacheGrant.cacheKey(authorizationCode, null));
-            log.trace("Failed to fetch authorization grant from cache, code: " + authorizationCode);
+            if (cachedGrant == null)
+                log.trace("Failed to fetch authorization grant from cache");
         }
         return cachedGrant instanceof CacheGrant ? ((CacheGrant) cachedGrant).asCodeGrant(grantInstance) : null;
     }
 
     @Override
     public AuthorizationGrant getAuthorizationGrantByRefreshToken(String clientId, String refreshTokenCode) {
-        if (!ServerUtil.isTrue(appConfiguration.getPersistRefreshTokenInLdap())) {
-            return assertTokenType((TokenLdap) cacheService.get(TokenHashUtil.hash(refreshTokenCode)), TokenType.REFRESH_TOKEN, clientId);
+        final boolean loadFromCache = !ServerUtil.isTrue(appConfiguration.getPersistRefreshTokenInLdap());
+        if (loadFromCache) {
+            final AuthorizationGrant authorizationGrant = assertTokenType((TokenLdap) cacheService.get(TokenHashUtil.hash(refreshTokenCode)), TokenType.REFRESH_TOKEN, clientId);
+            log.trace("Loaded from cache {}", (authorizationGrant != null ? authorizationGrant.getGrantId() : null));
+            return authorizationGrant;
         }
-        return assertTokenType(grantService.getGrantByCode(refreshTokenCode), TokenType.REFRESH_TOKEN, clientId);
+
+        final AuthorizationGrant authorizationGrant = assertTokenType(grantService.getGrantByCode(refreshTokenCode), TokenType.REFRESH_TOKEN, clientId);
+        log.trace("Loaded from persistence {}", (authorizationGrant != null ? authorizationGrant.getGrantId() : null));
+        return authorizationGrant;
     }
 
     public AuthorizationGrant assertTokenType(TokenLdap tokenLdap, TokenType tokenType, String clientId) {
@@ -204,6 +210,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         try {
             final List<TokenLdap> entries = new ArrayList<TokenLdap>();
             entries.addAll(grantService.getGrantsOfClient(clientId));
+            entries.addAll(grantService.getCacheClientTokensEntries(clientId));
 
             for (TokenLdap t : entries) {
                 final AuthorizationGrant grant = asGrant(t);
@@ -246,11 +253,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
         if (tokenLdap != null) {
             final AuthorizationGrantType grantType = AuthorizationGrantType.fromString(tokenLdap.getGrantType());
             if (grantType != null) {
-            	String userId = tokenLdap.getUserId();
-            	User user = null;
-            	if (StringHelper.isNotEmpty(userId)) {
-                    user = userService.getUser(userId);
-            	}
+                final User user = userService.getUser(tokenLdap.getUserId());
                 final Client client = clientService.getClient(tokenLdap.getClientId());
                 final Date authenticationTime = tokenLdap.getAuthenticationTime();
                 final String nonce = tokenLdap.getNonce();
@@ -305,7 +308,7 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
 
                 result.setTokenBindingHash(tokenLdap.getTokenBindingHash());
                 result.setNonce(nonce);
-                result.setX5ts256(tokenLdap.getAttributes().getX5cs256());
+                result.setX5cs256(tokenLdap.getAttributes().getX5cs256());
                 result.setTokenLdap(tokenLdap);
                 if (StringUtils.isNotBlank(grantId)) {
                     result.setGrantId(grantId);
@@ -333,28 +336,23 @@ public class AuthorizationGrantList implements IAuthorizationGrantList {
                             if (result instanceof AuthorizationCodeGrant) {
                                 final AuthorizationCode code = new AuthorizationCode(tokenLdap.getTokenCode(), tokenLdap.getCreationDate(), tokenLdap.getExpirationDate());
                                 final AuthorizationCodeGrant g = (AuthorizationCodeGrant) result;
-                                code.setX5ts256(g.getX5ts256());
                                 g.setAuthorizationCode(code);
                             }
                             break;
                         case REFRESH_TOKEN:
                             final RefreshToken refreshToken = new RefreshToken(tokenLdap.getTokenCode(), tokenLdap.getCreationDate(), tokenLdap.getExpirationDate());
-                            refreshToken.setX5ts256(result.getX5ts256());
                             result.setRefreshTokens(Arrays.asList(refreshToken));
                             break;
                         case ACCESS_TOKEN:
                             final AccessToken accessToken = new AccessToken(tokenLdap.getTokenCode(), tokenLdap.getCreationDate(), tokenLdap.getExpirationDate());
-                            accessToken.setX5ts256(result.getX5ts256());
                             result.setAccessTokens(Arrays.asList(accessToken));
                             break;
                         case ID_TOKEN:
                             final IdToken idToken = new IdToken(tokenLdap.getTokenCode(), tokenLdap.getCreationDate(), tokenLdap.getExpirationDate());
-                            idToken.setX5ts256(result.getX5ts256());
                             result.setIdToken(idToken);
                             break;
                         case LONG_LIVED_ACCESS_TOKEN:
                             final AccessToken longLivedAccessToken = new AccessToken(tokenLdap.getTokenCode(), tokenLdap.getCreationDate(), tokenLdap.getExpirationDate());
-                            longLivedAccessToken.setX5ts256(result.getX5ts256());
                             result.setLongLivedAccessToken(longLivedAccessToken);
                             break;
                     }

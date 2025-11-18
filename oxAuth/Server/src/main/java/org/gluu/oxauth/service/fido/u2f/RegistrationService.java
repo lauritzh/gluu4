@@ -21,7 +21,7 @@ import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.*;
@@ -32,7 +32,7 @@ import java.util.*;
  * @author Yuriy Movchan
  * @version August 9, 2017
  */
-@ApplicationScoped
+@Stateless
 @Named("u2fRegistrationService")
 public class RegistrationService extends RequestService {
 
@@ -129,7 +129,7 @@ public class RegistrationService extends RequestService {
         int keyHandleHashCode = deviceRegistrationService.getKeyHandleHashCode(rawRegisterResponse.getKeyHandle());
         deviceRegistration.setKeyHandleHashCode(keyHandleHashCode);
 
-        final String deviceRegistrationId = UUID.randomUUID().toString();
+        final String deviceRegistrationId = String.valueOf(System.currentTimeMillis());
         deviceRegistration.setId(deviceRegistrationId);
 
         String responseDeviceData = response.getDeviceData();

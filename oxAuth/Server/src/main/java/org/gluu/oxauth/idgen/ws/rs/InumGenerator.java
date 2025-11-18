@@ -10,24 +10,19 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
-import org.gluu.model.GluuAttribute;
 import org.gluu.oxauth.model.common.IdType;
-import org.gluu.oxauth.model.common.User;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.model.base.DummyEntry;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.INumGenerator;
 import org.slf4j.Logger;
-
-import javax.enterprise.context.ApplicationScoped;
-
 import org.gluu.oxauth.model.config.BaseDnConfiguration;
 import org.gluu.oxauth.model.config.StaticConfiguration;
-import org.gluu.oxauth.model.gluu.GluuConfiguration;
-import org.gluu.oxauth.model.registration.Client;
 
 /**
  * Inum ID generator. Generates inum: e.g. @!1111!0001!1234.
@@ -35,7 +30,8 @@ import org.gluu.oxauth.model.registration.Client;
  * @author Yuriy Zabrovarnyy
  * @version 0.9, 26/06/2013
  */
-@ApplicationScoped
+@Stateless
+@Named("inumGenerator")
 public class InumGenerator {
 
     public static final String SEPARATOR = "!";
@@ -108,27 +104,11 @@ public class InumGenerator {
 	public boolean contains(String inum, IdType type) {
 		final String baseDn = baseDn(type);
 		final Filter filter = Filter.createEqualityFilter("inum", inum);
-		Class<?> entryClass = getEntryClass(type);
-		final List<?> entries = ldapEntryManager.findEntries(baseDn, entryClass, filter);
+		final List<DummyEntry> entries = ldapEntryManager.findEntries(baseDn, DummyEntry.class, filter);
 		return entries != null && !entries.isEmpty();
 	}
 
-    private Class<?> getEntryClass(IdType type) {
-		switch (type) {
-			case CLIENTS:
-				return Client.class;
-			case CONFIGURATION:
-				return GluuConfiguration.class;
-			case ATTRIBUTE:
-				return GluuAttribute.class;
-			case PEOPLE:
-				return User.class;
-		}
-
-       return DummyEntry.class;
-	}
-
-	public String baseDn(IdType p_type) {
+    public String baseDn(IdType p_type) {
         final BaseDnConfiguration baseDn = staticConfiguration.getBaseDn();
         switch (p_type) {
             case CLIENTS:

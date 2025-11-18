@@ -14,12 +14,12 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.gluu.oxauth.crypto.random.ChallengeGenerator;
 import org.gluu.oxauth.crypto.signature.SHA256withECDSASignatureVerification;
@@ -35,22 +35,12 @@ import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateRequest;
 import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateRequestMessage;
 import org.gluu.oxauth.model.fido.u2f.protocol.AuthenticateResponse;
 import org.gluu.oxauth.model.fido.u2f.protocol.ClientData;
-import org.gluu.oxauth.model.fido.u2f.protocol.DeviceData;
-import org.gluu.oxauth.model.fido.u2f.protocol.DeviceNotificationConf;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.service.common.UserService;
-import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.PersistenceEntryManager;
-import org.gluu.persist.reflect.property.Setter;
-import org.gluu.persist.reflect.util.ReflectHelper;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
-import org.gluu.util.io.ByteDataInputStream;
-import org.gluu.util.security.SecurityProviderUtility;
 import org.slf4j.Logger;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
 /**
@@ -59,7 +49,7 @@ import org.gluu.oxauth.model.config.StaticConfiguration;
  * @author Yuriy Movchan
  * @version August 9, 2017
  */
-@ApplicationScoped
+@Stateless
 @Named("u2fAuthenticationService")
 public class AuthenticationService extends RequestService {
 
@@ -178,24 +168,8 @@ public class AuthenticationService extends RequestService {
                 Base64Util.base64urldecode(usedDeviceRegistration.getDeviceRegistrationConfiguration().getPublicKey()));
         rawAuthenticateResponse.checkUserPresence();
 
-        log.debug("Counter in finish authentication request'{}', counter in database '{}'", rawAuthenticateResponse.getCounter(), usedDeviceRegistration.getCounter());
+        log.debug("Counter in finish authentication request'{}', countr in database '{}'", rawAuthenticateResponse.getCounter(), usedDeviceRegistration.getCounter());
         usedDeviceRegistration.checkAndUpdateCounter(rawAuthenticateResponse.getCounter());
-
-        String responseDeviceData = response.getDeviceData();
-        if (StringHelper.isNotEmpty(responseDeviceData)) {
-            try {
-                String responseDeviceDataDecoded = new String(Base64Util.base64urldecode(responseDeviceData));
-                DeviceData deviceData = ServerUtil.jsonMapperWithWrapRoot().readValue(responseDeviceDataDecoded, DeviceData.class);
-	            
-                boolean pushTokenUpdated = !StringHelper.equals(usedDeviceRegistration.getDeviceData().getPushToken(), deviceData.getPushToken());
-	            if (pushTokenUpdated) {
-	            	prepareForPushTokenChange(usedDeviceRegistration);
-	            }
-            	usedDeviceRegistration.setDeviceData(deviceData);
-            } catch (Exception ex) {
-                throw new BadInputException(String.format("Device data is invalid: %s", responseDeviceData), ex);
-            }
-        }
 
         usedDeviceRegistration.setLastAccessTime(new Date());
 
@@ -212,46 +186,7 @@ public class AuthenticationService extends RequestService {
         return new DeviceRegistrationResult(usedDeviceRegistration, status);
     }
 
-    private void prepareForPushTokenChange(DeviceRegistration deviceRegistration) {
-		String deviceNotificationConfString = deviceRegistration.getDeviceNotificationConf();
-		if (deviceNotificationConfString == null) {
-			return;
-		}
-        
-		DeviceNotificationConf deviceNotificationConf = null;
-		try {
-            deviceNotificationConf = ServerUtil.jsonMapperWithWrapRoot().readValue(deviceNotificationConfString, DeviceNotificationConf.class);
-        } catch (Exception ex) {
-            log.error("Failed to parse device notification configuration '{}'", deviceNotificationConfString);
-        }
-
-		if (deviceNotificationConf == null) {
-			return;
-		}
-        
-		String snsEndpointArn = deviceNotificationConf.getSnsEndpointArn();
-		if (StringHelper.isEmpty(snsEndpointArn)) {
-			return;
-		}
-		
-		deviceNotificationConf.setSnsEndpointArn(null);
-		deviceNotificationConf.setSnsEndpointArnRemove(snsEndpointArn);
-		List<String> snsEndpointArnHistory = deviceNotificationConf.getSnsEndpointArnHistory();
-		if (snsEndpointArnHistory == null) {
-			snsEndpointArnHistory = new ArrayList<>();
-			deviceNotificationConf.setSnsEndpointArnHistory(snsEndpointArnHistory);
-		}
-		
-		snsEndpointArnHistory.add(snsEndpointArn);
-		
-		try {
-			deviceRegistration.setDeviceNotificationConf(ServerUtil.jsonMapperWithUnwrapRoot().writeValueAsString(deviceNotificationConf));
-		} catch (Exception ex) {
-            log.error("Failed to update device notification configuration '{}'", deviceNotificationConf);
-		}
-	}
-
-	public AuthenticateRequest getAuthenticateRequest(AuthenticateRequestMessage requestMessage, AuthenticateResponse response) throws BadInputException {
+    public AuthenticateRequest getAuthenticateRequest(AuthenticateRequestMessage requestMessage, AuthenticateResponse response) throws BadInputException {
         if (!StringHelper.equals(requestMessage.getRequestId(), response.getRequestId())) {
             throw new BadInputException("Wrong request for response data");
         }
@@ -333,6 +268,5 @@ public class AuthenticationService extends RequestService {
 
         return String.format("oxid=%s,ou=authentication_requests,%s", oxId, u2fBaseDn);
     }
-    
 
 }

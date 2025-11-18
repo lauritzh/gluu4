@@ -12,21 +12,23 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.client.QueryStringDecoder;
+import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.EndSessionErrorResponseType;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.util.URLPatternList;
 import org.gluu.oxauth.model.util.Util;
+import org.jboss.resteasy.client.ClientRequest;
+import org.jboss.resteasy.client.ClientResponse;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.ws.rs.client.ClientBuilder;
+import javax.inject.Named;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
@@ -36,10 +38,12 @@ import static org.apache.commons.lang.BooleanUtils.isTrue;
  * @author Javier Rojas Blum
  * @version August 9, 2017
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class RedirectionUriService {
 
-    private static final Logger log = LoggerFactory.getLogger(RedirectionUriService.class);
+    @Inject
+    private Logger log;
 
     @Inject
     private ClientService clientService;
@@ -72,22 +76,17 @@ public class RedirectionUriService {
             return sectorRedirectUris;
         }
 
-        javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
-		String entity = null;
-		try {
-			Response clientResponse = clientRequest.target(sectorIdentiferUri).request().buildGet().invoke();
+        ClientRequest clientRequest = new ClientRequest(sectorIdentiferUri);
+        clientRequest.setHttpMethod(HttpMethod.GET);
 
-	        int status = clientResponse.getStatus();
-	        if (status != 200) {
-	            return result;
-	        }
+        ClientResponse<String> clientResponse = clientRequest.get(String.class);
+        int status = clientResponse.getStatus();
+        if (status != 200) {
+            return result;
+        }
 
-	        entity = clientResponse.readEntity(String.class);
-		} finally {
-			clientRequest.close();
-		}
-
-		JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
+        String entity = clientResponse.getEntity(String.class);
+        JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
 
         for (int i = 0; i < sectorIdentifierJsonArray.length(); i++) {
             result.add(sectorIdentifierJsonArray.getString(i));
@@ -133,7 +132,7 @@ public class RedirectionUriService {
         return null;
     }
 
-    public static boolean isUriEqual(String redirectionUri, String[] redirectUris) {
+    public boolean isUriEqual(String redirectionUri, String[] redirectUris) {
         final String redirectUriWithoutParams = uriWithoutParams(redirectionUri);
 
         for (String uri : redirectUris) {
@@ -201,15 +200,8 @@ public class RedirectionUriService {
         throw errorResponseFactory.createWebApplicationException(Response.Status.BAD_REQUEST, EndSessionErrorResponseType.POST_LOGOUT_URI_NOT_ASSOCIATED_WITH_CLIENT, "Unable to validate `post_logout_redirect_uri`");
     }
 
-    public boolean isUrlWhiteListed(String url) {
-        final boolean result = new URLPatternList(appConfiguration.getClientWhiteList()).isUrlListed(url);
-        log.trace("White listed result: {}, url: {}", result, url);
-        return result;
-    }
-
     public String validatePostLogoutRedirectUri(String postLogoutRedirectUri, String[] allowedPostLogoutRedirectUris) {
-        if (appConfiguration.getAllowPostLogoutRedirectWithoutValidation() && isUrlWhiteListed(postLogoutRedirectUri)) {
-            log.trace("PostLogoutRedirectUri {} is whitelisted by 'clientWhiteList' configuration property.", postLogoutRedirectUri);
+        if (appConfiguration.getAllowPostLogoutRedirectWithoutValidation()) {
             return postLogoutRedirectUri;
         }
 

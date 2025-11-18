@@ -7,10 +7,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.HttpClient;
-import org.apache.http.HttpHost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
@@ -34,22 +32,10 @@ public class Utils {
     static {
         PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
         manager.setMaxTotal(200);
-        manager.setDefaultMaxPerRoute(20);
+	manager.setDefaultMaxPerRoute(20);
         
-        String proxyHost = System.getProperty("https.proxyHost");
-        String proxyPort = System.getProperty("https.proxyPort");
-        RequestConfig.Builder configBuilder = RequestConfig.custom().setConnectTimeout(10 * 1000);
-        
-        if (StringUtils.isNotEmpty(proxyHost) && StringUtils.isNotEmpty(proxyPort)) {
-            String scheme = System.getProperty("https.proxyScheme", "http");
-            logger.debug("Using https proxy {}://{}:{}", scheme, proxyHost, proxyPort);
-
-            HttpHost proxy = new HttpHost(proxyHost, Integer.valueOf(proxyPort), scheme);
-            configBuilder.setProxy(proxy);
-        }
-
-        HttpClient httpClient = HttpClientBuilder.create()
-                .setDefaultRequestConfig(configBuilder.build())
+        RequestConfig config = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
+        HttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config)
                 .setConnectionManager(manager).build();
         
         ApacheHttpClient4Engine engine = new ApacheHttpClient4Engine(httpClient);
@@ -70,26 +56,28 @@ public class Utils {
     
     public static String post(String endpoint, String payload) throws HttpException {
         
-        String data = null;
+        int status;
+        String data;
         try {
             ResteasyWebTarget target = rsClient.target(endpoint);
-            logger.info("Sending payload to {}", endpoint);
+            logger.info("Sending payload of {} bytes to {}", payload.getBytes().length, endpoint);
             logger.debug("{}", payload);
 
             Response response = target.request().post(Entity.json(payload));        
             response.bufferEntity();
-            int status = response.getStatus();
+            status = response.getStatus();
             data = response.readEntity(String.class);
 
-            logger.debug("Response code was {} and body:\n{}", status, data);
+            logger.debug("Response code was {}", status);
             if (status == 200) {
+                logger.debug("Response body:\n{}", data);
                 return data;
-            } else {
-                throw new HttpException(status, "Unsuccessful response obtained", data); 
             }
         } catch (Exception e) {
-            throw new HttpException(e.getMessage(), e.getCause(), data);
+            throw new HttpException(e.getMessage(), e.getCause());
         }
+        logger.error("Response body:\n{}", data);
+        throw new HttpException(status, "Unsuccessful response obtained");        
         
     }
     

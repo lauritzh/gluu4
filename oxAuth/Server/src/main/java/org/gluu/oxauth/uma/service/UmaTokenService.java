@@ -20,8 +20,9 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
@@ -31,7 +32,8 @@ import java.util.*;
 /**
  * UMA Token Service
  */
-@ApplicationScoped
+@Named
+@Stateless
 public class UmaTokenService {
 
     @Inject

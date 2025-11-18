@@ -6,13 +6,11 @@
 
 package org.gluu.oxauth.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.common.GrantType;
+
+import javax.ws.rs.HttpMethod;
 
 /**
  * Encapsulates functionality to make token request calls to an authorization
@@ -218,56 +216,52 @@ public class TokenClient extends BaseClient<TokenRequest, TokenResponse> {
     public TokenResponse exec() {
         // Prepare request parameters
         initClientRequest();
+        new ClientAuthnEnabler(clientRequest).exec(request);
+
+        clientRequest.header("Content-Type", request.getContentType());
+        clientRequest.setHttpMethod(getHttpMethod());
 
         if (getRequest().getGrantType() != null) {
-            requestForm.param("grant_type", getRequest().getGrantType().toString());
+            clientRequest.formParameter("grant_type", getRequest().getGrantType());
         }
         if (StringUtils.isNotBlank(getRequest().getCode())) {
-            requestForm.param("code", getRequest().getCode());
+            clientRequest.formParameter("code", getRequest().getCode());
         }
         if (StringUtils.isNotBlank(getRequest().getCodeVerifier())) {
-            requestForm.param("code_verifier", getRequest().getCodeVerifier());
+            clientRequest.formParameter("code_verifier", getRequest().getCodeVerifier());
         }
         if (StringUtils.isNotBlank(getRequest().getRedirectUri())) {
-            requestForm.param("redirect_uri", getRequest().getRedirectUri());
+            clientRequest.formParameter("redirect_uri", getRequest().getRedirectUri());
         }
         if (StringUtils.isNotBlank(getRequest().getUsername())) {
-            requestForm.param("username", getRequest().getUsername());
+            clientRequest.formParameter("username", getRequest().getUsername());
         }
         if (StringUtils.isNotBlank(getRequest().getPassword())) {
-            requestForm.param("password", getRequest().getPassword());
+            clientRequest.formParameter("password", getRequest().getPassword());
         }
         if (StringUtils.isNotBlank(getRequest().getScope())) {
-            requestForm.param("scope", getRequest().getScope());
+            clientRequest.formParameter("scope", getRequest().getScope());
         }
         if (StringUtils.isNotBlank(getRequest().getAssertion())) {
-            requestForm.param("assertion", getRequest().getAssertion());
+            clientRequest.formParameter("assertion", getRequest().getAssertion());
         }
         if (StringUtils.isNotBlank(getRequest().getRefreshToken())) {
-            requestForm.param("refresh_token", getRequest().getRefreshToken());
+            clientRequest.formParameter("refresh_token", getRequest().getRefreshToken());
         }
 
         for (String key : getRequest().getCustomParameters().keySet()) {
-            requestForm.param(key, getRequest().getCustomParameters().get(key));
+            clientRequest.formParameter(key, getRequest().getCustomParameters().get(key));
         }
         if (StringUtils.isNotBlank(getRequest().getAuthReqId())) {
-            requestForm.param("auth_req_id", getRequest().getAuthReqId());
+            clientRequest.formParameter("auth_req_id", getRequest().getAuthReqId());
         }
         if (StringUtils.isNotBlank(getRequest().getDeviceCode())) {
-            requestForm.param("device_code", getRequest().getDeviceCode());
+            clientRequest.formParameter("device_code", getRequest().getDeviceCode());
         }
-
-        Builder clientRequest = webTarget.request();
-        applyCookies(clientRequest);
-
-        new ClientAuthnEnabler(clientRequest, requestForm).exec(request);
-
-        clientRequest.header("Content-Type", request.getContentType());
-//        clientRequest.setHttpMethod(getHttpMethod());
 
         // Call REST Service and handle response
         try {
-            clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
+            clientResponse = clientRequest.post(String.class);
 
             final TokenResponse tokenResponse = new TokenResponse(clientResponse);
             tokenResponse.injectDataFromJson();

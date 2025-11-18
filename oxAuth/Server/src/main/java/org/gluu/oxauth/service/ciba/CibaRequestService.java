@@ -19,8 +19,9 @@ import org.gluu.search.filter.Filter;
 import org.gluu.service.CacheService;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Date;
 import java.util.List;
 
@@ -30,7 +31,8 @@ import java.util.List;
  * @author Milton BO
  * @version May 28, 2020
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class CibaRequestService {
 
     @Inject
@@ -137,7 +139,7 @@ public class CibaRequestService {
     public void removeCibaRequest(String authReqId) {
         try {
             String requestDn = String.format("authReqId=%s,%s", authReqId, this.cibaBaseDn());
-            entryManager.remove(requestDn, CIBARequest.class);
+            entryManager.remove(requestDn);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

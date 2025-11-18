@@ -7,6 +7,7 @@
 package org.gluu.oxauth.client;
 
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONException;
 import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
 import org.gluu.oxauth.model.authorize.CodeVerifier;
 import org.gluu.oxauth.model.common.Display;
@@ -14,7 +15,6 @@ import org.gluu.oxauth.model.common.Prompt;
 import org.gluu.oxauth.model.common.ResponseMode;
 import org.gluu.oxauth.model.common.ResponseType;
 import org.gluu.oxauth.model.util.Util;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
@@ -89,10 +89,6 @@ public class AuthorizationRequest extends BaseRequest {
         this.nonce = nonce;
         prompts = new ArrayList<Prompt>();
         useNoRedirectHeader = false;
-    }
-
-    public AuthorizationRequest(String requestUri) {
-        this.requestUri = requestUri;
     }
 
     public CodeVerifier generateAndSetCodeChallengeWithMethod() {
@@ -463,18 +459,7 @@ public class AuthorizationRequest extends BaseRequest {
     }
 
     public String getCustomResponseHeadersAsString() throws JSONException {
-        String header = Util.mapAsString(customResponseHeaders);
-        if (header == null) {
-        	return null;
-        }
-
-        try {
-			return URLEncoder.encode(header, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-		}
-
-        return null;
+        return Util.mapAsString(customResponseHeaders);
     }
 
     public Map<String, String> getCustomResponseHeaders() {

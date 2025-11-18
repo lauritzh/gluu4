@@ -142,7 +142,8 @@ public class KeyGeneratorTimer {
     }
 
     private JSONObject updateKeys(JSONObject jwks) throws Exception {
-        JSONObject jsonObject = AbstractCryptoProvider.generateJwks(cryptoProvider, appConfiguration);
+        JSONObject jsonObject = AbstractCryptoProvider.generateJwks(cryptoProvider, appConfiguration.getKeyRegenerationInterval(),
+                appConfiguration.getIdTokenLifetime(), appConfiguration);
 
         JSONArray keys = jwks.getJSONArray(JSON_WEB_KEY_SET);
         for (int i = 0; i < keys.length(); i++) {

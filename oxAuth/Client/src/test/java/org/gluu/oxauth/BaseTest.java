@@ -29,13 +29,16 @@ import org.gluu.oxauth.model.common.ResponseMode;
 import org.gluu.oxauth.model.crypto.AbstractCryptoProvider;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.error.IErrorType;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.page.AbstractPage;
 import org.gluu.oxauth.page.PageConfig;
 import org.gluu.util.StringHelper;
-import org.gluu.util.security.SecurityProviderUtility;
+import org.jboss.resteasy.client.ClientExecutor;
+import org.jboss.resteasy.client.ClientRequest;
+import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 import org.jetbrains.annotations.Nullable;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.*;
@@ -82,7 +85,6 @@ public abstract class BaseTest {
     protected String gluuConfigurationEndpoint;
     protected String tokenEndpoint;
     protected String tokenRevocationEndpoint;
-    protected String authorizationChallengeEndpoint;
     protected String userInfoEndpoint;
     protected String clientInfoEndpoint;
     protected String checkSessionIFrame;
@@ -213,13 +215,6 @@ public abstract class BaseTest {
         this.registrationEndpoint = registrationEndpoint;
     }
 
-    public String getAuthorizationChallengeEndpoint() {
-        return authorizationChallengeEndpoint;
-    }
-    public void setAuthorizationChallengeEndpoint(String authorizationChallengeEndpoint) {
-        this.authorizationChallengeEndpoint = authorizationChallengeEndpoint;
-    }
-
     public String getIntrospectionEndpoint() {
         return introspectionEndpoint;
     }
@@ -279,7 +274,6 @@ public abstract class BaseTest {
         //driver = new InternetExplorerDriver();
 
         driver = new HtmlUnitDriver(true);
-        driver.getWebClient().getOptions().setThrowExceptionOnScriptError(false);
     }
 
     public void stopSelenium() {
@@ -380,63 +374,38 @@ public abstract class BaseTest {
         System.out.println("authenticateResourceOwnerAndGrantAccess: authorizationRequestUrl:" + authorizationRequestUrl);
 
         navigateToAuhorizationUrl(currentDriver, authorizationRequestUrl);
+
         if (userSecret != null) {
             final String previousUrl = currentDriver.getCurrentUrl();
-
-            WebElement loginButton = waitForRequredElementLoad(currentDriver, loginFormLoginButton);
-
             if (userId != null) {
-                setWebElementValue(currentDriver, loginFormUsername, userId);
+                try {
+                    WebElement usernameElement = currentDriver.findElement(By.id(loginFormUsername));
+                    usernameElement.sendKeys(userId);
+                } catch (NoSuchElementException e) {
+                    System.out.println(currentDriver.getCurrentUrl());
+                    System.out.println(currentDriver.getPageSource());
+                }
             }
 
-            setWebElementValue(currentDriver, loginFormPassword, userSecret);
+            try {
+            WebElement passwordElement = currentDriver.findElement(By.id(loginFormPassword));
+            passwordElement.sendKeys(userSecret);
+            } catch (NoSuchElementException e) {
+                e.printStackTrace();
+                System.out.println(currentDriver.getCurrentUrl());
+                System.out.println(currentDriver.getPageSource());
+            }
+
+            WebElement loginButton = currentDriver.findElement(By.id(loginFormLoginButton));
 
             loginButton.click();
 
             if (ENABLE_REDIRECT_TO_LOGIN_PAGE) {
                 waitForPageSwitch(currentDriver, previousUrl);
             }
-
-            if (currentDriver.getPageSource().contains("Failed to authenticate.")) {
-                fail("Failed to authenticate user");
-            }
         }
 
         return authorizeClient;
-    }
-
-    private WebElement waitForRequredElementLoad(WebDriver currentDriver, String id) {
-        Wait<WebDriver> wait = new FluentWait<>(currentDriver)
-                .withTimeout(Duration.ofSeconds(PageConfig.WAIT_OPERATION_TIMEOUT))
-                .pollingEvery(Duration.ofMillis(1000))
-                .ignoring(NoSuchElementException.class);
-
-        WebElement loginButton = wait.until(d -> {
-            return d.findElement(By.id(id));
-        });
-        return loginButton;
-    }
-
-    private void setWebElementValue(WebDriver currentDriver, String elemnetId, String value) {
-        WebElement webElement = currentDriver.findElement(By.id(elemnetId));
-        webElement.sendKeys(value);
-
-        int remainAttempts = 10;
-        do {
-            if (value.equals(webElement.getAttribute("value"))) {
-                break;
-            }
-
-            ((JavascriptExecutor) currentDriver).executeScript("arguments[0].value='" + value + "';", webElement);
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            remainAttempts--;
-        } while (remainAttempts >= 1);
     }
 
 	protected String acceptAuthorization(WebDriver currentDriver, String redirectUri) {
@@ -795,7 +764,7 @@ public abstract class BaseTest {
             showTitle("OpenID Connect Discovery");
 
             OpenIdConnectDiscoveryClient openIdConnectDiscoveryClient = new OpenIdConnectDiscoveryClient(resource);
-            OpenIdConnectDiscoveryResponse openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(clientEngine(true));
+            OpenIdConnectDiscoveryResponse openIdConnectDiscoveryResponse = openIdConnectDiscoveryClient.exec(clientExecutor(true));
 
             showClient(openIdConnectDiscoveryClient);
             assertEquals(openIdConnectDiscoveryResponse.getStatus(), 200, "Unexpected response code");
@@ -808,7 +777,7 @@ public abstract class BaseTest {
             System.out.println("OpenID Connect Configuration");
 
             OpenIdConfigurationClient client = new OpenIdConfigurationClient(configurationEndpoint);
-            client.setExecutor(clientEngine(true));
+            client.setExecutor(clientExecutor(true));
             OpenIdConfigurationResponse response = client.execOpenIdConfiguration();
 
             showClient(client);
@@ -835,7 +804,6 @@ public abstract class BaseTest {
             authorizationEndpoint = response.getAuthorizationEndpoint();
             tokenEndpoint = response.getTokenEndpoint();
             tokenRevocationEndpoint = response.getRevocationEndpoint();
-            authorizationChallengeEndpoint = response.getAuthorizationChallengeEndpoint();
             userInfoEndpoint = response.getUserInfoEndpoint();
             clientInfoEndpoint = response.getClientInfoEndpoint();
             checkSessionIFrame = response.getCheckSessionIFrame();
@@ -856,7 +824,6 @@ public abstract class BaseTest {
             authorizationEndpoint = context.getCurrentXmlTest().getParameter("authorizationEndpoint");
             tokenEndpoint = context.getCurrentXmlTest().getParameter("tokenEndpoint");
             tokenRevocationEndpoint = context.getCurrentXmlTest().getParameter("tokenRevocationEndpoint");
-            authorizationChallengeEndpoint = context.getCurrentXmlTest().getParameter("authorizationChallengeEndpoint");
             userInfoEndpoint = context.getCurrentXmlTest().getParameter("userInfoEndpoint");
             clientInfoEndpoint = context.getCurrentXmlTest().getParameter("clientInfoEndpoint");
             checkSessionIFrame = context.getCurrentXmlTest().getParameter("checkSessionIFrame");
@@ -930,15 +897,15 @@ public abstract class BaseTest {
         		.build();
     }
 
-    public static ClientHttpEngine engine() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        return clientEngine(false);
+    public static ClientExecutor clientExecutor() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+        return clientExecutor(false);
     }
 
-    public static ClientHttpEngine engine(boolean trustAll) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+    public static ClientExecutor clientExecutor(boolean trustAll) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         if (trustAll) {
-            return new ApacheHttpClient43Engine(createHttpClientTrustAll());
+            return new ApacheHttpClient4Executor(createHttpClientTrustAll());
         }
-        return new ApacheHttpClient43Engine();
+        return ClientRequest.getDefaultExecutor();
     }
 
     public static ClientHttpEngine clientEngine() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
@@ -947,9 +914,9 @@ public abstract class BaseTest {
 
     public static ClientHttpEngine clientEngine(boolean trustAll) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         if (trustAll) {
-            return new ApacheHttpClient43Engine(createAcceptSelfSignedCertificateClient());
+            return new ApacheHttpClient4Engine(createAcceptSelfSignedCertificateClient());
         }
-        return new ApacheHttpClient43Engine(createClient());
+        return new ApacheHttpClient4Engine(createClient());
     }
 
     public static HttpClient createClient() {
@@ -1020,8 +987,8 @@ public abstract class BaseTest {
 		}
 	}
 
-	private ClientHttpEngine getClientExecutor() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return clientEngine(true);
+	private ClientExecutor getClientExecutor() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return clientExecutor(true);
     }
 
 	protected RegisterClient newRegisterClient(RegisterRequest request) {

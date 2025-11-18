@@ -8,11 +8,10 @@ package org.gluu.oxauth.service.fido.u2f;
 
 import java.io.IOException;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.gluu.oxauth.crypto.signature.SHA256withECDSASignatureVerification;
 import org.gluu.oxauth.model.exception.SignatureException;
@@ -31,7 +30,8 @@ import com.google.common.io.ByteStreams;
  *
  * @author Yuriy Movchan Date: 05/20/2015
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class RawAuthenticationService {
 
 	public static final String AUTHENTICATE_GET_TYPE = "navigator.id.getAssertion";
@@ -60,9 +60,6 @@ public class RawAuthenticationService {
 
 		byte[] signedBytes = packBytesToSign(signatureVerification.hash(appId), rawAuthenticateResponse.getUserPresence(),
 				rawAuthenticateResponse.getCounter(), signatureVerification.hash(rawClientData));
-
-		log.debug("Packed bytes to sign in HEX '{}'", Hex.encodeHexString(signedBytes));
-		log.debug("Signature from authentication response in HEX '{}'", Hex.encodeHexString(rawAuthenticateResponse.getSignature()));
 		try {
 			boolean isValid = signatureVerification.checkSignature(signatureVerification.decodePublicKey(publicKey), signedBytes, rawAuthenticateResponse.getSignature());
 			if (!isValid) {

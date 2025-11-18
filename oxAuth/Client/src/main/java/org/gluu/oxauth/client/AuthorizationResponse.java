@@ -11,10 +11,10 @@ import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.gluu.oxauth.model.common.ResponseMode;
 import org.gluu.oxauth.model.common.TokenType;
 import org.gluu.oxauth.model.util.Util;
+import org.jboss.resteasy.client.ClientResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -43,7 +43,6 @@ public class AuthorizationResponse extends BaseResponse {
     private Map<String, String> customParams;
     private ResponseMode responseMode;
 
-    private String errorTypeString;
     private AuthorizeErrorResponseType errorType;
     private String errorDescription;
     private String errorUri;
@@ -51,7 +50,7 @@ public class AuthorizationResponse extends BaseResponse {
     /**
      * Constructs an authorization response.
      */
-    public AuthorizationResponse(Response clientResponse) {
+    public AuthorizationResponse(ClientResponse<String> clientResponse) {
         super(clientResponse);
         customParams = new HashMap<String, String>();
 
@@ -59,8 +58,7 @@ public class AuthorizationResponse extends BaseResponse {
             try {
                 JSONObject jsonObj = new JSONObject(entity);
                 if (jsonObj.has("error")) {
-                    errorTypeString = jsonObj.getString("error");
-                    errorType = AuthorizeErrorResponseType.fromString(errorTypeString);
+                    errorType = AuthorizeErrorResponseType.fromString(jsonObj.getString("error"));
                 }
                 if (jsonObj.has("error_description")) {
                     errorDescription = jsonObj.getString("error_description");
@@ -73,9 +71,6 @@ public class AuthorizationResponse extends BaseResponse {
                 }
                 if (jsonObj.has("redirect")) {
                     location = jsonObj.getString("redirect");
-                }
-                if (jsonObj.has("authorization_code")) {
-                    code = jsonObj.getString("authorization_code");
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -167,14 +162,6 @@ public class AuthorizationResponse extends BaseResponse {
             }
         } catch (UnsupportedEncodingException e) {
         }
-    }
-
-    public String getErrorTypeString() {
-        return errorTypeString;
-    }
-
-    public void setErrorTypeString(String errorTypeString) {
-        this.errorTypeString = errorTypeString;
     }
 
     /**

@@ -6,14 +6,13 @@
 
 package org.gluu.oxauth.client;
 
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-
 import org.gluu.oxauth.model.ciba.BackchannelAuthenticationRequestParam;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.util.QueryBuilder;
 import org.gluu.oxauth.model.util.Util;
+
+import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 /**
  * Represents a CIBA backchannel authorization request to send to the authorization server.

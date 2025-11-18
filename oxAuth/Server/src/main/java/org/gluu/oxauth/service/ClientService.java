@@ -6,7 +6,6 @@
 
 package org.gluu.oxauth.service;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.config.StaticConfiguration;
@@ -26,13 +25,13 @@ import org.gluu.util.security.StringEncrypter;
 import org.gluu.util.security.StringEncrypter.EncryptionException;
 import org.json.JSONArray;
 import org.oxauth.persistence.model.Scope;
+import org.python.jline.internal.Preconditions;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.*;
-
-import static org.gluu.oxauth.util.ServerUtil.sanitizeUsernameForLog;
 
 /**
  * Provides operations with clients.
@@ -41,7 +40,8 @@ import static org.gluu.oxauth.util.ServerUtil.sanitizeUsernameForLog;
  * @author Yuriy Movchan Date: 04/15/2014
  * @version October 22, 2016
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class ClientService {
 
 	public static final String[] CLIENT_OBJECT_CLASSES = new String[] { "oxAuthClient" };
@@ -89,13 +89,13 @@ public class ClientService {
 	 * @return <code>true</code> if success, otherwise <code>false</code>.
 	 */
 	public boolean authenticate(String clientId, String password) {
-		log.debug("Authenticating Client with LDAP: clientId = {}", sanitizeUsernameForLog(clientId));
+		log.debug("Authenticating Client with LDAP: clientId = {}", clientId);
 		boolean authenticated = false;
 
 		try {
 			Client client = getClient(clientId);
 			if (client == null) {
-				log.debug("Failed to find client = {}", sanitizeUsernameForLog(clientId));
+				log.debug("Failed to find client = {}", clientId);
 				return authenticated;
 			}
 			String decryptedClientSecret = decryptSecret(client.getClientSecret());
@@ -241,7 +241,7 @@ public class ClientService {
 			removeFromCache(client);
 
 			String clientDn = client.getDn();
-			ldapEntryManager.removeRecursively(clientDn, Client.class);
+			ldapEntryManager.removeRecursively(clientDn);
 		}
 	}
 

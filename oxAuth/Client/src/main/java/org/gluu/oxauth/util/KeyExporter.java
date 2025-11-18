@@ -6,15 +6,7 @@
 
 package org.gluu.oxauth.util;
 
-import java.io.File;
-import java.security.PrivateKey;
-
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.log4j.Logger;
@@ -24,7 +16,10 @@ import org.bouncycastle.util.encoders.Base64;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
+
+import java.io.File;
+import java.security.PrivateKey;
 
 /**
  * Export private key from JKS Command example: java -cp

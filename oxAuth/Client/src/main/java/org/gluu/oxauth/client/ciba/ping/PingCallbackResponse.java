@@ -6,10 +6,9 @@
 
 package org.gluu.oxauth.client.ciba.ping;
 
-import javax.ws.rs.core.Response;
-
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.client.BaseResponse;
+import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * @author Javier Rojas Blum
@@ -19,7 +18,11 @@ public class PingCallbackResponse extends BaseResponse {
 
     private static final Logger LOG = Logger.getLogger(PingCallbackResponse.class);
 
-    public PingCallbackResponse(Response clientResponse) {
+    public PingCallbackResponse(ClientResponse<String> clientResponse) {
         super(clientResponse);
+
+        String entity = clientResponse.getEntity(String.class);
+        setEntity(entity);
+        setHeaders(clientResponse.getMetadata());
     }
 }

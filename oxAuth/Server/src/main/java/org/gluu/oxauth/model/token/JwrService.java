@@ -1,9 +1,6 @@
 package org.gluu.oxauth.model.token;
 
 import com.google.common.base.Function;
-
-import javax.enterprise.context.ApplicationScoped;
-
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.IAuthorizationGrant;
 import org.gluu.oxauth.model.config.WebKeysConfiguration;
@@ -21,14 +18,16 @@ import org.gluu.oxauth.model.jwk.Use;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtType;
 import org.gluu.oxauth.model.registration.Client;
+import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.service.ClientService;
 import org.gluu.oxauth.service.SectorIdentifierService;
 import org.gluu.oxauth.service.ServerCryptoProvider;
-import org.gluu.oxauth.util.ServerUtil;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 
@@ -38,7 +37,8 @@ import static org.gluu.oxauth.model.jwt.JwtHeaderName.ALGORITHM;
  * @author Yuriy Zabrovarnyy
  * @version April 10, 2020
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class JwrService {
 
     @Inject
@@ -95,7 +95,7 @@ public class JwrService {
         final BlockEncryptionAlgorithm encryptionMethod = jwe.getHeader().getEncryptionMethod();
 
         if (keyEncryptionAlgorithm == KeyEncryptionAlgorithm.RSA_OAEP || keyEncryptionAlgorithm == KeyEncryptionAlgorithm.RSA1_5) {
-            JSONObject jsonWebKeys = ServerUtil.getJwks(client);
+            JSONObject jsonWebKeys = JwtUtil.getJSONWebKeys(client.getJwksUri());
             String keyId = new ServerCryptoProvider(cryptoProvider).getKeyId(JSONWebKeySet.fromJSONObject(jsonWebKeys),
                     Algorithm.fromString(keyEncryptionAlgorithm.getName()),
                     Use.ENCRYPTION);

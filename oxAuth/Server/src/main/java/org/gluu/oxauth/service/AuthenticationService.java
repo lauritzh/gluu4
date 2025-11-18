@@ -14,13 +14,13 @@ import org.gluu.model.ldap.GluuLdapConfiguration;
 import org.gluu.model.metric.MetricType;
 import org.gluu.model.security.Credentials;
 import org.gluu.model.security.SimplePrincipal;
+import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.common.SimpleUser;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.SessionClient;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.common.ApplicationFactory;
@@ -37,7 +37,7 @@ import org.gluu.util.StringHelper;
 import org.json.JSONException;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.RequestScoped;
+import javax.ejb.Stateless;
 import javax.faces.context.ExternalContext;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -49,7 +49,6 @@ import java.util.*;
 
 import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SESSION_ID;
 import static org.gluu.oxauth.model.authorize.AuthorizeResponseParam.SID;
-import static org.gluu.oxauth.util.ServerUtil.sanitizeUsernameForLog;
 
 /**
  * Authentication service methods
@@ -58,7 +57,8 @@ import static org.gluu.oxauth.util.ServerUtil.sanitizeUsernameForLog;
  * @author Javier Rojas Blum
  * @version November 23, 2017
  */
-@RequestScoped
+@Stateless
+@Named
 public class AuthenticationService {
 
     private static final String AUTH_EXTERNAL_ATTRIBUTES = "auth_external_attributes";
@@ -120,7 +120,7 @@ public class AuthenticationService {
 	 * @return <code>true</code> if success, otherwise <code>false</code>.
 	 */
 	public boolean authenticate(String userName, String password) {
-		log.debug("Authenticating user with LDAP: username: '{}', credentials: '{}'", sanitizeUsernameForLog(credentials.getUsername()),
+		log.debug("Authenticating user with LDAP: username: '{}', credentials: '{}'", userName,
 				System.identityHashCode(credentials));
 
 		boolean authenticated = false;
@@ -235,7 +235,7 @@ public class AuthenticationService {
 			// Use local LDAP server for user authentication
 			boolean authenticated = false;
 			try {
-				authenticated = ldapEntryManager.authenticate(user.getDn(), User.class, password);
+				authenticated = ldapEntryManager.authenticate(user.getDn(), password);
 			} catch (AuthenticationException ex) {
 				log.error("Authentication failed: " + ex.getMessage());
 				if (log.isDebugEnabled()) {
@@ -265,7 +265,7 @@ public class AuthenticationService {
 			}
 
 			// Use local LDAP server for user authentication
-			boolean authenticated = ldapEntryManager.authenticate(user.getDn(), User.class, password);
+			boolean authenticated = ldapEntryManager.authenticate(user.getDn(), password);
 			if (authenticated) {
 				configureAuthenticatedUser(user);
 				updateLastLogonUserTime(user);
@@ -434,12 +434,11 @@ public class AuthenticationService {
 					if (user != null) {
 						String userDn = user.getDn();
 						log.debug("Attempting to authenticate userDN: {}", userDn);
-						if (ldapAuthEntryManager.authenticate(userDn, User.class, password)) {
+						if (ldapAuthEntryManager.authenticate(userDn, password)) {
 							log.debug("User authenticated: {}", userDn);
 
 							log.debug("Attempting to find userDN by local primary key: {}", localPrimaryKey);
-							String lowerKeyValue = StringHelper.toLowerCase(keyValue);
-							User localUser = userService.getUserByAttributes(lowerKeyValue, new String[] {localPrimaryKey}, new String[] {"uid", "gluuStatus"});
+							User localUser = userService.getUserByAttribute(localPrimaryKey, keyValue);
 							if (localUser != null) {
 								if (!checkUserStatus(localUser)) {
 									return false;
@@ -847,14 +846,6 @@ public class AuthenticationService {
 
 		    setExternalScriptExtraParameters(newSessionIdAttributes, authExternalAttributes);
 		}
-	}
-
-	public List<GluuLdapConfiguration> getLdapAuthConfigs() {
-		return ldapAuthConfigs;
-	}
-
-	public List<PersistenceEntryManager> getLdapAuthEntryManagers() {
-		return ldapAuthEntryManagers;
 	}
 
 }

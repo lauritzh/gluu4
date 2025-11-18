@@ -11,7 +11,6 @@ import org.gluu.oxauth.model.crypto.encryption.BlockEncryptionAlgorithm;
 import org.gluu.oxauth.model.exception.InvalidParameterException;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.Util;
-import org.gluu.util.security.SecurityProviderUtility;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -56,7 +55,7 @@ public class KeyDerivationFunction {
         round1Input = ArrayUtils.addAll(round1Input, epv);
         round1Input = ArrayUtils.addAll(round1Input, label);
 
-        MessageDigest mda = MessageDigest.getInstance(blockEncryptionAlgorithm.getMessageDiggestAlgorithm(), SecurityProviderUtility.getBCProvider());
+        MessageDigest mda = MessageDigest.getInstance(blockEncryptionAlgorithm.getMessageDiggestAlgorithm(), "BC");
         byte[] round1Hash = mda.digest(round1Input);
         byte[] cek = Arrays.copyOf(round1Hash, blockEncryptionAlgorithm.getCekLength() / 8);
 
@@ -94,7 +93,7 @@ public class KeyDerivationFunction {
         round1Input = ArrayUtils.addAll(round1Input, epv);
         round1Input = ArrayUtils.addAll(round1Input, label);
 
-        MessageDigest mda = MessageDigest.getInstance(blockEncryptionAlgorithm.getMessageDiggestAlgorithm(), SecurityProviderUtility.getBCProvider());
+        MessageDigest mda = MessageDigest.getInstance(blockEncryptionAlgorithm.getMessageDiggestAlgorithm(), "BC");
         byte[] cik = mda.digest(round1Input);
 
         return cik;

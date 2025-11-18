@@ -32,7 +32,7 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.DERTaggedObject;
+import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
 import org.bouncycastle.asn1.x509.DistributionPoint;
@@ -46,8 +46,7 @@ import org.bouncycastle.x509.util.StreamParsingException;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.CertificateValidity;
 import org.gluu.oxauth.cert.validation.model.ValidationStatus.ValidatorSourceType;
-import org.gluu.oxauth.model.util.CertUtils;
-import org.gluu.util.security.SecurityProviderUtility;
+import org.gluu.oxauth.model.util.SecurityProviderUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,8 +88,7 @@ public class CRLCertificateVerifier implements CertificateVerifier {
 
 	@Override
 	public ValidationStatus validate(X509Certificate certificate, List<X509Certificate> issuers, Date validationDate) {
-
-        X509Certificate issuer = CertUtils.getIssuer(certificate, issuers);	    
+		X509Certificate issuer = issuers.get(0);
 		ValidationStatus status = new ValidationStatus(certificate, issuer, validationDate, ValidatorSourceType.CRL, CertificateValidity.UNKNOWN);
 
 		try {
@@ -267,7 +265,7 @@ public class CRLCertificateVerifier implements CertificateVerifier {
 					continue;
 				}
 
-				DERIA5String derStr = (DERIA5String) DERIA5String.getInstance((DERTaggedObject) name.toASN1Primitive(), false);
+				DERIA5String derStr = DERIA5String.getInstance((ASN1TaggedObject) name.toASN1Primitive(), false);
 				return derStr.getString();
 			}
 		}

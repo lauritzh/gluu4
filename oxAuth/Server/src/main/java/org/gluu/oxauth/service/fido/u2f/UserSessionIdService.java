@@ -8,12 +8,13 @@ package org.gluu.oxauth.service.fido.u2f;
 
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 
+import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistrationResult;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.oxauth.ws.rs.fido.u2f.U2fAuthenticationWS;
 import org.gluu.util.StringHelper;
@@ -25,7 +26,8 @@ import org.slf4j.Logger;
  * @author Yuriy Movchan
  * @version August 9, 2017
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class UserSessionIdService {
 
     @Inject

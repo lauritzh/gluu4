@@ -9,7 +9,8 @@ package org.gluu.oxauth.service.fido.u2f;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
+import javax.inject.Named;
 
 import org.gluu.net.InetAddressUtility;
 import org.gluu.oxauth.exception.fido.u2f.BadConfigurationException;
@@ -19,7 +20,8 @@ import org.gluu.oxauth.exception.fido.u2f.BadConfigurationException;
  *
  * @author Yuriy Movchan Date: 05/19/2015
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class ApplicationService {
 
 	private boolean validateApplication = true;

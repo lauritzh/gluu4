@@ -27,8 +27,6 @@ import org.gluu.oxauth.model.exception.InvalidJwtException;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.ldap.ClientAuthorization;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.model.util.Util;
@@ -43,7 +41,9 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.service.net.NetworkService;
 import org.gluu.util.StringHelper;
-import org.gluu.util.locale.LocaleUtil;
+import org.gluu.util.ilocale.LocaleUtil;
+import org.jboss.resteasy.client.ClientRequest;
+import org.jboss.resteasy.client.ClientResponse;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.RequestScoped;
@@ -54,10 +54,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -218,16 +217,7 @@ public class AuthorizeAction {
         }
     }
 
-    public void checkPermissionGranted() {
-        try {
-            checkPermissionGrantedInternal();
-        } catch (Exception e) {
-            log.error("Failed to perform checkPermissionGranted()", e);
-            permissionDenied();
-        }
-    }
-
-    public void checkPermissionGrantedInternal() throws IOException {
+    public void checkPermissionGranted() throws IOException {
         if ((clientId == null) || clientId.isEmpty()) {
             log.debug("Permission denied. client_id should be not empty.");
             permissionDenied();
@@ -259,7 +249,7 @@ public class AuthorizeAction {
         try {
             redirectUri = authorizeRestWebServiceValidator.validateRedirectUri(client, redirectUri, state, session != null ? session.getSessionAttributes().get(SESSION_USER_CODE) : null, (HttpServletRequest) externalContext.getRequest());
         } catch (WebApplicationException e) {
-            log.debug(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             permissionDenied();
             return;
         }
@@ -479,26 +469,23 @@ public class AuthorizeAction {
                 String reqUriHash = reqUri.getFragment();
                 String reqUriWithoutFragment = reqUri.getScheme() + ":" + reqUri.getSchemeSpecificPart();
 
-                javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
-                try {
-	        	    Response clientResponse = clientRequest.target(reqUriWithoutFragment).request().buildGet().invoke();
-	        	    clientRequest.close();
-	
-	                int status = clientResponse.getStatus();
-	                if (status == 200) {
-	                    String entity = clientResponse.readEntity(String.class);
-	
-	                    if (StringUtils.isBlank(reqUriHash)) {
-	                        requestJwt = entity;
-	                    } else {
-	                        String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(entity));
-	                        if (StringUtils.equals(reqUriHash, hash)) {
-	                            requestJwt = entity;
-	                        }
-	                    }
-	                }
-                } finally {
-                	clientRequest.close();
+                ClientRequest clientRequest = new ClientRequest(reqUriWithoutFragment);
+                clientRequest.setHttpMethod(HttpMethod.GET);
+
+                ClientResponse<String> clientResponse = clientRequest.get(String.class);
+                int status = clientResponse.getStatus();
+
+                if (status == 200) {
+                    String entity = clientResponse.getEntity(String.class);
+
+                    if (StringUtils.isBlank(reqUriHash)) {
+                        requestJwt = entity;
+                    } else {
+                        String hash = Base64Util.base64urlencode(JwtUtil.getMessageDigestSHA256(entity));
+                        if (StringUtils.equals(reqUriHash, hash)) {
+                            requestJwt = entity;
+                        }
+                    }
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);

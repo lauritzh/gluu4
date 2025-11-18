@@ -6,26 +6,21 @@
 
 package org.gluu.oxauth.client;
 
-import static org.gluu.oxauth.client.AuthorizationRequest.NO_REDIRECT_HEADER;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MediaType;
-
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
 import org.gluu.oxauth.model.common.AuthorizationMethod;
 import org.gluu.oxauth.model.common.Display;
 import org.gluu.oxauth.model.common.Prompt;
 import org.gluu.oxauth.model.common.ResponseType;
-import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.ClientExecutor;
+import org.jboss.resteasy.client.ClientRequest;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.gluu.oxauth.client.AuthorizationRequest.NO_REDIRECT_HEADER;
 
 /**
  * Encapsulates functionality to make authorization request calls to an authorization server via REST Services.
@@ -185,14 +180,12 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
     }
 
     @Deprecated
-    public AuthorizationResponse exec(ClientHttpEngine engine) {
+    public AuthorizationResponse exec(ClientExecutor clientExecutor) {
         AuthorizationResponse response = null;
 
         try {
-        	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
-        	webTarget = resteasyClient.target(getUrl());
-
-			response = exec_();
+            clientRequest = new ClientRequest(getUrl(), clientExecutor);
+            response = exec_();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -202,6 +195,14 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
     }
 
     private AuthorizationResponse exec_() throws Exception {
+        // Prepare request parameters
+        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+        clientRequest.setHttpMethod(getHttpMethod());
+
+        if (getRequest().isUseNoRedirectHeader()) {
+            clientRequest.header(NO_REDIRECT_HEADER, "true");
+        }
+
         final String responseTypesAsString = getRequest().getResponseTypesAsString();
         final String scopesAsString = getRequest().getScopesAsString();
         final String promptsAsString = getRequest().getPromptsAsString();
@@ -248,26 +249,15 @@ public class AuthorizeClient extends BaseClient<AuthorizationRequest, Authorizat
             addReqParam(key, request.getCustomParameters().get(key));
         }
 
-        Builder clientRequest = webTarget.request();
-        applyCookies(clientRequest);
-
-        // Prepare request parameters
-        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-////        clientRequest.setHttpMethod(getHttpMethod());
-
-        if (getRequest().isUseNoRedirectHeader()) {
-            clientRequest.header(NO_REDIRECT_HEADER, "true");
-        }
-
         if (request.getAuthorizationMethod() != AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER && request.hasCredentials()) {
             clientRequest.header("Authorization", "Basic " + request.getEncodedCredentials());
         }
 
         // Call REST Service and handle response
         if (request.getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER) {
-            clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
+            clientResponse = clientRequest.post(String.class);
         } else {
-            clientResponse = clientRequest.buildGet().invoke();
+            clientResponse = clientRequest.get(String.class);
         }
 
         setResponse(new AuthorizationResponse(clientResponse));

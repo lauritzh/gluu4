@@ -8,12 +8,13 @@ package org.gluu.oxauth.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.collect.Lists;
-
 import org.gluu.oxauth.model.common.*;
 import org.gluu.oxauth.model.error.ErrorHandlingMethod;
 import org.gluu.oxauth.model.jwk.KeySelectionStrategy;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the configuration JSON file.
@@ -26,11 +27,8 @@ import java.util.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppConfiguration implements Configuration {
 
-    public static final int DEFAULT_AUTHORIZATION_CHALLENGE_SESSION_LIFETIME = 86400;
     public static final int DEFAULT_SESSION_ID_LIFETIME = 86400;
     public static final KeySelectionStrategy DEFAULT_KEY_SELECTION_STRATEGY = KeySelectionStrategy.OLDER;
-    public static final String DEFAULT_STAT_SCOPE = "jans_stat";
-    public static final String DEFAULT_AUTHORIZATION_CHALLENGE_ACR = "default_challenge";
 
     private String issuer;
     private String baseEndpoint;
@@ -49,11 +47,10 @@ public class AppConfiguration implements Configuration {
     private String introspectionEndpoint;
     private String deviceAuthzEndpoint;
 
-    private int discoveryCacheLifetimeInMinutes = 60;
-    private int sectorIdentifierCacheLifetimeInMinutes = 1440;
+    public int discoveryCacheLifetimeInMinutes = 60;
+    public int sectorIdentifierCacheLifetimeInMinutes = 1440;
 
     private Boolean sessionAsJwt = false;
-    private Boolean forceRopcInAuthorizationEndpoint = false;
 
     private String umaConfigurationEndpoint;
     private Boolean umaRptAsJwt = false;
@@ -66,16 +63,11 @@ public class AppConfiguration implements Configuration {
     private Boolean umaGrantAccessIfNoPolicies = false;
     private Boolean umaRestrictResourceToAssociatedClient = false;
 
-    private Boolean statEnabled = true;
-    private String statAuthorizationScope;
-    private int statTimerIntervalInSeconds;
-    private int statWebServiceIntervalLimitInSeconds;
+    public Boolean statEnabled = true;
+    public int statTimerIntervalInSeconds;
+    public int statWebServiceIntervalLimitInSeconds;
+    public String statNodeId;
 
-    private String authorizationChallengeDefaultAcr = DEFAULT_AUTHORIZATION_CHALLENGE_ACR;
-    private Boolean authorizationChallengeShouldGenerateSession = false;
-    private Integer authorizationChallengeSessionLifetimeInSeconds = DEFAULT_AUTHORIZATION_CHALLENGE_SESSION_LIFETIME;
-
-    private Boolean allowSpontaneousScopes = true;
     private int spontaneousScopeLifetime;
     private String openidSubAttribute;
     private Set<Set<ResponseType>> responseTypesSupported;
@@ -107,7 +99,6 @@ public class AppConfiguration implements Configuration {
     private Boolean requestUriParameterSupported;
     private Boolean requestUriHashVerificationEnabled;
     private Boolean requireRequestUriRegistration;
-    private List<String> requestUriBlockList;
     private String opPolicyUri;
     private String opTosUri;
     private int authorizationCodeLifetime;
@@ -117,6 +108,7 @@ public class AppConfiguration implements Configuration {
 
     private int cleanServiceInterval;
     private int cleanServiceBatchChunkSize = 100;
+    private List<String> cleanServiceBaseDns = Lists.newArrayList();
 
     private Boolean keyRegenerationEnabled;
     private int keyRegenerationInterval;
@@ -129,7 +121,6 @@ public class AppConfiguration implements Configuration {
     private Boolean trustedClientEnabled;
     private Boolean skipAuthorizationForOpenIdScopeAndPairwiseId = false;
     private Boolean dynamicRegistrationScopesParamEnabled;
-    private Boolean dynamicRegistrationDisableFallbackScopesAssigning;
     private Boolean dynamicRegistrationPasswordGrantTypeEnabled = false;
     private List<String> dynamicRegistrationAllowedPasswordGrantScopes;
     private String dynamicRegistrationCustomObjectClass;
@@ -151,13 +142,13 @@ public class AppConfiguration implements Configuration {
     private Boolean authenticationFiltersEnabled;
     private Boolean clientAuthenticationFiltersEnabled;
     private Boolean clientRegDefaultToCodeFlowWithRefresh;
-    private Boolean grantTypesAndResponseTypesAutofixEnabled;
     private List<AuthenticationFilter> authenticationFilters;
     private List<ClientAuthenticationFilter> clientAuthenticationFilters;
     private List<CorsConfigurationFilter> corsConfigurationFilters;
 
     private int sessionIdUnusedLifetime;
     private int sessionIdUnauthenticatedUnusedLifetime = 120; // 120 seconds
+    private Boolean sessionIdEnabled;
     private Boolean sessionIdPersistOnPromptNone;
     private Boolean sessionIdRequestParameterEnabled = false; // #1195
     private Boolean changeSessionIdOnAuthentication = true;
@@ -169,7 +160,6 @@ public class AppConfiguration implements Configuration {
     private Integer serverSessionIdLifetime = sessionIdLifetime; // by default same as sessionIdLifetime
     private int configurationUpdateInterval;
 
-    private Boolean logNotFoundEntityAsError;
     private Boolean enableClientGrantTypeUpdate;
     private Set<GrantType> dynamicGrantTypeDefault;
 
@@ -191,8 +181,6 @@ public class AppConfiguration implements Configuration {
     private String keyStoreFile;
     private String keyStoreSecret;
     private KeySelectionStrategy keySelectionStrategy = DEFAULT_KEY_SELECTION_STRATEGY;
-    private List<String> keyAlgsAllowedForGeneration = new ArrayList<>();
-
     //oxEleven
     private String oxElevenTestModeToken;
     private String oxElevenGenerateKeyEndpoint;
@@ -201,8 +189,6 @@ public class AppConfiguration implements Configuration {
     private String oxElevenDeleteKeyEndpoint;
 
     private Boolean introspectionAccessTokenMustHaveUmaProtectionScope = false;
-    private Boolean introspectionSkipAuthorization;
-    private Boolean introspectionRestrictBasicAuthnToOwnTokens = false;
 
     private Boolean endSessionWithAccessToken;
     private String cookieDomain;
@@ -223,7 +209,6 @@ public class AppConfiguration implements Configuration {
     private Boolean logClientIdOnClientAuthentication;
     private Boolean logClientNameOnClientAuthentication;
     private Boolean disableJdkLogger = true;
-    private Boolean disableExternalLoggerConfiguration = true;
     private Set<String> authorizationRequestCustomAllowedParameters;
     private Boolean legacyDynamicRegistrationScopeParam;
     private Boolean openidScopeBackwardCompatibility = false;
@@ -232,14 +217,11 @@ public class AppConfiguration implements Configuration {
     private Boolean useLocalCache = false;
     private Boolean fapiCompatibility = false;
     private Boolean forceIdTokenHintPrecense = false;
-    private Boolean rejectEndSessionIfIdTokenExpired = false;
-    private Boolean allowEndSessionWithUnmatchedSid = false;
     private Boolean forceOfflineAccessScopeToEnableRefreshToken = true;
     private Boolean errorReasonEnabled  = false;
     private Boolean removeRefreshTokensForClientOnLogout  = true;
     private Boolean skipRefreshTokenDuringRefreshing  = false;
     private Boolean refreshTokenExtendLifetimeOnRotation  = false;
-    private Boolean checkUserPresenceOnRefreshToken = false;
     private Boolean consentGatheringScriptBackwardCompatibility = false; // means ignore client configuration (as defined in 4.2) and determine it globally (as in 4.1 and earlier)
     private Boolean introspectionScriptBackwardCompatibility = false; // means ignore client configuration (as defined in 4.2) and determine it globally (as in 4.1 and earlier)
     private Boolean introspectionResponseScopesBackwardCompatibility = false; // See #1499
@@ -250,10 +232,9 @@ public class AppConfiguration implements Configuration {
 
     private AuthenticationProtectionConfiguration authenticationProtectionConfiguration;
 
-    private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.REMOTE;
+    private ErrorHandlingMethod errorHandlingMethod = ErrorHandlingMethod.INTERNAL;
 
     private Boolean keepAuthenticatorAttributesOnAcrChange = false;
-    private Boolean disableAuthnForMaxAgeZero = false;
     private int deviceAuthzRequestExpiresIn;
     private int deviceAuthzTokenPollInterval;
     private String deviceAuthzResponseTypeToProcessAuthz;
@@ -276,27 +257,8 @@ public class AppConfiguration implements Configuration {
     private int cibaGrantLifeExtraTimeSec;
     private int cibaMaxExpirationTimeAllowedSec;
     private Boolean cibaEnabled;
-
-    private Boolean return200OnClientRegistration = true;
-    private Map<String, String> dateFormatterPatterns = new HashMap<>();
-
-    private Boolean allowBlankValuesInDiscoveryResponse;
-
-    private Boolean skipAuthenticationFilterOptionsMethod = false;
     
-    private ConnectionServiceConfiguration connectionServiceConfiguration;
-
-    public Integer getAuthorizationChallengeSessionLifetimeInSeconds() {
-        if (authorizationChallengeSessionLifetimeInSeconds == null) {
-            authorizationChallengeSessionLifetimeInSeconds = DEFAULT_AUTHORIZATION_CHALLENGE_SESSION_LIFETIME;
-        }
-        return authorizationChallengeSessionLifetimeInSeconds;
-    }
-
-    public AppConfiguration setAuthorizationChallengeSessionLifetimeInSeconds(Integer authorizationChallengeSessionLifetimeInSeconds) {
-        this.authorizationChallengeSessionLifetimeInSeconds = authorizationChallengeSessionLifetimeInSeconds;
-        return this;
-    }
+    private Boolean skipAuthenticationFilterOptionsMethod = false;
 
     public Boolean getSubjectIdentifierBasedOnWholeUriBackwardCompatibility() {
         return subjectIdentifierBasedOnWholeUriBackwardCompatibility;
@@ -304,15 +266,6 @@ public class AppConfiguration implements Configuration {
 
     public void setSubjectIdentifierBasedOnWholeUriBackwardCompatibility(Boolean subjectIdentifierBasedOnWholeUriBackwardCompatibility) {
         this.subjectIdentifierBasedOnWholeUriBackwardCompatibility = subjectIdentifierBasedOnWholeUriBackwardCompatibility;
-    }
-
-    public Boolean getLogNotFoundEntityAsError() {
-        if (logNotFoundEntityAsError == null) logNotFoundEntityAsError = false;
-        return logNotFoundEntityAsError;
-    }
-
-    public void setLogNotFoundEntityAsError(Boolean logNotFoundEntityAsError) {
-        this.logNotFoundEntityAsError = logNotFoundEntityAsError;
     }
 
     public Boolean getUseNestedJwtDuringEncryption() {
@@ -331,15 +284,6 @@ public class AppConfiguration implements Configuration {
 
     public void setKeySelectionStrategy(KeySelectionStrategy keySelectionStrategy) {
         this.keySelectionStrategy = keySelectionStrategy;
-    }
-
-    public List<String> getKeyAlgsAllowedForGeneration() {
-        if (keyAlgsAllowedForGeneration == null) keyAlgsAllowedForGeneration = new ArrayList<>();
-        return keyAlgsAllowedForGeneration;
-    }
-
-    public void setKeyAlgsAllowedForGeneration(List<String> keyAlgsAllowedForGeneration) {
-        this.keyAlgsAllowedForGeneration = keyAlgsAllowedForGeneration;
     }
 
     public int getDiscoveryCacheLifetimeInMinutes() {
@@ -399,15 +343,6 @@ public class AppConfiguration implements Configuration {
 
     public void setRefreshTokenExtendLifetimeOnRotation(Boolean refreshTokenExtendLifetimeOnRotation) {
         this.refreshTokenExtendLifetimeOnRotation = refreshTokenExtendLifetimeOnRotation;
-    }
-
-    public Boolean getCheckUserPresenceOnRefreshToken() {
-        if (checkUserPresenceOnRefreshToken == null) checkUserPresenceOnRefreshToken = false;
-        return checkUserPresenceOnRefreshToken;
-    }
-
-    public void setCheckUserPresenceOnRefreshToken(Boolean checkUserPresenceOnRefreshToken) {
-        this.checkUserPresenceOnRefreshToken = checkUserPresenceOnRefreshToken;
     }
 
     public Boolean getExpirationNotificatorEnabled() {
@@ -535,24 +470,6 @@ public class AppConfiguration implements Configuration {
         this.forceIdTokenHintPrecense = forceIdTokenHintPrecense;
     }
 
-    public Boolean getRejectEndSessionIfIdTokenExpired() {
-        if (rejectEndSessionIfIdTokenExpired == null) rejectEndSessionIfIdTokenExpired = false;
-        return rejectEndSessionIfIdTokenExpired;
-    }
-
-    public void setRejectEndSessionIfIdTokenExpired(Boolean rejectEndSessionIfIdTokenExpired) {
-        this.rejectEndSessionIfIdTokenExpired = rejectEndSessionIfIdTokenExpired;
-    }
-
-    public Boolean getAllowEndSessionWithUnmatchedSid() {
-        if (allowEndSessionWithUnmatchedSid == null) allowEndSessionWithUnmatchedSid = false;
-        return allowEndSessionWithUnmatchedSid;
-    }
-
-    public void setAllowEndSessionWithUnmatchedSid(Boolean allowEndSessionWithUnmatchedSid) {
-        this.allowEndSessionWithUnmatchedSid = allowEndSessionWithUnmatchedSid;
-    }
-
     public Boolean getRemoveRefreshTokensForClientOnLogout() {
         if (removeRefreshTokensForClientOnLogout == null) removeRefreshTokensForClientOnLogout = true;
         return removeRefreshTokensForClientOnLogout;
@@ -570,15 +487,7 @@ public class AppConfiguration implements Configuration {
         this.disableJdkLogger = disableJdkLogger;
     }
 
-    public Boolean getDisableExternalLoggerConfiguration() {
-		return disableExternalLoggerConfiguration;
-	}
-
-	public void setDisableExternalLoggerConfiguration(Boolean disableExternalLoggerConfiguration) {
-		this.disableExternalLoggerConfiguration = disableExternalLoggerConfiguration;
-	}
-
-	/**
+    /**
      * Used in ServletLoggingFilter to enable http request/response logging.
      */
     private Boolean httpLoggingEnabled;
@@ -610,39 +519,12 @@ public class AppConfiguration implements Configuration {
         this.introspectionAccessTokenMustHaveUmaProtectionScope = introspectionAccessTokenMustHaveUmaProtectionScope;
     }
 
-    public Boolean getIntrospectionSkipAuthorization() {
-        if (introspectionSkipAuthorization == null) introspectionSkipAuthorization = false;
-        return introspectionSkipAuthorization;
-    }
-
-    public void setIntrospectionSkipAuthorization(Boolean introspectionSkipAuthorization) {
-        this.introspectionSkipAuthorization = introspectionSkipAuthorization;
-    }
-
-    public Boolean getIntrospectionRestrictBasicAuthnToOwnTokens() {
-        if (introspectionRestrictBasicAuthnToOwnTokens == null) introspectionRestrictBasicAuthnToOwnTokens = false;
-        return introspectionRestrictBasicAuthnToOwnTokens;
-    }
-
-    public void setIntrospectionRestrictBasicAuthnToOwnTokens(Boolean introspectionRestrictBasicAuthnToOwnTokens) {
-        this.introspectionRestrictBasicAuthnToOwnTokens = introspectionRestrictBasicAuthnToOwnTokens;
-    }
-
     public Boolean getUmaRptAsJwt() {
         return umaRptAsJwt;
     }
 
     public void setUmaRptAsJwt(Boolean umaRptAsJwt) {
         this.umaRptAsJwt = umaRptAsJwt;
-    }
-
-    public Boolean getForceRopcInAuthorizationEndpoint() {
-        if (forceRopcInAuthorizationEndpoint == null) forceRopcInAuthorizationEndpoint = false;
-        return forceRopcInAuthorizationEndpoint;
-    }
-
-    public void setForceRopcInAuthorizationEndpoint(Boolean forceRopcInAuthorizationEndpoint) {
-        this.forceRopcInAuthorizationEndpoint = forceRopcInAuthorizationEndpoint;
     }
 
     public Boolean getSessionAsJwt() {
@@ -971,26 +853,6 @@ public class AppConfiguration implements Configuration {
         this.subjectTypesSupported = subjectTypesSupported;
     }
 
-    public String getAuthorizationChallengeDefaultAcr() {
-        if (authorizationChallengeDefaultAcr == null) authorizationChallengeDefaultAcr = DEFAULT_AUTHORIZATION_CHALLENGE_ACR;
-        return authorizationChallengeDefaultAcr;
-    }
-
-    public AppConfiguration setAuthorizationChallengeDefaultAcr(String authorizationChallengeDefaultAcr) {
-        this.authorizationChallengeDefaultAcr = authorizationChallengeDefaultAcr;
-        return this;
-    }
-
-    public Boolean getAuthorizationChallengeShouldGenerateSession() {
-        if (authorizationChallengeShouldGenerateSession == null) authorizationChallengeShouldGenerateSession = false;
-        return authorizationChallengeShouldGenerateSession;
-    }
-
-    public AppConfiguration setAuthorizationChallengeShouldGenerateSession(Boolean authorizationChallengeShouldGenerateSession) {
-        this.authorizationChallengeShouldGenerateSession = authorizationChallengeShouldGenerateSession;
-        return this;
-    }
-
     public String getDefaultSubjectType() {
         return defaultSubjectType;
     }
@@ -1000,21 +862,12 @@ public class AppConfiguration implements Configuration {
     }
 
     public Boolean getStatEnabled() {
-        if (statEnabled == null) statEnabled = true;
+        if (statEnabled == null) statEnabled = false;
         return statEnabled;
     }
 
     public void setStatEnabled(Boolean statEnabled) {
         this.statEnabled = statEnabled;
-    }
-
-    public String getStatAuthorizationScope() {
-        if (statAuthorizationScope == null) statAuthorizationScope = DEFAULT_STAT_SCOPE;
-        return statAuthorizationScope;
-    }
-
-    public void setStatAuthorizationScope(String statAuthorizationScope) {
-        this.statAuthorizationScope = statAuthorizationScope;
     }
 
     public int getStatWebServiceIntervalLimitInSeconds() {
@@ -1031,6 +884,14 @@ public class AppConfiguration implements Configuration {
 
     public void setStatTimerIntervalInSeconds(int statTimerIntervalInSeconds) {
         this.statTimerIntervalInSeconds = statTimerIntervalInSeconds;
+    }
+
+    public String getStatNodeId() {
+        return statNodeId;
+    }
+
+    public void setStatNodeId(String statNodeId) {
+        this.statNodeId = statNodeId;
     }
 
     public List<String> getUserInfoSigningAlgValuesSupported() {
@@ -1300,15 +1161,6 @@ public class AppConfiguration implements Configuration {
         this.umaPctLifetime = umaPctLifetime;
     }
 
-    public Boolean getAllowSpontaneousScopes() {
-        if (allowSpontaneousScopes == null) allowSpontaneousScopes = true;
-        return allowSpontaneousScopes;
-    }
-
-    public void setAllowSpontaneousScopes(Boolean allowSpontaneousScopes) {
-        this.allowSpontaneousScopes = allowSpontaneousScopes;
-    }
-
     public int getSpontaneousScopeLifetime() {
         return spontaneousScopeLifetime;
     }
@@ -1331,6 +1183,17 @@ public class AppConfiguration implements Configuration {
 
     public void setCleanServiceBatchChunkSize(int cleanServiceBatchChunkSize) {
         this.cleanServiceBatchChunkSize = cleanServiceBatchChunkSize;
+    }
+
+    public List<String> getCleanServiceBaseDns() {
+        if (cleanServiceBaseDns == null) {
+            cleanServiceBaseDns = Lists.newArrayList();
+        }
+        return cleanServiceBaseDns;
+    }
+
+    public void setCleanServiceBaseDns(List<String> cleanServiceBaseDns) {
+        this.cleanServiceBaseDns = cleanServiceBaseDns;
     }
 
     public Boolean getKeyRegenerationEnabled() {
@@ -1420,15 +1283,6 @@ public class AppConfiguration implements Configuration {
 
     public void setDynamicRegistrationScopesParamEnabled(Boolean dynamicRegistrationScopesParamEnabled) {
         this.dynamicRegistrationScopesParamEnabled = dynamicRegistrationScopesParamEnabled;
-    }
-
-    public Boolean getDynamicRegistrationDisableFallbackScopesAssigning() {
-        if (dynamicRegistrationDisableFallbackScopesAssigning == null) dynamicRegistrationDisableFallbackScopesAssigning = false;
-        return dynamicRegistrationDisableFallbackScopesAssigning;
-    }
-
-    public void setDynamicRegistrationDisableFallbackScopesAssigning(Boolean dynamicRegistrationDisableFallbackScopesAssigning) {
-        this.dynamicRegistrationDisableFallbackScopesAssigning = dynamicRegistrationDisableFallbackScopesAssigning;
     }
 
     public Boolean getPersistIdTokenInLdap() {
@@ -1565,6 +1419,14 @@ public class AppConfiguration implements Configuration {
 
     public void setSessionIdRequestParameterEnabled(Boolean sessionIdRequestParameterEnabled) {
         this.sessionIdRequestParameterEnabled = sessionIdRequestParameterEnabled;
+    }
+
+    public Boolean getSessionIdEnabled() {
+        return sessionIdEnabled;
+    }
+
+    public void setSessionIdEnabled(Boolean p_sessionIdEnabled) {
+        sessionIdEnabled = p_sessionIdEnabled;
     }
 
     public int getConfigurationUpdateInterval() {
@@ -1990,15 +1852,7 @@ public class AppConfiguration implements Configuration {
 		this.keepAuthenticatorAttributesOnAcrChange = keepAuthenticatorAttributesOnAcrChange;
 	}
 
-    public Boolean getDisableAuthnForMaxAgeZero() {
-        return disableAuthnForMaxAgeZero;
-    }
-
-    public void setDisableAuthnForMaxAgeZero(Boolean disableAuthnForMaxAgeZero) {
-        this.disableAuthnForMaxAgeZero = disableAuthnForMaxAgeZero;
-    }
-
-    public String getBackchannelClientId() {
+	public String getBackchannelClientId() {
         return backchannelClientId;
     }
 
@@ -2180,15 +2034,6 @@ public class AppConfiguration implements Configuration {
         this.clientRegDefaultToCodeFlowWithRefresh = clientRegDefaultToCodeFlowWithRefresh;
     }
 
-    public Boolean getGrantTypesAndResponseTypesAutofixEnabled() {
-        if (grantTypesAndResponseTypesAutofixEnabled == null) grantTypesAndResponseTypesAutofixEnabled = false;
-        return grantTypesAndResponseTypesAutofixEnabled;
-    }
-
-    public void setGrantTypesAndResponseTypesAutofixEnabled(Boolean grantTypesAndResponseTypesAutofixEnabled) {
-        this.grantTypesAndResponseTypesAutofixEnabled = grantTypesAndResponseTypesAutofixEnabled;
-    }
-
     public String getDeviceAuthzEndpoint() {
         return deviceAuthzEndpoint;
     }
@@ -2232,46 +2077,12 @@ public class AppConfiguration implements Configuration {
         this.cibaEnabled = cibaEnabled;
     }
 
-    public List<String> getRequestUriBlockList() {
-        if (requestUriBlockList == null) requestUriBlockList = Lists.newArrayList();
-        return requestUriBlockList;
-    }
-
-    public void setRequestUriBlockList(List<String> requestUriBlockList) {
-        this.requestUriBlockList = requestUriBlockList;
-    }
-
     public Boolean getRequestUriHashVerificationEnabled() {
         return requestUriHashVerificationEnabled != null ? requestUriHashVerificationEnabled : false;
     }
 
     public void setRequestUriHashVerificationEnabled(Boolean requestUriHashVerificationEnabled) {
         this.requestUriHashVerificationEnabled = requestUriHashVerificationEnabled;
-    }
-
-    public Boolean getReturn200OnClientRegistration() {
-        return return200OnClientRegistration;
-    }
-
-    public void setReturn200OnClientRegistration(Boolean return200OnClientRegistration) {
-        this.return200OnClientRegistration = return200OnClientRegistration;
-    }
-
-    public Map<String, String> getDateFormatterPatterns() {
-        return dateFormatterPatterns;
-    }
-
-    public void setDateFormatterPatterns(Map<String, String> dateFormatterPatterns) {
-        this.dateFormatterPatterns = dateFormatterPatterns;
-    }
-
-    public Boolean isAllowBlankValuesInDiscoveryResponse() {
-        if (allowBlankValuesInDiscoveryResponse == null) allowBlankValuesInDiscoveryResponse = false;
-        return allowBlankValuesInDiscoveryResponse;
-    }
-
-    public void setAllowBlankValuesInDiscoveryResponse(Boolean allowBlankValuesInDiscoveryResponse) {
-        this.allowBlankValuesInDiscoveryResponse = allowBlankValuesInDiscoveryResponse;
     }
 
 	public Boolean isSkipAuthenticationFilterOptionsMethod() {
@@ -2281,14 +2092,6 @@ public class AppConfiguration implements Configuration {
 
 	public void setSkipAuthenticationFilterOptionsMethod(Boolean skipAuthenticationFilterOptionsMethod) {
 		this.skipAuthenticationFilterOptionsMethod = skipAuthenticationFilterOptionsMethod;
-	}
-
-	public ConnectionServiceConfiguration getConnectionServiceConfiguration() {
-		return connectionServiceConfiguration;
-	}
-
-	public void setConnectionServiceConfiguration(ConnectionServiceConfiguration connectionServiceConfiguration) {
-		this.connectionServiceConfiguration = connectionServiceConfiguration;
 	}
 
 }

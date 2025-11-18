@@ -11,15 +11,16 @@ import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
 import org.gluu.oxauth.model.common.DeviceAuthorizationCacheControl;
 import org.gluu.oxauth.model.common.DeviceAuthorizationStatus;
 import org.gluu.oxauth.model.common.GrantType;
+import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.service.CacheService;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -32,7 +33,8 @@ import java.util.Map;
 /**
  * Service used to process data related to device code grant type.
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class DeviceAuthorizationService implements Serializable {
 
     public static final String SESSION_ATTEMPTS = "attemps";

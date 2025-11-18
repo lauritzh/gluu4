@@ -6,23 +6,13 @@
 
 package org.gluu.oxauth.model.jws;
 
-import java.io.UnsupportedEncodingException;
-import java.security.AlgorithmParameters;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
-import java.security.spec.ECPoint;
-import java.security.spec.ECPrivateKeySpec;
-import java.security.spec.ECPublicKeySpec;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.impl.ECDSA;
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.bouncycastle.jce.spec.ECPrivateKeySpec;
+import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.math.ec.ECPoint;
 import org.gluu.oxauth.model.crypto.Certificate;
 import org.gluu.oxauth.model.crypto.signature.AlgorithmFamily;
 import org.gluu.oxauth.model.crypto.signature.ECDSAPrivateKey;
@@ -30,10 +20,10 @@ import org.gluu.oxauth.model.crypto.signature.ECDSAPublicKey;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.util.Base64Util;
 import org.gluu.oxauth.model.util.Util;
-import org.gluu.util.security.SecurityProviderUtility;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.crypto.impl.ECDSA;
+import java.io.UnsupportedEncodingException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 
 /**
  * @author Javier Rojas Blum
@@ -72,16 +62,13 @@ public class ECDSASigner extends AbstractJwsSigner {
         }
 
         try {
-            AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC", SecurityProviderUtility.getBCProvider());
-            parameters.init(new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName()));
-            ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
+            ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(getSignatureAlgorithm().getCurve().getName());
+            ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecSpec);
 
-            ECPrivateKeySpec privateKeySpec = new ECPrivateKeySpec(ecdsaPrivateKey.getD(), ecParameters);
-
-            KeyFactory keyFactory = KeyFactory.getInstance("EC", SecurityProviderUtility.getBCProvider());
+            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
             PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
 
-            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), SecurityProviderUtility.getBCProvider());
+            Signature signer = Signature.getInstance(getSignatureAlgorithm().getAlgorithm(), "BC");
             signer.initSign(privateKey);
             signer.update(signingInput.getBytes(Util.UTF8_STRING_ENCODING));
 
@@ -97,6 +84,8 @@ public class ECDSASigner extends AbstractJwsSigner {
         } catch (InvalidKeyException e) {
             throw new SignatureException(e);
         } catch (NoSuchAlgorithmException e) {
+            throw new SignatureException(e);
+        } catch (NoSuchProviderException e) {
             throw new SignatureException(e);
         } catch (UnsupportedEncodingException e) {
             throw new SignatureException(e);
@@ -118,15 +107,19 @@ public class ECDSASigner extends AbstractJwsSigner {
         }
 
         String algorithm;
+        String curve;
         switch (getSignatureAlgorithm()) {
             case ES256:
                 algorithm = "SHA256WITHECDSA";
+                curve = "P-256";
                 break;
             case ES384:
                 algorithm = "SHA384WITHECDSA";
+                curve = "P-384";
                 break;
             case ES512:
                 algorithm = "SHA512WITHECDSA";
+                curve = "P-521";
                 break;
             default:
                 throw new SignatureException("Unsupported signature algorithm");
@@ -139,17 +132,15 @@ public class ECDSASigner extends AbstractJwsSigner {
             }
             byte[] sigInBytes = signingInput.getBytes(Util.UTF8_STRING_ENCODING);
 
-            AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC", SecurityProviderUtility.getBCProvider());
-            parameters.init(new ECGenParameterSpec(getSignatureAlgorithm().getCurve().getName()));
-            ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
+            ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(curve);
+            ECPoint pointQ = ecSpec.getCurve().createPoint(ecdsaPublicKey.getX(), ecdsaPublicKey.getY());
 
-            ECPoint pubPoint = new ECPoint(ecdsaPublicKey.getX(), ecdsaPublicKey.getY());
-            KeySpec publicKeySpec = new ECPublicKeySpec(pubPoint, ecParameters);
+            ECPublicKeySpec publicKeySpec = new ECPublicKeySpec(pointQ, ecSpec);
 
-            KeyFactory keyFactory = KeyFactory.getInstance("EC", SecurityProviderUtility.getBCProvider());
+            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", "BC");
             PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
 
-            Signature sig = Signature.getInstance(algorithm, SecurityProviderUtility.getBCProvider());
+            Signature sig = Signature.getInstance(algorithm, "BC");
             sig.initVerify(publicKey);
             sig.update(sigInBytes);
             return sig.verify(sigBytes);
@@ -158,6 +149,8 @@ public class ECDSASigner extends AbstractJwsSigner {
         } catch (InvalidKeyException e) {
             throw new SignatureException(e);
         } catch (NoSuchAlgorithmException e) {
+            throw new SignatureException(e);
+        } catch (NoSuchProviderException e) {
             throw new SignatureException(e);
         } catch (UnsupportedEncodingException e) {
             throw new SignatureException(e);

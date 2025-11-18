@@ -5,7 +5,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.service.common.EncryptionService;
@@ -24,14 +26,13 @@ import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 
-import javax.enterprise.context.ApplicationScoped;
-
 /**
  * Provides operations to send AWS SNS push messages
  *
  * @author Yuriy Movchan Date: 08/31/2017
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class PushSnsService {
 
 	@Inject

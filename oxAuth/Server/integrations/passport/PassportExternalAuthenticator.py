@@ -26,7 +26,6 @@ from java.util import ArrayList, Arrays, Collections
 
 from javax.faces.application import FacesMessage
 from javax.faces.context import FacesContext
-from java.lang import String
 
 import json
 import sys
@@ -50,7 +49,6 @@ class PersonAuthentication(PersonAuthenticationType):
         if success:
             self.providerKey = "provider"
             self.customAuthzParameter = self.getCustomAuthzParameter(configurationAttributes.get("authz_req_param_provider"))
-            self.stateAuthzParameters = self.getStateAuthzParameter(configurationAttributes.get("authz_req_state_param"))
             self.passportDN = self.getPassportConfigDN()
             print "Passport. init. Initialization success"
         else:
@@ -181,7 +179,7 @@ class PersonAuthentication(PersonAuthenticationType):
             #this param could have been set previously in authenticate step if current step is being retried
             provider = identity.getWorkingParameter("selectedProvider")
             if provider != None:
-                url = self.getPassportRedirectUrl(provider, sessionAttributes, identity)
+                url = self.getPassportRedirectUrl(provider)
                 identity.setWorkingParameter("selectedProvider", None)
 
             elif providerParam != None:
@@ -196,7 +194,7 @@ class PersonAuthentication(PersonAuthenticationType):
                     elif not provider in self.registeredProviders:
                         print "Passport. prepareForStep. Provider '%s' not part of known configured IDPs/OPs" % provider
                     else:
-                        url = self.getPassportRedirectUrl(provider, sessionAttributes, identity)
+                        url = self.getPassportRedirectUrl(provider)
 
             if url == None:
                 print "Passport. prepareForStep. A page to manually select an identity provider will be shown"
@@ -332,21 +330,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         return customAuthzParameter
 
-    def getStateAuthzParameter(self, simpleStateProperty):
-        stateAuthzParameters = None
-        if simpleStateProperty != None:
-            propValueString = simpleStateProperty.getValue2()
-            if StringHelper.isNotEmpty(propValueString):
-                stateAuthzParameters = json.loads(propValueString)
-
-        if stateAuthzParameters == None:
-            print "Passport. getStateAuthzParameter. No custom state param for OIDC authz request in script properties"        
-        else:
-            print "Passport. getStateAuthzParameter. Custom state param for OIDC authz request in script properties: %s" % json.dumps(stateAuthzParameters)
-
-        return stateAuthzParameters
-
-    # Configuration parsing
+# Configuration parsing
 
     def getPassportConfigDN(self):
 
@@ -424,7 +408,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return provider
 
 
-    def getPassportRedirectUrl(self, provider, sessionAttributes, identity):
+    def getPassportRedirectUrl(self, provider):
 
         # provider is assumed to exist in self.registeredProviders
         url = None
@@ -444,20 +428,7 @@ class PersonAuthentication(PersonAuthenticationType):
             print "Passport. getPassportRedirectUrl. Response was %s" % httpResponse.getStatusLine().getStatusCode()
 
             tokenObj = json.loads(response)
-            if self.stateAuthzParameters == None:
-                url = "/passport/auth/%s/%s" % (provider, tokenObj["token_"])
-            else:
-                for key, value in self.stateAuthzParameters.items():
-                    queryParamValue = sessionAttributes.get(key) or identity.getWorkingParameter(key)
-                    if queryParamValue != None:
-                        print "Passport. getPassportRedirectUrl. updating state %s. Found in query param. New value is %s" % (key, queryParamValue)
-                        self.stateAuthzParameters[key] = queryParamValue
-
-                self.stateAuthzParameters['date'] = str(datetime.datetime.now())
-                stateString = Base64Util.base64urlencode(String(json.dumps(self.stateAuthzParameters)).getBytes())
-
-                print "Passport. getPassportRedirectUrl. State base64 encoded %s" % stateString
-                url = "/passport/auth/%s/%s/%s" % (provider, tokenObj["token_"], stateString)
+            url = "/passport/auth/%s/%s" % (provider, tokenObj["token_"])
         except:
             print "Passport. getPassportRedirectUrl. Error building redirect URL: ", sys.exc_info()[1]
 

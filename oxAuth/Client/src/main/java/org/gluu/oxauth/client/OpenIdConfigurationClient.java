@@ -9,16 +9,13 @@ package org.gluu.oxauth.client;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.util.Util;
-import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.ClientExecutor;
+import org.jboss.resteasy.client.ClientRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 import static org.gluu.oxauth.model.configuration.ConfigurationResponseClaim.*;
@@ -56,9 +53,8 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
     }
 
     @Deprecated
-    public OpenIdConfigurationResponse execOpenIdConfiguration(ClientHttpEngine engine) throws IOException {
-    	resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
-    	webTarget = resteasyClient.target(getUrl());
+    public OpenIdConfigurationResponse execOpenIdConfiguration(ClientExecutor executor) throws IOException {
+        this.clientRequest = new ClientRequest(getUrl(), executor);
 
         return _execOpenIdConfiguration();
     }
@@ -71,21 +67,22 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
     private OpenIdConfigurationResponse _execOpenIdConfiguration() throws IOException {
         setRequest(new OpenIdConfigurationRequest());
 
+        // Prepare request parameters
+        clientRequest.accept(mediaTypes);
+        clientRequest.setHttpMethod(getHttpMethod());
+
+        // Support AWS LB
+        clientRequest.followRedirects(true);
+
         // Call REST Service and handle response
         String entity = null;
         try {
-            requestClientResponse(webTarget);
-
+            clientResponse = clientRequest.get(String.class);
             int status = clientResponse.getStatus();
-            // Support AWS LB which requires follow redirect
-            if (status == Response.Status.FOUND.getStatusCode()) {
-            	webTarget = resteasyClient.target(clientResponse.getLocation());
-                requestClientResponse(webTarget);
-            }
 
             setResponse(new OpenIdConfigurationResponse(status));
 
-            entity = clientResponse.readEntity(String.class);
+            entity = clientResponse.getEntity(String.class);
             getResponse().setEntity(entity);
             getResponse().setHeaders(clientResponse.getMetadata());
             parse(entity, getResponse());
@@ -94,6 +91,9 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
             if (entity != null) {
             	LOG.error("Invalid JSON: " + entity);
             }
+        } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             LOG.error(e.getMessage(), e); // Unexpected exception.
@@ -103,18 +103,6 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
 
         return getResponse();
     }
-
-	private void requestClientResponse(WebTarget webTarget) {
-        Builder clientRequest = webTarget.request();
-
-        applyCookies(clientRequest);
-
-		// Prepare request parameters
-		clientRequest.accept(mediaTypes);
-//            clientRequest.setHttpMethod(getHttpMethod());
-
-		clientResponse = clientRequest.buildGet().invoke();
-	}
 
     public static void parse(String json, OpenIdConfigurationResponse response) {
         if (StringUtils.isBlank(json)) {
@@ -171,7 +159,6 @@ public class OpenIdConfigurationClient extends BaseClient<OpenIdConfigurationReq
         if (jsonObj.has(SCOPE_TO_CLAIMS_MAPPING)) {
             response.setScopeToClaimsMapping(OpenIdConfigurationResponse.parseScopeToClaimsMapping(jsonObj.getJSONArray(SCOPE_TO_CLAIMS_MAPPING)));
         }
-        response.setAuthorizationChallengeEndpoint(jsonObj.optString(AUTHORIZATION_CHALLENGE_ENDPOINT, null));
         Util.addToListIfHas(response.getScopesSupported(), jsonObj, SCOPES_SUPPORTED);
         Util.addToListIfHas(response.getResponseTypesSupported(), jsonObj, RESPONSE_TYPES_SUPPORTED);
         Util.addToListIfHas(response.getResponseModesSupported(), jsonObj, RESPONSE_MODES_SUPPORTED);

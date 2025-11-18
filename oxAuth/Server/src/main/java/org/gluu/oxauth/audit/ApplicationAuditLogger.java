@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -33,7 +34,9 @@ import org.slf4j.Logger;
 
 import com.google.common.base.Objects;
 
+@Named
 @ApplicationScoped
+@DependsOn("appInitializer")
 public class ApplicationAuditLogger {
 
 	@Inject

@@ -6,19 +6,10 @@
 
 package org.gluu.oxauth.client;
 
-import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MediaType;
-
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.gluu.oxauth.model.common.AuthorizationMethod;
 import org.gluu.oxauth.model.crypto.OxAuthCryptoProvider;
 import org.gluu.oxauth.model.jwe.Jwe;
@@ -26,9 +17,13 @@ import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.userinfo.UserInfoErrorResponseType;
 import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.model.util.Util;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Encapsulates functionality to make user info request calls to an authorization server via REST Services.
@@ -37,8 +32,6 @@ import org.json.JSONObject;
  * @version December 26, 2016
  */
 public class UserInfoClient extends BaseClient<UserInfoRequest, UserInfoResponse> {
-
-    private static final Logger LOG = Logger.getLogger(UserInfoClient.class);
 
     private String sharedKey;
     private PrivateKey privateKey;
@@ -84,60 +77,43 @@ public class UserInfoClient extends BaseClient<UserInfoRequest, UserInfoResponse
     public UserInfoResponse exec() {
         // Prepare request parameters
         initClientRequest();
+        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+        clientRequest.setHttpMethod(getHttpMethod());
 
-        Builder clientRequest = null;
         if (getRequest().getAuthorizationMethod() == null
                 || getRequest().getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD) {
             if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-            	clientRequest = webTarget.request();
                 clientRequest.header("Authorization", "Bearer " + getRequest().getAccessToken());
             }
         } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER) {
             if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-                requestForm.param("access_token", getRequest().getAccessToken());
+                clientRequest.formParameter("access_token", getRequest().getAccessToken());
             }
         } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
             if (StringUtils.isNotBlank(getRequest().getAccessToken())) {
-            	addReqParam("access_token", getRequest().getAccessToken().toString());
+                clientRequest.queryParameter("access_token", getRequest().getAccessToken());
             }
         }
-
-        if (clientRequest == null) {
-        	clientRequest = webTarget.request();
-        }
-
-        clientRequest.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
-//      clientRequest.setHttpMethod(getHttpMethod());
 
         // Call REST Service and handle response
         try {
             if (getRequest().getAuthorizationMethod() == null
                     || getRequest().getAuthorizationMethod() == AuthorizationMethod.AUTHORIZATION_REQUEST_HEADER_FIELD
                     || getRequest().getAuthorizationMethod() == AuthorizationMethod.URL_QUERY_PARAMETER) {
-                clientResponse = clientRequest.buildGet().invoke();
+                clientResponse = clientRequest.get(String.class);
             } else if (getRequest().getAuthorizationMethod() == AuthorizationMethod.FORM_ENCODED_BODY_PARAMETER) {
-                clientResponse = clientRequest.buildPost(Entity.form(requestForm)).invoke();
+                clientResponse = clientRequest.post(String.class);
             }
 
             int status = clientResponse.getStatus();
 
             setResponse(new UserInfoResponse(status));
 
-            String entity = clientResponse.readEntity(String.class);
-            if (LOG.isDebugEnabled()) {
-        		LOG.debug("Status code: " + status);
-            	if (entity != null) {
-            		LOG.debug("Content in HEX: " + Hex.encodeHexString(entity.getBytes()));
-            	}
-            }
+            String entity = clientResponse.getEntity(String.class);
             getResponse().setEntity(entity);
             getResponse().setHeaders(clientResponse.getMetadata());
             if (StringUtils.isNotBlank(entity)) {
                 List<Object> contentType = clientResponse.getHeaders().get("Content-Type");
-                if (LOG.isDebugEnabled() && (contentType != null)) {
-                    LOG.debug("Content types: " + contentType);
-                }
-
                 if (contentType != null && contentType.contains("application/jwt")) {
                     String[] jwtParts = entity.split("\\.");
                     if (jwtParts.length == 5) {
@@ -162,10 +138,6 @@ public class UserInfoClient extends BaseClient<UserInfoRequest, UserInfoResponse
                     }
                 } else {
                     try {
-                    	if (LOG.isDebugEnabled()) {
-                    		LOG.debug("Content type in JSON" + entity);
-                    	}
-
                         JSONObject jsonObj = new JSONObject(entity);
 
                         if (jsonObj.has("error")) {

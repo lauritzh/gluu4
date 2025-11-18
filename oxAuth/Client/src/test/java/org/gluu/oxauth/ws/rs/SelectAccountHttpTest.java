@@ -17,6 +17,7 @@ import org.gluu.oxauth.page.LoginPage;
 import org.gluu.oxauth.page.PageConfig;
 import org.gluu.oxauth.page.SelectPage;
 import org.json.JSONArray;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Parameters;
@@ -37,7 +38,7 @@ public class SelectAccountHttpTest extends BaseTest {
 
     @BeforeTest
     public void setUp() {
-        startSelenium();
+        driver = new HtmlUnitDriver(true);
         pageConfig = newPageConfig(driver);
     }
 

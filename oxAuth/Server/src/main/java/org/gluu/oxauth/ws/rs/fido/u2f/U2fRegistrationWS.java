@@ -7,6 +7,7 @@
 package org.gluu.oxauth.ws.rs.fido.u2f;
 
 import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
+import org.gluu.oxauth.model.common.SessionId;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
@@ -17,7 +18,6 @@ import org.gluu.oxauth.model.fido.u2f.exception.RegistrationNotAllowed;
 import org.gluu.oxauth.model.fido.u2f.protocol.RegisterRequestMessage;
 import org.gluu.oxauth.model.fido.u2f.protocol.RegisterResponse;
 import org.gluu.oxauth.model.fido.u2f.protocol.RegisterStatus;
-import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.SessionIdService;
 import org.gluu.oxauth.service.common.UserService;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;

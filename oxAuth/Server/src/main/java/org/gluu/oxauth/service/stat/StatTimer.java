@@ -8,16 +8,20 @@ import org.gluu.service.timer.event.TimerEvent;
 import org.gluu.service.timer.schedule.TimerSchedule;
 import org.slf4j.Logger;
 
+import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
+@DependsOn("appInitializer")
+@Named
 public class StatTimer {
 
     private static final int TIMER_TICK_INTERVAL_IN_SECONDS = 60; // 1 min
@@ -42,6 +46,11 @@ public class StatTimer {
     public void initTimer() {
         log.info("Initializing Stat Service Timer");
 
+        final boolean initialized = statService.init();
+        if (!initialized) {
+            log.error("Failed to initialize Stat Service Timer.");
+            return;
+        }
         this.isActive = new AtomicBoolean(false);
 
         timerEvent.fire(new TimerEvent(new TimerSchedule(TIMER_TICK_INTERVAL_IN_SECONDS, TIMER_TICK_INTERVAL_IN_SECONDS), new StatEvent(), Scheduled.Literal.INSTANCE));

@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gluu.net.InetAddressUtility;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.config.StaticConfiguration;
+import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.stat.Stat;
 import org.gluu.oxauth.model.stat.StatEntry;
 import org.gluu.persist.PersistenceEntryManager;
@@ -13,10 +14,12 @@ import org.gluu.persist.model.base.SimpleBranch;
 import org.slf4j.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -27,6 +30,8 @@ import java.util.concurrent.ConcurrentMap;
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
+@DependsOn("appInitializer")
+@Named
 public class StatService {
 
     // January - 202001, December - 202012
@@ -34,13 +39,11 @@ public class StatService {
     private static final int regwidth = 5;
     private static final int log2m = 15;
 
-    public static final String ACCESS_TOKEN_KEY = "access_token";
-    public static final String ID_TOKEN_KEY = "id_token";
-    public static final String REFRESH_TOKEN_KEY = "refresh_token";
-    public static final String UMA_TOKEN_KEY = "uma_token";
-
     @Inject
     private Logger log;
+
+    @Inject
+    private AppConfiguration appConfiguration;
 
     @Inject
     private PersistenceEntryManager entryManager;
@@ -49,6 +52,7 @@ public class StatService {
     private StaticConfiguration staticConfiguration;
 
     private String nodeId;
+    private String monthlyDn;
     private StatEntry currentEntry;
     private HLL hll;
     private ConcurrentMap<String, Map<String, Long>> tokenCounters;
@@ -62,6 +66,10 @@ public class StatService {
 
     public boolean init() {
         try {
+            if (!appConfiguration.getStatEnabled()) {
+                log.info("Stat Service is not enabled.");
+                return false;
+            }
             log.info("Initializing Stat Service");
             initNodeId();
             if (StringUtils.isBlank(nodeId)) {
@@ -73,10 +81,17 @@ public class StatService {
                 return false;
             }
 
-            prepareMonthlyBranch();
-            setupCurrentEntry();
-            initialized = true;
+            final Date now = new Date();
+            prepareMonthlyBranch(now);
+            if (StringUtils.isBlank(monthlyDn)) {
+                log.error("Failed to initialize stat service. Failed to prepare monthly branch.");
+                return false;
+            }
+            log.trace("Monthly branch created: " + monthlyDn);
+
+            setupCurrentEntry(now);
             log.info("Initialized Stat Service");
+            initialized = true;
             return true;
         } catch (Exception e) {
             log.error("Failed to initialize Stat Service.", e);
@@ -85,114 +100,86 @@ public class StatService {
     }
 
     public void updateStat() {
-        log.trace("updateStat ...  (initialized: {})", initialized);
-
         if (!initialized) {
             return;
         }
 
         log.trace("Started updateStat ...");
 
-        prepareMonthlyBranch();
-        initNodeId();
-        setupCurrentEntry();
+        Date now = new Date();
+        prepareMonthlyBranch(now);
+        if (StringUtils.isBlank(monthlyDn)) {
+            log.error("Failed to update stat. Unable to prepare monthly branch.");
+            return;
+        }
+
+        setupCurrentEntry(now);
 
         final Stat stat = currentEntry.getStat();
         stat.setTokenCountPerGrantType(tokenCounters);
-        stat.setLastUpdatedAt(System.currentTimeMillis());
+        stat.setLastUpdatedAt(now.getTime());
 
-        synchronized (hll) {
-            currentEntry.setUserHllData(Base64.getEncoder().encodeToString(hll.toBytes()));
-        }
-
-        log.trace("Updating entry dn {}", currentEntry.getDn());
+        currentEntry.setUserHllData(new String(hll.toBytes(), StandardCharsets.UTF_8));
         entryManager.merge(currentEntry);
 
         log.trace("Finished updateStat.");
     }
 
-    public static String currentMonth() {
-        return PERIOD_DATE_FORMAT.format(new Date());
-    }
-
-    public String currentMonthDn() {
-        final String baseDn = getBaseDn();
-        final String month = currentMonth();
-        return String.format("ou=%s,%s", month, baseDn);
-    }
-
     private void setupCurrentEntry() {
-        String currentMonth = currentMonth();
-        String dn = String.format("jansId=%s,%s", nodeId, currentMonthDn()); // jansId=<id>,ou=yyyyMM,ou=stat,o=gluu
-        log.trace("Stat entry dn: {}", dn);
+        setupCurrentEntry(new Date());
+    }
 
-        final boolean sameMonth = currentEntry != null && currentMonth.equals(currentEntry.getStat().getMonth());
-        if (sameMonth) {
-            log.trace("Same month {}", currentMonth);
+    private void setupCurrentEntry(Date now) {
+        final String month = PERIOD_DATE_FORMAT.format(now);
+        String dn = String.format("jansId=%s,%s", nodeId, monthlyDn); // jansId=<id>,ou=yyyyMM,ou=stat,o=gluu
+
+        if (currentEntry != null && month.equals(currentEntry.getStat().getMonth())) {
             return;
-        } else {
-            log.trace("Different month {}", currentMonth);
-            currentEntry = null; // set current entry to null to force re-fetch it from DB or create new one
         }
 
         try {
             StatEntry entryFromPersistence = entryManager.find(StatEntry.class, dn);
-            if (entryFromPersistence != null && currentMonth.equals(entryFromPersistence.getStat().getMonth())) {
-                hll = HLL.fromBytes(Base64.getDecoder().decode(entryFromPersistence.getUserHllData()));
+            if (entryFromPersistence != null && month.equals(entryFromPersistence.getStat().getMonth())) {
+                hll = HLL.fromBytes(entryFromPersistence.getUserHllData().getBytes(StandardCharsets.UTF_8));
                 tokenCounters = new ConcurrentHashMap<>(entryFromPersistence.getStat().getTokenCountPerGrantType());
                 currentEntry = entryFromPersistence;
-                log.trace("Stat entry {} loaded.", dn);
+                log.trace("Stat entry loaded.");
                 return;
-            } else {
-                log.trace("Month does not match. Current month {}, entry month {}, entry dn: {}", currentMonth, entryFromPersistence != null ? entryFromPersistence.getStat().getMonth() : "", dn);
             }
         } catch (EntryPersistenceException e) {
-            log.trace("Stat entry is not found in persistence. dn: " + dn, e);
+            log.trace("Stat entry is not found in persistence.");
         }
-
-        log.trace("Current entry before nullity check, dn {}", currentEntry != null ? currentEntry.getDn() : "null");
 
         if (currentEntry == null) {
             log.trace("Creating stat entry ...");
-            hll = newHll();
+            hll = new HLL(log2m, regwidth);
             tokenCounters = new ConcurrentHashMap<>();
 
             currentEntry = new StatEntry();
             currentEntry.setId(nodeId);
             currentEntry.setDn(dn);
-            currentEntry.setUserHllData(Base64.getEncoder().encodeToString(hll.toBytes()));
+            currentEntry.setUserHllData(new String(hll.toBytes(), StandardCharsets.UTF_8));
             currentEntry.getStat().setMonth(PERIOD_DATE_FORMAT.format(new Date()));
             entryManager.persist(currentEntry);
-            log.trace("Created stat entry. nodeId:" + nodeId);
+            log.trace("Created stat entry.");
         }
-
-        log.trace("Current entry dn {}", currentEntry != null ? currentEntry.getDn() : "null");
-    }
-
-    public HLL newHll() {
-        return new HLL(log2m, regwidth);
     }
 
     private void initNodeId() {
-        final String currentMonth = currentMonth();
-        if (StringUtils.isNotBlank(nodeId) && nodeId.endsWith(currentMonth)) {
-            log.trace("NodeId is not blank: {}", nodeId);
+        if (StringUtils.isNotBlank(nodeId)) {
             return;
         }
 
         try {
-            nodeId = InetAddressUtility.getMACAddressOrNull() + "_" + currentMonth;
+            nodeId = InetAddressUtility.getMACAddressOrNull();
             if (StringUtils.isNotBlank(nodeId)) {
-                log.trace("NodeId created: " + nodeId);
                 return;
             }
 
-            nodeId = UUID.randomUUID().toString() + "_" + currentMonth;
-            log.trace("NodeId created: " + nodeId);
+            nodeId = UUID.randomUUID().toString();
         } catch (Exception e) {
             log.error("Failed to identify nodeId.", e);
-            nodeId = UUID.randomUUID().toString() + "_" + currentMonth;
-            log.trace("NodeId created: " + nodeId);
+            nodeId = UUID.randomUUID().toString();
         }
     }
 
@@ -204,23 +191,23 @@ public class StatService {
         return staticConfiguration.getBaseDn().getStat();
     }
 
-    private void prepareMonthlyBranch() {
-        if (!entryManager.hasBranchesSupport(getBaseDn())) {
-            log.trace("Monthly branch creation is skipped. DB does not support branches.");
+    private void prepareMonthlyBranch(Date now) {
+        final String baseDn = getBaseDn();
+        if (!entryManager.hasBranchesSupport(baseDn)) {
             return;
         }
 
-        String monthlyDn = currentMonthDn();
+        final String month = PERIOD_DATE_FORMAT.format(now); // yyyyMM
+        monthlyDn = String.format("ou=%s,%s", month, baseDn); // ou=yyyyMM,ou=stat,o=gluu
 
         try {
             if (!entryManager.contains(monthlyDn, SimpleBranch.class)) { // Create ou=yyyyMM branch if needed
-                createBranch(monthlyDn, currentMonth());
-                log.info("Monthly branch is created: {}", monthlyDn);
+                createBranch(monthlyDn, month);
             }
         } catch (Exception e) {
-            final String msg = "Failed to prepare monthly branch: " + monthlyDn;
-            log.error(msg, e);
-            throw new RuntimeException(msg, e);
+            log.error("Failed to prepare monthly branch: " + monthlyDn, e);
+            monthlyDn = null;
+            throw e;
         }
     }
 
@@ -248,31 +235,28 @@ public class StatService {
             return;
         }
 
-        final int hash = id.hashCode();
         try {
             setupCurrentEntry();
-            synchronized (hll) {
-                hll.addRaw(hash);
-            }
+            hll.addRaw(id.hashCode());
         } catch (Exception e) {
-            log.error("Failed to report active user, id: " + id + ", hash: " + hash, e);
+            log.error("Failed to report active user.", e);
         }
     }
 
     public void reportAccessToken(GrantType grantType) {
-        reportToken(grantType, ACCESS_TOKEN_KEY);
+        reportToken(grantType, "access_token");
     }
 
     public void reportIdToken(GrantType grantType) {
-        reportToken(grantType, ID_TOKEN_KEY);
+        reportToken(grantType, "id_token");
     }
 
     public void reportRefreshToken(GrantType grantType) {
-        reportToken(grantType, REFRESH_TOKEN_KEY);
+        reportToken(grantType, "refresh_token");
     }
 
     public void reportUmaToken(GrantType grantType) {
-        reportToken(grantType, UMA_TOKEN_KEY);
+        reportToken(grantType, "uma_token");
     }
 
 
@@ -300,5 +284,6 @@ public class StatService {
         }
 
         tokenMap.put(tokenKey, counter);
+
     }
 }

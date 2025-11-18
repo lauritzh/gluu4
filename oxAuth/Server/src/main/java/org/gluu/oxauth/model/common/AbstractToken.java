@@ -9,13 +9,13 @@ package org.gluu.oxauth.model.common;
 import org.gluu.oxauth.model.crypto.signature.SignatureAlgorithm;
 import org.gluu.oxauth.model.token.HandleTokenFactory;
 import org.gluu.oxauth.model.util.HashUtil;
+import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.Expiration;
 import org.gluu.persist.model.base.Deletable;
 
 import java.io.Serializable;
-import java.time.Duration;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +48,7 @@ public abstract class AbstractToken implements Serializable, Deletable {
     private boolean revoked;
     private boolean expired;
 
+    @AttributeName(name = "amr")
     private String authMode;
 
     @AttributeName(name = "ssnId")
@@ -104,7 +105,10 @@ public abstract class AbstractToken implements Serializable, Deletable {
     }
 
     public void resetTtlFromExpirationDate() {
-        this.ttl = (int) Duration.between(new Date().toInstant(), getExpirationDate().toInstant()).getSeconds();
+        final Integer ttl = Util.getNumberOfSecondFromNow(getExpirationDate());
+        if (ttl != null) {
+            this.ttl = ttl;
+        }
     }
 
     /**

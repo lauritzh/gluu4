@@ -44,9 +44,10 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.gluu.net.SslDefaultHttpClient;
-import org.gluu.model.net.HttpServiceResponse;
+import org.gluu.oxauth.model.net.HttpServiceResponse;
 import org.gluu.util.StringHelper;
 import org.gluu.util.Util;
+import org.jboss.resteasy.util.HttpResponseCodes;
 import org.slf4j.Logger;
 /**
  * Provides operations with http requests
@@ -55,7 +56,6 @@ import org.slf4j.Logger;
  */
 @ApplicationScoped
 @Named
-@Deprecated
 public class HttpService implements Serializable {
 
 	private static final long serialVersionUID = -2398422090669045605L;
@@ -191,7 +191,7 @@ public class HttpService implements Serializable {
 	}
 
 	public byte[] getResponseContent(HttpResponse httpResponse) throws IOException {
-        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)) {
+        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpResponseCodes.SC_OK)) {
         	return null;
         }
 
@@ -210,7 +210,7 @@ public class HttpService implements Serializable {
 	}
 
 	public void consume(HttpResponse httpResponse) throws IOException {
-        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)) {
+        if ((httpResponse == null) || (httpResponse.getStatusLine().getStatusCode() != HttpResponseCodes.SC_OK)) {
         	return;
         }
 

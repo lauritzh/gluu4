@@ -35,12 +35,6 @@
         </classes>
     </test>
 
-    <test name="Authorization Challenge Endpoint HTTP Test test" enabled="true">
-        <classes>
-            <class name="org.gluu.oxauth.ws.rs.AuthorizationChallengeHttpTest"/>
-        </classes>
-    </test>
-
     <!-- Access Token as JWT -->
     <test name="Access Token as JWT test (HTTP)" enabled="true">
         <classes>
@@ -856,5 +850,4 @@
             <class name="org.gluu.oxauth.ws.rs.deviceauthz.DeviceAuthzFlowHttpTest"></class>
         </classes>
     </test>
-
 </suite>

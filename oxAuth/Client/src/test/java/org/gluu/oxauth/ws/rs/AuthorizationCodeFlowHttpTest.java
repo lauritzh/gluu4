@@ -6,34 +6,8 @@
 
 package org.gluu.oxauth.ws.rs;
 
-import static org.gluu.oxauth.model.register.RegisterRequestParam.APPLICATION_TYPE;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.CLIENT_NAME;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.ID_TOKEN_SIGNED_RESPONSE_ALG;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.REDIRECT_URIS;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.RESPONSE_TYPES;
-import static org.gluu.oxauth.model.register.RegisterRequestParam.SCOPE;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
 import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.Asserter;
-import org.gluu.oxauth.client.AuthorizationRequest;
-import org.gluu.oxauth.client.AuthorizationResponse;
-import org.gluu.oxauth.client.JwkClient;
-import org.gluu.oxauth.client.RegisterClient;
-import org.gluu.oxauth.client.RegisterRequest;
-import org.gluu.oxauth.client.RegisterResponse;
-import org.gluu.oxauth.client.TokenClient;
-import org.gluu.oxauth.client.TokenRequest;
-import org.gluu.oxauth.client.TokenResponse;
-import org.gluu.oxauth.client.UserInfoClient;
-import org.gluu.oxauth.client.UserInfoResponse;
+import org.gluu.oxauth.client.*;
 import org.gluu.oxauth.model.common.AuthenticationMethod;
 import org.gluu.oxauth.model.common.GrantType;
 import org.gluu.oxauth.model.common.ResponseType;
@@ -48,6 +22,13 @@ import org.gluu.oxauth.model.register.ApplicationType;
 import org.gluu.oxauth.model.util.StringUtils;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static org.gluu.oxauth.model.register.RegisterRequestParam.*;
+import static org.testng.Assert.*;
 
 /**
  * Test cases for the authorization code flow (HTTP)
@@ -114,14 +95,14 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
 
         RSAPublicKey publicKey = JwkClient.getRSAPublicKey(
                 jwksUri,
-                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID), clientEngine(true));
+                jwt.getHeader().getClaimAsString(JwtHeaderName.KEY_ID), clientExecutor(true));
         RSASigner rsaSigner = new RSASigner(SignatureAlgorithm.RS256, publicKey);
 
         assertTrue(rsaSigner.validate(jwt));
 
         // 5. Request new access token using the refresh token.
         TokenClient tokenClient2 = new TokenClient(tokenEndpoint);
-        tokenClient2.setExecutor(clientEngine(true));
+        tokenClient2.setExecutor(clientExecutor(true));
         TokenResponse tokenResponse2 = tokenClient2.execRefreshToken(scope, refreshToken, clientId, clientSecret);
 
         showClient(tokenClient2);
@@ -136,7 +117,7 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
 
         // 6. Request user info
         UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
-        userInfoClient.setExecutor(clientEngine(true));
+        userInfoClient.setExecutor(clientExecutor(true));
         UserInfoResponse userInfoResponse = userInfoClient.execUserInfo(accessToken);
 
         showClient(userInfoClient);
@@ -824,73 +805,6 @@ public class AuthorizationCodeFlowHttpTest extends BaseTest {
         assertNotNull(registerResponse.getClientIdIssuedAt());
         assertNotNull(registerResponse.getClientSecretExpiresAt());
         return registerResponse;
-    }
-
-    @Parameters({"userId", "userSecret", "redirectUri"})
-    @Test(enabled = false) // retain claims script has to be enabled and client pre-configured (not avaiable in test suite)
-    public void retainClaimAuthorizationCodeFlow(final String userId, final String userSecret, final String redirectUri) throws Exception {
-        showTitle("authorizationCodeFlow");
-
-        List<ResponseType> responseTypes = Arrays.asList(
-                ResponseType.CODE,
-                ResponseType.ID_TOKEN);
-        List<String> scopes = Arrays.asList("openid", "profile", "address", "email", "phone", "user_name");
-
-        String clientId = "0008-525a95a3-5fe1-4ecf-878c-06f438e3f500";
-        String clientSecret = "V9RKUZOtfk92";//registerResponse.getClientSecret();
-
-        // 2. Request authorization and receive the authorization code.
-        String nonce = UUID.randomUUID().toString();
-        AuthorizationResponse authorizationResponse = requestAuthorization(userId, userSecret, redirectUri, responseTypes, scopes, clientId, nonce);
-
-        String scope = authorizationResponse.getScope();
-        String authorizationCode = authorizationResponse.getCode();
-        String idToken = authorizationResponse.getIdToken();
-
-        // 3. Request access token using the authorization code.
-        TokenRequest tokenRequest = new TokenRequest(GrantType.AUTHORIZATION_CODE);
-        tokenRequest.setCode(authorizationCode);
-        tokenRequest.setRedirectUri(redirectUri);
-        tokenRequest.setAuthUsername(clientId);
-        tokenRequest.setAuthPassword(clientSecret);
-        tokenRequest.setAuthenticationMethod(AuthenticationMethod.CLIENT_SECRET_BASIC);
-
-        TokenClient tokenClient1 = newTokenClient(tokenRequest);
-        tokenClient1.setRequest(tokenRequest);
-        TokenResponse tokenResponse1 = tokenClient1.exec();
-
-        showClient(tokenClient1);
-        assertEquals(tokenResponse1.getStatus(), 200, "Unexpected response code: " + tokenResponse1.getStatus());
-        assertNotNull(tokenResponse1.getEntity(), "The entity is null");
-        assertNotNull(tokenResponse1.getAccessToken(), "The access token is null");
-        assertNotNull(tokenResponse1.getExpiresIn(), "The expires in value is null");
-        assertNotNull(tokenResponse1.getTokenType(), "The token type is null");
-        assertNotNull(tokenResponse1.getRefreshToken(), "The refresh token is null");
-
-        String refreshToken = tokenResponse1.getRefreshToken();
-
-        // 4. Validate id_token
-        Jwt jwt = Jwt.parse(idToken);
-        Asserter.assertIdToken(jwt, JwtClaimName.CODE_HASH);
-
-        // 5. Request new access token using the refresh token.
-        TokenClient tokenClient2 = new TokenClient(tokenEndpoint);
-        tokenClient2.setExecutor(clientEngine(true));
-        TokenResponse tokenResponse2 = tokenClient2.execRefreshToken(scope, refreshToken, clientId, clientSecret);
-
-        showClient(tokenClient2);
-        assertEquals(tokenResponse2.getStatus(), 200, "Unexpected response code: " + tokenResponse2.getStatus());
-        assertNotNull(tokenResponse2.getEntity(), "The entity is null");
-        assertNotNull(tokenResponse2.getAccessToken(), "The access token is null");
-        assertNotNull(tokenResponse2.getTokenType(), "The token type is null");
-        assertNotNull(tokenResponse2.getRefreshToken(), "The refresh token is null");
-        assertNotNull(tokenResponse2.getScope(), "The scope is null");
-
-        String accessToken = tokenResponse2.getAccessToken();
-        System.out.println("AT2: " + accessToken);
-
-        Jwt at2Jwt = Jwt.parse(accessToken);
-        System.out.println("AT2 claims: " + at2Jwt.getClaims().toJsonString());
     }
 
 }

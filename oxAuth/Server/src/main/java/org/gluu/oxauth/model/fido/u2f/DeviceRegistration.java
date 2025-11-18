@@ -29,7 +29,7 @@ import org.gluu.persist.model.base.BaseEntry;
  *
  * @author Yuriy Movchan Date: 05/14/2015
  */
-@DataEntry(sortBy = "creationDate", sortByName = "creationDate")
+@DataEntry(sortBy = "creationDate")
 @ObjectClass(value = "oxDeviceRegistration")
 public class DeviceRegistration extends BaseEntry implements Serializable {
 

@@ -12,8 +12,9 @@ import org.gluu.oxauth.model.common.BackchannelTokenDeliveryMode;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.error.DefaultErrorResponse;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,8 @@ import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationErrorResponseT
  * @author Javier Rojas Blum
  * @version April 22, 2020
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class CIBAAuthorizeParamsValidatorService {
 
     @Inject

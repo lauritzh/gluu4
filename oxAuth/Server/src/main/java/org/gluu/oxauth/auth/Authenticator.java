@@ -14,14 +14,14 @@ import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.model.security.Credentials;
 import org.gluu.oxauth.i18n.LanguageBean;
 import org.gluu.oxauth.model.authorize.AuthorizeErrorResponseType;
+import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.exception.InvalidSessionStateException;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.registration.Client;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.security.Identity;
 import org.gluu.oxauth.service.*;
 import org.gluu.oxauth.service.external.ExternalAuthenticationService;
@@ -40,8 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import static org.gluu.oxauth.util.ServerUtil.sanitizeUsernameForLog;
 
 /**
  * Authenticator component
@@ -128,7 +126,6 @@ public class Authenticator {
 		}
 
 		lastResult = authenticateImpl(servletRequest, true, false, false);
-        logger.debug("authenticate resultCode: {}", lastResult);
 
 		if (Constants.RESULT_SUCCESS.equals(lastResult)) {
 			return true;
@@ -190,13 +187,14 @@ public class Authenticator {
 		String result = Constants.RESULT_FAILURE;
 		try {
 			logger.trace("Authenticating ... (interactive: " + interactive + ", skipPassword: " + skipPassword
-					+ ", credentials.username: " + sanitizeUsernameForLog(credentials.getUsername()) + ")");
+					+ ", credentials.username: " + credentials.getUsername() + ")");
 			if (service && (StringHelper.isNotEmpty(credentials.getUsername())
 					&& (skipPassword || StringHelper.isNotEmpty(credentials.getPassword())) && servletRequest != null
 					&& (servletRequest.getRequestURI().endsWith("/token")
 							|| servletRequest.getRequestURI().endsWith("/revoke")
 							|| servletRequest.getRequestURI().endsWith("/revoke_session")
 							|| servletRequest.getRequestURI().endsWith("/userinfo")
+							|| servletRequest.getRequestURI().endsWith("/stat")
 							|| servletRequest.getRequestURI().endsWith("/bc-authorize")
 							|| servletRequest.getRequestURI().endsWith("/device_authorization")))) {
 				boolean authenticated = clientAuthentication(credentials, interactive, skipPassword);
@@ -221,11 +219,11 @@ public class Authenticator {
 		}
 
 		if (Constants.RESULT_SUCCESS.equals(result)) {
-			logger.trace("Authentication successfully for '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+			logger.trace("Authentication successfully for '{}'", credentials.getUsername());
 			return result;
 		}
 
-		logger.info("Authentication failed for '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+		logger.info("Authentication failed for '{}'", credentials.getUsername());
 		return result;
 	}
 
@@ -243,7 +241,7 @@ public class Authenticator {
 
 				boolean result = externalAuthenticationService.executeExternalAuthenticate(customScriptConfiguration,
 						null, 1);
-				logger.info("Authentication result for user '{}', result: '{}'", sanitizeUsernameForLog(credentials.getUsername()), result);
+				logger.info("Authentication result for user '{}', result: '{}'", credentials.getUsername(), result);
 
 				if (result) {
 					Client client = authenticationService.configureSessionClient();
@@ -439,10 +437,10 @@ public class Authenticator {
 				authenticationService.quietLogin(credentials.getUsername());
 
 				// Redirect to authorization workflow
-				logger.debug("Sending event to trigger user redirection: '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+				logger.debug("Sending event to trigger user redirection: '{}'", credentials.getUsername());
 				authenticationService.onSuccessfulLogin(eventSessionId);
 
-				logger.info("Authentication success for User: '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+				logger.info("Authentication success for User: '{}'", credentials.getUsername());
 				return Constants.RESULT_SUCCESS;
 			}
 		} else {
@@ -454,14 +452,14 @@ public class Authenticator {
 							sessionIdAttributes);
 
 					// Redirect to authorization workflow
-					logger.debug("Sending event to trigger user redirection: '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+					logger.debug("Sending event to trigger user redirection: '{}'", credentials.getUsername());
 					authenticationService.onSuccessfulLogin(eventSessionId);
 				} else {
 					// Force session lastUsedAt update if authentication attempt is failed
 					sessionIdService.updateSessionId(sessionId);
 				}
 
-				logger.info("Authentication success for User: '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+				logger.info("Authentication success for User: '{}'", credentials.getUsername());
 				return Constants.RESULT_SUCCESS;
 			}
 		}
@@ -518,16 +516,16 @@ public class Authenticator {
 
 				boolean result = externalAuthenticationService.executeExternalAuthenticate(customScriptConfiguration,
 						null, 1);
-				logger.info("Authentication result for '{}'. auth_step: '{}', result: '{}'", sanitizeUsernameForLog(credentials.getUsername()),
+				logger.info("Authentication result for '{}'. auth_step: '{}', result: '{}'", credentials.getUsername(),
 						this.authStep, result);
 
 				if (result) {
 					authenticationService.configureEventUser();
 
-					logger.info("Authentication success for User: '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+					logger.info("Authentication success for User: '{}'", credentials.getUsername());
 					return true;
 				}
-				logger.info("Authentication failed for User: '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+				logger.info("Authentication failed for User: '{}'", credentials.getUsername());
 			}
 		}
 
@@ -537,10 +535,10 @@ public class Authenticator {
 			if (authenticated) {
 				authenticationService.configureEventUser();
 
-				logger.info("Authentication success for User: '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+				logger.info("Authentication success for User: '{}'", credentials.getUsername());
 				return true;
 			}
-			logger.info("Authentication failed for User: '{}'", sanitizeUsernameForLog(credentials.getUsername()));
+			logger.info("Authentication failed for User: '{}'", credentials.getUsername());
 		}
 
 		return false;
@@ -695,10 +693,10 @@ public class Authenticator {
 		}
 	}
 
-	public boolean authenticateBySessionId(String sessionIdString) {
-		if (StringUtils.isNotBlank(sessionIdString)) {
+	public boolean authenticateBySessionId(String p_sessionId) {
+		if (StringUtils.isNotBlank(p_sessionId) && appConfiguration.getSessionIdEnabled()) {
 			try {
-				SessionId sessionId = sessionIdService.getSessionId(sessionIdString);
+				SessionId sessionId = sessionIdService.getSessionId(p_sessionId);
 				return authenticateBySessionId(sessionId);
 			} catch (Exception e) {
 				logger.trace(e.getMessage(), e);

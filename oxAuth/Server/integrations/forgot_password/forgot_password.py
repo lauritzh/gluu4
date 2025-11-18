@@ -13,7 +13,8 @@ from org.xdi.model.custom.script.type.auth import PersonAuthenticationType
 from org.xdi.service.cdi.util import CdiUtil
 from org.xdi.util import StringHelper
 from org.xdi.oxauth.util import ServerUtil
-from org.gluu.oxauth.service.common import ConfigurationService, EncryptionService
+from org.gluu.oxauth.service import ConfigurationService
+from org.gluu.oxauth.service.common import EncryptionService
 from org.gluu.jsf2.message import FacesMessages
 from javax.faces.application import FacesMessage
 from org.gluu.persist.exception import AuthenticationException
@@ -100,7 +101,7 @@ class EmailSender():
                 'user' : smtpconfig.getUserName(),
                 'from' : smtpconfig.getFromEmailAddress(),
                 'pwd_decrypted' : encryptionService.decrypt(smtpconfig.getPassword()),
-                'req_ssl' : smtpconfig.getConnectProtection(),
+                'req_ssl' : smtpconfig.isRequiresSsl(),
                 'requires_authentication' : smtpconfig.isRequiresAuthentication(),
                 'server_trust' : smtpconfig.isServerTrust()
             }
@@ -116,23 +117,17 @@ class EmailSender():
 
         # server connection 
         smtpconfig = self.getSmtpConfig()
-        host = str(smtpconfig.get('host'))
-        port = smtpconfig.get('port')
-        user = str(smtpconfig.get('user'))
-        user_pass = str(smtpconfig.get('pwd_decrypted'))
-        sender = str(smtpconfig.get('from'))
-        receiver = str(useremail)
         
         try:
-            s = smtplib.SMTP(host, port)
+            s = smtplib.SMTP(smtpconfig['host'], port=smtpconfig['port'])
             
 
             if smtpconfig['requires_authentication']:
                 
-                if smtpconfig['req_ssl'] is not None:
+                if smtpconfig['req_ssl']:
                     s.starttls()
             
-                s.login(user, user_pass)
+                s.login(smtpconfig['user'], smtpconfig['pwd_decrypted'])
 
         
             #message setup
@@ -140,8 +135,8 @@ class EmailSender():
             
             message = "Here is your token: %s" % token
 
-            msg['From'] = sender
-            msg['To'] = receiver
+            msg['From'] = smtpconfig['from'] #sender
+            msg['To'] = useremail #recipient
             msg['Subject'] = "Password Reset Request" #subject
 
             #attach message body
@@ -151,28 +146,17 @@ class EmailSender():
             # send_message method is for python3 only s.send_message(msg)
 
             #send email (python2)
-            s.sendmail(sender,receiver,msg.as_string())
+            s.sendmail(msg['From'],msg['To'],msg.as_string())
             
             #after sent, delete
             del msg
 
-            #terminating session
-            s.quit()
-
         except smtplib.SMTPAuthenticationError as err:
-            print "Forgot Password - SMTPAuthenticationError - %s - %s" % (user,user_pass)
+            print "Forgot Password - SMTPAuthenticationError - %s - %s" % (MY_ADDRESS,PASSWORD)
             print err
 
-        except smtplib.SMTPSenderRefused as err:
+        except smtplib.smtplib.SMTPSenderRefused as err:
             print "Forgot Password - SMTPSenderRefused - " + err
-        except smtplib.SMTPRecipientsRefused as err:
-            print "Forgot Password - SMTPRecipientsRefused - " + err
-        except smtplib.SMTPDataError as err:
-            print "Forgot Password - SMTPDataError - " + err
-        except smtplib.SMTPHeloError as err:
-            print "Forgot Password - SMTPHeloError - " + err
-        except:
-            print "Forgot Password - Not Found - Failed to send  your message. Error not found"
 
 
 class PersonAuthentication(PersonAuthenticationType):
@@ -181,7 +165,7 @@ class PersonAuthentication(PersonAuthenticationType):
     def __init__(self, currentTimeMillis):
         self.currentTimeMillis = currentTimeMillis
 
-    def init(self, customScript, configurationAttributes):
+    def init(self, configurationAttributes):
 
         print "Forgot Password - Initialized successfully"
         return True   
@@ -193,9 +177,6 @@ class PersonAuthentication(PersonAuthenticationType):
     def getApiVersion(self):
         # I'm not sure why is 11 and not 2
         return 11
-
-    def getAuthenticationMethodClaims(self, requestParameters):
-        return None
 
     def isValidAuthenticationMethod(self, usageType, configurationAttributes):
         return True
@@ -213,7 +194,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         #gets custom attribute
         sf = configurationAttributes.get("SCRIPT_FUNCTION").getValue2()
-
+                    
         print "Forgot Password - %s - Authenticate for step %s" % (sf, step)
 
         identity = CdiUtil.bean(Identity)
@@ -371,15 +352,11 @@ class PersonAuthentication(PersonAuthenticationType):
         
             # update user info with new password
             user2.setAttribute("userPassword",new_password)
-            print "Forgot Password - user uid is %s" % user_name
-            print "Forgot Password - Updating user with new password..."
-            user_service.updateUser(user2)
-            print "Forgot Password - User updated with new password"
-            # authenticates and login user
-            print "Forgot Password - Loading authentication service..."
-            authenticationService2 = CdiUtil.bean(AuthenticationService)
 
-            print "Forgot Password - Trying to authenticate user..."
+            user_service.updateUser(user2)
+
+            # authenticates and login user
+            authenticationService2 = CdiUtil.bean(AuthenticationService)
             login = authenticationService2.authenticate(user_name, new_password)
             
             return True

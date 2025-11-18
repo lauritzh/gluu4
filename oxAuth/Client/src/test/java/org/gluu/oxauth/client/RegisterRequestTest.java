@@ -1,12 +1,11 @@
 package org.gluu.oxauth.client;
 
-import static org.testng.Assert.assertEquals;
-
+import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
-import com.google.common.collect.Lists;
+import static org.testng.Assert.assertEquals;
 
 /**
  * @author Yuriy Zabrovarnyy

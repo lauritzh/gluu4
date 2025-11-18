@@ -10,13 +10,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.ResultCode;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.audit.ApplicationAuditLogger;
 import org.gluu.oxauth.model.audit.Action;
 import org.gluu.oxauth.model.audit.OAuth2AuditLog;
 import org.gluu.oxauth.model.authorize.AuthorizeRequestParam;
 import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.Constants;
 import org.gluu.oxauth.model.config.StaticConfiguration;
@@ -28,8 +29,6 @@ import org.gluu.oxauth.model.exception.InvalidSessionStateException;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.gluu.oxauth.model.jwt.JwtClaimName;
 import org.gluu.oxauth.model.jwt.JwtSubClaimObject;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.oxauth.model.token.JwtSigner;
 import org.gluu.oxauth.model.util.JwtUtil;
 import org.gluu.oxauth.model.util.Pair;
@@ -242,11 +241,6 @@ public class SessionIdService {
     public boolean reinitLogin(SessionId session, boolean force) {
         final Map<String, String> sessionAttributes = session.getSessionAttributes();
         final Map<String, String> currentSessionAttributes = getCurrentSessionAttributes(sessionAttributes);
-        if (log.isTraceEnabled()) {
-            log.trace("sessionAttributes: {}", sessionAttributes);
-            log.trace("currentSessionAttributes: {}", currentSessionAttributes);
-            log.trace("shouldReinitSession: {}, force: {}", shouldReinitSession(sessionAttributes, currentSessionAttributes), force);
-        }
 
         if (force || shouldReinitSession(sessionAttributes, currentSessionAttributes)) {
             sessionAttributes.putAll(currentSessionAttributes);
@@ -274,9 +268,6 @@ public class SessionIdService {
             if (!updateResult) {
                 log.debug("Failed to update session entry: '{}'", session.getId());
             }
-            if (log.isTraceEnabled()) {
-                log.trace("sessionAttributes after update: {}, ", session.getSessionAttributes());
-            }
             return updateResult;
         }
         return false;
@@ -290,16 +281,9 @@ public class SessionIdService {
             currentStep = StringHelper.toInteger(sessionAttributes.get("auth_step"), currentStep);
         }
 
-        if (resetToStep <= currentStep) {
-	        for (int i = resetToStep; i <= currentStep; i++) {
-	            String key = String.format("auth_step_passed_%d", i);
-	            sessionAttributes.remove(key);
-	        }
-        } else {
-        	// Scenario when we sckip steps. In this case we need to mark all previous steps as passed
-	        for (int i = currentStep + 1; i < resetToStep; i++) {
-	            sessionAttributes.put(String.format("auth_step_passed_%d", i), Boolean.TRUE.toString());
-	        }
+        for (int i = resetToStep; i <= currentStep; i++) {
+            String key = String.format("auth_step_passed_%d", i);
+            sessionAttributes.remove(key);
         }
 
         sessionAttributes.put("auth_step", String.valueOf(resetToStep));
@@ -321,17 +305,13 @@ public class SessionIdService {
         // Update from request
         final Map<String, String> currentSessionAttributes = new HashMap<>(sessionAttributes);
 
-        Map<String, String> requestParameters = externalContext.getRequestParameterMap();
-        Map<String, String> newRequestParameterMap = requestParameterService.getAllowedParameters(requestParameters);
+        Map<String, String> parameterMap = externalContext.getRequestParameterMap();
+        Map<String, String> newRequestParameterMap = requestParameterService.getAllowedParameters(parameterMap);
         for (Entry<String, String> newRequestParameterMapEntry : newRequestParameterMap.entrySet()) {
             String name = newRequestParameterMapEntry.getKey();
             if (!StringHelper.equalsIgnoreCase(name, "auth_step")) {
                 currentSessionAttributes.put(name, newRequestParameterMapEntry.getValue());
             }
-        }
-        if (!requestParameters.containsKey(AuthorizeRequestParam.CODE_CHALLENGE) || !requestParameters.containsKey(AuthorizeRequestParam.CODE_CHALLENGE_METHOD)) {
-            currentSessionAttributes.remove(AuthorizeRequestParam.CODE_CHALLENGE);
-            currentSessionAttributes.remove(AuthorizeRequestParam.CODE_CHALLENGE_METHOD);
         }
 
         return currentSessionAttributes;
@@ -601,7 +581,7 @@ public class SessionIdService {
                 sessionId.setPersisted(true);
                 sessionId.setExpirationDate(expiration.getFirst());
                 sessionId.setTtl(expiration.getSecond());
-                log.trace("sessionIdAttributes: {}", sessionId.getPermissionGrantedMap());
+                log.trace("sessionIdAttributes: " + sessionId.getPermissionGrantedMap());
                 if (appConfiguration.getSessionIdPersistInCache()) {
                     cacheService.put(expiration.getSecond(), sessionId.getDn(), sessionId);
                 } else {
@@ -611,8 +591,7 @@ public class SessionIdService {
                 return true;
             }
         } catch (Exception e) {
-            // log exception in TRACE by intention because this method can be called over existing session by design, #213
-            log.trace(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
 
         return false;
@@ -811,11 +790,7 @@ public class SessionIdService {
             return sessionId;
         } catch (Exception e) {
             if (!silently) {
-                if (BooleanUtils.isTrue(appConfiguration.getLogNotFoundEntityAsError())) {
-                    log.error("Failed to get session by dn: " + dn, e);
-                } else {
-                    log.trace("Failed to get session by dn: " + dn, e);
-                }
+                log.error("Failed to get session by dn: " + dn, e);
             }
         }
         return null;
@@ -853,7 +828,7 @@ public class SessionIdService {
             }
         } catch (Exception ex) {
             if (!silently) {
-                log.trace(ex.getMessage());
+                log.trace(ex.getMessage(), ex);
             }
         }
 
@@ -866,7 +841,7 @@ public class SessionIdService {
             if (appConfiguration.getSessionIdPersistInCache()) {
                 cacheService.remove(sessionId.getDn());
             } else {
-                persistenceEntryManager.remove(sessionId.getDn(), SessionId.class);
+                persistenceEntryManager.remove(sessionId.getDn());
             }
             localCacheService.remove(sessionId.getDn());
             externalEvent(new SessionEvent(SessionEventType.GONE, sessionId));
@@ -993,37 +968,5 @@ public class SessionIdService {
 
     public void externalEvent(SessionEvent event) {
         externalApplicationSessionService.externalEvent(event);
-    }
-
-    public boolean hasAllScopes(SessionId sessionId, Set<String> scopes) {
-        if (sessionId == null || sessionId.getSessionAttributes().isEmpty() || scopes == null || scopes.isEmpty()) {
-            return false;
-        }
-
-        final String scopesAsString = sessionId.getSessionAttributes().get("scope");
-        return hasAllScopes(scopesAsString, scopes);
-    }
-
-    public boolean hasClientAllScopes(SessionId sessionId, String clientId, Set<String> scopes) {
-        if (sessionId == null || sessionId.getSessionAttributes().isEmpty() || StringUtils.isBlank(clientId) || scopes == null || scopes.isEmpty()) {
-            return false;
-        }
-        final String key = clientId + "_authz_scopes";
-
-        String clientScopes = sessionId.getSessionAttributes().get(key);
-        return hasAllScopes(clientScopes, scopes);
-    }
-
-    public static boolean hasAllScopes(String existingScopes, Set<String> scopes) {
-        if (StringUtils.isBlank(existingScopes)) {
-            return false;
-        }
-
-        for (String scope : scopes) {
-            if (!existingScopes.contains(scope)) {
-                return false;
-            }
-        }
-        return true;
     }
 }

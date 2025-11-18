@@ -37,8 +37,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.IOException;
 import java.util.*;
 
@@ -49,7 +50,8 @@ import java.util.*;
  * @author Javier Rojas Blum
  * @version June 28, 2017
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class UmaRptService {
 
     private static final String ORGUNIT_OF_RPT = "uma_rpt";
@@ -304,7 +306,7 @@ public class UmaRptService {
     }
 
     public void addBranchIfNeeded() {
-        if (ldapEntryManager.hasBranchesSupport(branchDn()) && !containsBranch() && !containsBranch) {
+        if (!containsBranch() && !containsBranch) {
             addBranch();
         } else {
             containsBranch = true;

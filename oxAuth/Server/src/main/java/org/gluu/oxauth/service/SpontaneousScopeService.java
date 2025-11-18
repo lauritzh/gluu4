@@ -1,24 +1,23 @@
 package org.gluu.oxauth.service;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 import org.gluu.oxauth.model.common.ScopeType;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.util.Pair;
 import org.oxauth.persistence.model.Scope;
+import org.python.google.common.collect.Sets;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static org.apache.commons.lang3.BooleanUtils.isFalse;
-
-@ApplicationScoped
+@Stateless
+@Named
 public class SpontaneousScopeService {
 
     private static final int DEFAULT_SPONTANEOUS_SCOPE_LIFETIME_IN_SECONDS = 60 * 60 * 24; // 24h
@@ -75,11 +74,7 @@ public class SpontaneousScopeService {
     }
 
     public boolean isAllowedBySpontaneousScopes(Client client, String scopeRequested) {
-        if (isFalse(appConfiguration.getAllowSpontaneousScopes())) {
-            return false;
-        }
-
-        if (isFalse(client.getAttributes().getAllowSpontaneousScopes())) {
+        if (!client.getAttributes().getAllowSpontaneousScopes()) {
             return false;
         }
 

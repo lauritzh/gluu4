@@ -9,8 +9,9 @@ package org.gluu.oxauth.service;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.ldap.UserGroup;
@@ -26,7 +27,8 @@ import org.slf4j.Logger;
  * @version 0.9, 27/07/2012
  * @author Yuriy Movchan Date: 04/11/2014
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class UserGroupService {
 
     @Inject

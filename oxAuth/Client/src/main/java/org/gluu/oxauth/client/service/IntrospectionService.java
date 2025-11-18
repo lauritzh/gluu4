@@ -6,16 +6,11 @@
 
 package org.gluu.oxauth.client.service;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import org.gluu.oxauth.model.common.IntrospectionResponse;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Introspection service.

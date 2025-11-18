@@ -2,21 +2,21 @@ package org.gluu.oxauth.service;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
+import org.gluu.oxauth.model.common.SessionId;
+import org.gluu.oxauth.model.common.SessionIdState;
 import org.gluu.oxauth.model.config.ConfigurationFactory;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
-import org.gluu.oxauth.model.session.SessionId;
-import org.gluu.oxauth.model.session.SessionIdState;
 import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.service.cdi.util.CdiUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
+import javax.ejb.Stateless;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +30,8 @@ import static org.gluu.oxauth.model.util.StringUtils.toList;
 /**
  * @author Yuriy Zabrovarnyy
  */
-@RequestScoped
+@Stateless
+@Named
 public class CookieService {
 
     private static final String SESSION_STATE_COOKIE_NAME = "session_state";

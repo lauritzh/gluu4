@@ -820,7 +820,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
         registerClient.setRequest(registerRequest);
-        registerClient.setExecutor(clientEngine(true));
+        registerClient.setExecutor(clientExecutor(true));
         RegisterResponse response = registerClient.exec();
 
         showClient(registerClient);
@@ -861,7 +861,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
 
         AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
         authorizeClient.setRequest(request);
-        authorizeClient.setExecutor(clientEngine(true));
+        authorizeClient.setExecutor(clientExecutor(true));
         AuthorizationResponse response1 = authorizeClient.exec();
 
         showClient(authorizeClient);
@@ -876,7 +876,7 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
 
         // 3. Request user info
         UserInfoClient userInfoClient = new UserInfoClient(userInfoEndpoint);
-        userInfoClient.setExecutor(clientEngine(true));
+        userInfoClient.setExecutor(clientExecutor(true));
         UserInfoResponse response3 = userInfoClient.execUserInfo(accessToken);
 
         showClient(userInfoClient);
@@ -2233,7 +2233,8 @@ public class OpenIDRequestObjectHttpTest extends BaseTest {
             AuthorizationResponse response = authorizeClient.exec();
 
             showClient(authorizeClient);
-            assertEquals(response.getStatus(), 400, "Unexpected response code: " + response.getStatus());
+            assertEquals(response.getStatus(), 302, "Unexpected response code: " + response.getStatus());
+            assertNotNull(response.getLocation(), "The location is null");
             assertNotNull(response.getErrorType(), "The error type is null");
             assertNotNull(response.getErrorDescription(), "The error description is null");
             assertNotNull(response.getState(), "The state is null");

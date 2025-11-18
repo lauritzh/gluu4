@@ -19,8 +19,9 @@ import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 import org.gluu.oxauth.model.config.StaticConfiguration;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,7 +31,8 @@ import java.util.List;
  *
  * @author Yuriy Movchan Date: 05/14/2015
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class DeviceRegistrationService {
 
 	@Inject
@@ -142,10 +144,7 @@ public class DeviceRegistrationService {
 
 		// Final registration entry should be without expiration
         deviceRegistration.clearExpiration();
-        
-        //fix: personInum should be populated
-        deviceRegistration.setUserInum(userInum);
-        
+
         addUserDeviceRegistration(userInum, deviceRegistration);
 
 		return true;

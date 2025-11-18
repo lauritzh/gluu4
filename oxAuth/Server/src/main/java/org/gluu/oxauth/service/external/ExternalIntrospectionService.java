@@ -11,15 +11,18 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
+import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
+import javax.inject.Named;
 import java.util.List;
 
 /**
  * @author Yuriy Zabrovarnyy
  */
 @ApplicationScoped
+@DependsOn("appInitializer")
+@Named
 public class ExternalIntrospectionService extends ExternalScriptService {
 
     private static final long serialVersionUID = -8609727759114795446L;
@@ -87,11 +90,7 @@ public class ExternalIntrospectionService extends ExternalScriptService {
             final boolean result = script.modifyResponse(responseAsJsonObject, context);
             log.trace("Finished external 'executeExternalModifyResponse' method, script name: {}, responseAsJsonObject: {} , context: {}, result: {}",
                     scriptConf.getName(), responseAsJsonObject, context, result);
-
-            context.throwWebApplicationExceptionIfSet();
             return result;
-        } catch (WebApplicationException e) {
-            throw e;
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             saveScriptError(scriptConf.getCustomScript(), ex);

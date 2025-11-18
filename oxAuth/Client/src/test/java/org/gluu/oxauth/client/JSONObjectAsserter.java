@@ -1,12 +1,11 @@
 package org.gluu.oxauth.client;
 
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang.ArrayUtils;
 import org.json.JSONObject;
 
-import com.google.common.base.Preconditions;
+import static org.testng.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author yuriyz

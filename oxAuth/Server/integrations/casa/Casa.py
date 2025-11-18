@@ -1,6 +1,5 @@
 # Author: Jose Gonzalez
 
-from java.lang import Integer
 from java.util import Collections, HashMap, HashSet, ArrayList, Arrays, Date
 from java.nio.charset import Charset
 
@@ -115,7 +114,6 @@ class PersonAuthentication(PersonAuthenticationType):
             credentials = identity.getCredentials()
             user_name = credentials.getUsername()
             user_password = credentials.getPassword()
-	    identity.setWorkingParameter("platformAuthenticatorAvailable",ServerUtil.getFirstValue(requestParameters, "loginForm:platformAuthenticator"))
 
             if StringHelper.isNotEmptyString(user_name) and StringHelper.isNotEmptyString(user_password):
 
@@ -125,14 +123,13 @@ class PersonAuthentication(PersonAuthenticationType):
                     print "Casa. authenticate for step 1. Unknown username"
                 else:
                     platform_data = self.parsePlatformData(requestParameters)
-                    preferred = foundUser.getAttribute("oxPreferredMethod")
-                    mfaOff = preferred == None
+                    mfaOff = foundUser.getAttribute("oxPreferredMethod") == None
                     logged_in = False
 
                     if mfaOff:
                         logged_in = authenticationService.authenticate(user_name, user_password)
                     else:
-                        acr = self.getSuitableAcr(foundUser, platform_data, preferred)
+                        acr = self.getSuitableAcr(foundUser, platform_data)
                         if acr != None:
                             module = self.authenticators[acr]
                             logged_in = module.authenticate(module.configAttrs, requestParameters, step)
@@ -240,7 +237,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
             list.addAll(Arrays.asList("ACR", "methods", "trustedDevicesInfo"))
 
-        list.addAll(Arrays.asList("casa_contextPath", "casa_prefix", "casa_faviconUrl", "casa_extraCss", "casa_logoUrl","platformAuthenticatorAvailable"))
+        list.addAll(Arrays.asList("casa_contextPath", "casa_prefix", "casa_faviconUrl", "casa_extraCss", "casa_logoUrl"))
         print "extras are %s" % list
         return list
 
@@ -302,9 +299,7 @@ class PersonAuthentication(PersonAuthenticationType):
         config = GluuConfiguration()
         config = entryManager.find(config.getClass(), "ou=configuration,o=gluu")
         #Pick (one) attribute where user id is stored (e.g. uid/mail)
-        # primary_key is the primary attribute of backend AD / LDAP ( i.e. for all Active directories, primary_key is samAccountName ).
-        # local_primary_key is Gluu’s OpenDJ primary key ( which is UID )
-        uid_attr = config.getOxIDPAuthentication().get(0).getConfig().getLocalPrimaryKey()
+        uid_attr = config.getOxIDPAuthentication().get(0).getConfig().getPrimaryKey()
         print "Casa. init. uid attribute is '%s'" % uid_attr
         return uid_attr
 
@@ -376,26 +371,26 @@ class PersonAuthentication(PersonAuthenticationType):
 
 
     def prepareUIParams(self, identity):
-
+        
         print "Casa. prepareUIParams. Reading UI branding params"
         cacheService = CdiUtil.bean(CacheService)
         casaAssets = cacheService.get("casa_assets")
-
+            
         if casaAssets == None:
-            #This may happen when cache type is IN_MEMORY, where actual cache is merely a local variable
+            #This may happen when cache type is IN_MEMORY, where actual cache is merely a local variable 
             #(a expiring map) living inside Casa webapp, not oxAuth webapp
-
+            
             sets = self.getSettings()
-
+            
             custPrefix = "/custom"
             logoUrl = "/images/logo.png"
             faviconUrl = "/images/favicon.ico"
             if ("extra_css" in sets and sets["extra_css"] != None) or sets["use_branding"]:
                 logoUrl = custPrefix + logoUrl
                 faviconUrl = custPrefix + faviconUrl
-
+            
             prefix = custPrefix if sets["use_branding"] else ""
-
+            
             casaAssets = {
                 "contextPath": "/casa",
                 "prefix" : prefix,
@@ -403,7 +398,7 @@ class PersonAuthentication(PersonAuthenticationType):
                 "extraCss": sets["extra_css"] if "extra_css" in sets else None,
                 "logoUrl": logoUrl
             }
-
+        
         #Setting a single variable with the whole map does not work...
         identity.setWorkingParameter("casa_contextPath", casaAssets['contextPath'])
         identity.setWorkingParameter("casa_prefix", casaAssets['prefix'])
@@ -439,7 +434,7 @@ class PersonAuthentication(PersonAuthenticationType):
         return deviceInf
 
 
-    def getSuitableAcr(self, user, deviceInf, preferred):
+    def getSuitableAcr(self, user, deviceInf):
 
         onMobile = deviceInf != None and 'isMobile' in deviceInf and deviceInf['isMobile']
         id = user.getUserId()
@@ -449,16 +444,15 @@ class PersonAuthentication(PersonAuthenticationType):
 
         for s in self.scriptsList:
             name = s.getName()
-            level = Integer.MAX_VALUE if name == preferred else s.getLevel()
-            if user_methods.contains(name) and level > strongest and (not onMobile or name in self.mobile_methods):
+            if user_methods.contains(name) and name in self.authenticators and s.getLevel() > strongest and (not onMobile or name in self.mobile_methods):
                 acr = name
-                strongest = level
+                strongest = s.getLevel()
 
         print "Casa. getSuitableAcr. On mobile = %s" % onMobile
         if acr == None and onMobile:
             print "Casa. getSuitableAcr. No mobile-friendly authentication method available for user %s" % id
             # user_methods is not empty when this function is called, so just pick any
-            acr = user_methods.stream().findFirst().get()
+            acr = user_methods.get(0)
 
         print "Casa. getSuitableAcr. %s was selected for user %s" % (acr, id)
         return acr
@@ -622,7 +616,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         session_attributes = identity.getSessionId().getSessionAttributes()
         if session_attributes.containsKey("remote_ip"):
-            remote_ip = session_attributes.get("remote_ip").split(",", 2)[0].strip()
+            remote_ip = session_attributes.get("remote_ip")
             if StringHelper.isNotEmpty(remote_ip):
 
                 httpService = CdiUtil.bean(HttpService)
@@ -667,7 +661,7 @@ class PersonAuthentication(PersonAuthenticationType):
 
         return None
 
-
+        
     def getLogoutExternalUrl(self, configurationAttributes, requestParameters):
         print "Get external logout URL call"
         return None

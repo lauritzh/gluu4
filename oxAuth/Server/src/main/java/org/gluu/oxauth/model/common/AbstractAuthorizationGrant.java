@@ -12,8 +12,6 @@ import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.ldap.TokenLdap;
 import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.util.CertUtils;
-import org.gluu.oxauth.service.external.ExternalUpdateTokenService;
-import org.gluu.oxauth.service.external.context.ExternalUpdateTokenContext;
 import org.gluu.oxauth.util.TokenHashUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +39,6 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
     @Inject
     protected ScopeChecker scopeChecker;
 
-    @Inject
-    private ExternalUpdateTokenService externalUpdateTokenService;
-
     private User user;
     private AuthorizationGrantType authorizationGrantType;
     private Client client;
@@ -57,7 +52,7 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
     private IdToken idToken;
     private AuthorizationCode authorizationCode;
     private String tokenBindingHash;
-    private String x5ts256;
+    private String x5cs256;
     private String nonce;
     private String codeChallenge;
     private String codeChallengeMethod;
@@ -125,12 +120,12 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
         this.tokenBindingHash = tokenBindingHash;
     }
 
-    public String getX5ts256() {
-        return x5ts256;
+    public String getX5cs256() {
+        return x5cs256;
     }
 
-    public void setX5ts256(String x5ts256) {
-        this.x5ts256 = x5ts256;
+    public void setX5cs256(String x5cs256) {
+        this.x5cs256 = x5cs256;
     }
 
     @Override
@@ -291,13 +286,6 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
         if (client != null && client.getAccessTokenLifetime() != null && client.getAccessTokenLifetime() > 0) {
             lifetime = client.getAccessTokenLifetime();
         }
-
-        int lifetimeFromScript = externalUpdateTokenService.getAccessTokenLifetimeInSeconds(ExternalUpdateTokenContext.of(executionContext));
-        if (lifetimeFromScript > 0) {
-            lifetime = lifetimeFromScript;
-            log.trace("Override access token lifetime with value from script: {}", lifetimeFromScript);
-        }
-
         AccessToken accessToken = new AccessToken(lifetime);
 
         accessToken.setAuthMode(getAcrValues());
@@ -308,17 +296,10 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
     }
 
     @Override
-    public RefreshToken createRefreshToken(ExecutionContext executionContext) {
+    public RefreshToken createRefreshToken() {
         int lifetime = appConfiguration.getRefreshTokenLifetime();
         if (client.getRefreshTokenLifetime() != null && client.getRefreshTokenLifetime() > 0) {
             lifetime = client.getRefreshTokenLifetime();
-            log.debug("Overwritten refresh_token lifetime from client, clientId: {} .", client.getClientId());
-        }
-
-        final int refreshTokenLifetimeFromScript = executionContext.getRefreshTokenLifetimeFromScript();
-        if (refreshTokenLifetimeFromScript > 0) {
-            lifetime = refreshTokenLifetimeFromScript;
-            log.debug("Overwritten refresh_token lifetime from script with {} value.", refreshTokenLifetimeFromScript);
         }
 
         RefreshToken refreshToken = new RefreshToken(lifetime);
@@ -497,6 +478,6 @@ public abstract class AbstractAuthorizationGrant implements IAuthorizationGrant 
                 + '\'' + ", sessionDn='" + sessionDn + '\'' + ", codeChallenge='" + codeChallenge + '\''
                 + ", codeChallengeMethod='" + codeChallengeMethod + '\'' + ", authenticationTime=" + authenticationTime
                 + ", scopes=" + scopes + ", authorizationGrantType=" + authorizationGrantType + ", tokenBindingHash=" + tokenBindingHash
-                + ", x5ts256=" + x5ts256 + ", claims=" + claims + '}';
+                + ", x5cs256=" + x5cs256 + ", claims=" + claims + '}';
     }
 }

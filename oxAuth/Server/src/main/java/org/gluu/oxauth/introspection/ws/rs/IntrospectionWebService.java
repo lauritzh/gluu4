@@ -43,8 +43,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
-
 /**
  * @author Yuriy Zabrovarnyy
  * @version June 30, 2018
@@ -96,60 +94,33 @@ public class IntrospectionWebService {
         return introspect(p_authorization, p_token, tokenTypeHint, responseAsJwt, httpRequest, httpResponse);
     }
 
-    private AuthorizationGrant validateAuthorization(String p_authorization, String p_token) throws IOException {
-        final boolean skipAuthorization = ServerUtil.isTrue(appConfiguration.getIntrospectionSkipAuthorization());
-        log.trace("skipAuthorization: {}", skipAuthorization);
-        if (skipAuthorization) {
-            return null;
-        }
-
-        if (StringUtils.isBlank(p_authorization)) {
-            log.trace("Bad request: Authorization header or token is blank.");
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST, "")).build());
-        }
-
-        final Pair<AuthorizationGrant, Boolean> pair = getAuthorizationGrant(p_authorization, p_token);
-        final AuthorizationGrant authorizationGrant = pair.getFirst();
-        if (authorizationGrant == null) {
-            log.debug("Authorization grant is null.");
-            if (isTrue(pair.getSecond())) {
-                log.debug("Returned {\"active\":false}.");
-                throw new WebApplicationException(Response.status(Response.Status.OK)
-                        .entity("{\"active\":false}")
-                        .type(MediaType.APPLICATION_JSON_TYPE)
-                        .build());
-            }
-            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED)
-                    .type(MediaType.APPLICATION_JSON_TYPE)
-                    .entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Authorization grant is null."))
-                    .build());
-        }
-
-        final AbstractToken authorizationAccessToken = authorizationGrant.getAccessToken(tokenService.getToken(p_authorization));
-
-        if ((authorizationAccessToken == null || !authorizationAccessToken.isValid()) && !pair.getSecond()) {
-            log.error("Access token is not valid. Valid: " + (authorizationAccessToken != null && authorizationAccessToken.isValid()) + ", basicClientAuthentication: " + pair.getSecond());
-            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Access token is not valid")).build());
-        }
-
-        if (ServerUtil.isTrue(appConfiguration.getIntrospectionAccessTokenMustHaveUmaProtectionScope()) &&
-                !authorizationGrant.getScopesAsString().contains(UmaScopeType.PROTECTION.getValue())) { // #562 - make uma_protection optional
-            final String reason = "access_token used to access introspection endpoint does not have uma_protection scope, however in oxauth configuration `checkUmaProtectionScopePresenceDuringIntrospection` is true";
-            log.trace(reason);
-            throw new WebApplicationException(Response.status(Response.Status.UNAUTHORIZED).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, reason)).type(MediaType.APPLICATION_JSON_TYPE).build());
-        }
-        return authorizationGrant;
-    }
-
     private Response introspect(String p_authorization, String p_token, String tokenTypeHint, String responseAsJwt, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         try {
             log.trace("Introspect token, authorization: {}, token to introspect: {}, tokenTypeHint: {}", p_authorization, p_token, tokenTypeHint);
-
-            AuthorizationGrant authorizationGrant = validateAuthorization(p_authorization, p_token);
-
-            if (StringUtils.isBlank(p_token)) {
-                log.trace("Bad request: Token is blank.");
+            if (StringUtils.isBlank(p_authorization) || StringUtils.isBlank(p_token)) {
+                log.trace("Bad request: Authorization header or token is blank.");
                 return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.INVALID_REQUEST, "")).build();
+            }
+
+            final Pair<AuthorizationGrant, Boolean> pair = getAuthorizationGrant(p_authorization, p_token);
+            final AuthorizationGrant authorizationGrant = pair.getFirst();
+            if (authorizationGrant == null) {
+                log.error("Authorization grant is null.");
+                return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Authorization grant is null.")).build();
+            }
+
+            final AbstractToken authorizationAccessToken = authorizationGrant.getAccessToken(tokenService.getToken(p_authorization));
+
+            if ((authorizationAccessToken == null || !authorizationAccessToken.isValid()) && !pair.getSecond()) {
+                log.error("Access token is not valid. Valid: " + (authorizationAccessToken != null && authorizationAccessToken.isValid()) + ", basicClientAuthentication: " + pair.getSecond());
+                return Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON_TYPE).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, "Access token is not valid")).build();
+            }
+
+            if (ServerUtil.isTrue(appConfiguration.getIntrospectionAccessTokenMustHaveUmaProtectionScope()) &&
+                    !authorizationGrant.getScopesAsString().contains(UmaScopeType.PROTECTION.getValue())) { // #562 - make uma_protection optional
+                final String reason = "access_token used to access introspection endpoint does not have uma_protection scope, however in oxauth configuration `checkUmaProtectionScopePresenceDuringIntrospection` is true";
+                log.trace(reason);
+                return Response.status(Response.Status.UNAUTHORIZED).entity(errorResponseFactory.errorAsJson(AuthorizeErrorResponseType.ACCESS_DENIED, reason)).type(MediaType.APPLICATION_JSON_TYPE).build();
             }
 
             final IntrospectionResponse response = new IntrospectionResponse(false);
@@ -178,14 +149,14 @@ public class IntrospectionWebService {
             } else {
                 log.debug("Failed to find grant for access_token: " + p_token + ". Return 200 with active=false.");
             }
-            JSONObject responseAsJsonObject = createResponseAsJsonObject(response, grantOfIntrospectionToken);
+            JSONObject responseAsJsonObject = createResponseAsJsonObject(response, tokenToIntrospect);
 
             ExternalIntrospectionContext context = new ExternalIntrospectionContext(authorizationGrant, httpRequest, httpResponse, appConfiguration, attributeService);
             context.setGrantOfIntrospectionToken(grantOfIntrospectionToken);
             if (externalIntrospectionService.executeExternalModifyResponse(responseAsJsonObject, context)) {
                 log.trace("Successfully run extenal introspection scripts.");
             } else {
-                responseAsJsonObject = createResponseAsJsonObject(response, grantOfIntrospectionToken);
+                responseAsJsonObject = createResponseAsJsonObject(response, tokenToIntrospect);
                 log.trace("Canceled changes made by external introspection script since method returned `false`.");
             }
 
@@ -195,18 +166,11 @@ public class IntrospectionWebService {
             	responseAsJsonObject.put("scope", scopes);
             }
             if (Boolean.TRUE.toString().equalsIgnoreCase(responseAsJwt)) {
-                return Response.status(Response.Status.OK).entity(createResponseAsJwt(responseAsJsonObject, grantOfIntrospectionToken)).build();
+                return Response.status(Response.Status.OK).entity(createResponseAsJwt(responseAsJsonObject, authorizationGrant)).build();
             }
 
-            final String entity = responseAsJsonObject.toString();
-            if (log.isTraceEnabled()) {
-                log.trace("Response entity: {}", entity);
-            }
-            return Response.status(Response.Status.OK).entity(entity).type(MediaType.APPLICATION_JSON_TYPE).build();
+            return Response.status(Response.Status.OK).entity(responseAsJsonObject.toString()).type(MediaType.APPLICATION_JSON_TYPE).build();
 
-        } catch (WebApplicationException e) {
-            log.error(e.getMessage(), e);
-            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON_TYPE).build();
@@ -231,27 +195,15 @@ public class IntrospectionWebService {
             }
         }
 
-        if (log.isTraceEnabled()) {
-            log.trace("Response before signing: {}", jwt.getClaims().toJsonString());
-        }
         return jwtSigner.sign().toString();
     }
 
-    private JSONObject createResponseAsJsonObject(IntrospectionResponse response, AuthorizationGrant grantOfIntrospectionToken) throws JSONException, IOException {
+    private static JSONObject createResponseAsJsonObject(IntrospectionResponse response, AbstractToken tokenToIntrospect) throws JSONException, IOException {
         final JSONObject result = new JSONObject(ServerUtil.asJson(response));
-
-        if (log.isTraceEnabled()) {
-            log.trace("grantOfIntrospectionToken: {}, x5ts256: {}", (grantOfIntrospectionToken != null), (grantOfIntrospectionToken != null ? grantOfIntrospectionToken.getX5ts256() : ""));
-        }
-
-        if (grantOfIntrospectionToken != null && StringUtils.isNotBlank(grantOfIntrospectionToken.getX5ts256())) {
-            JSONObject cnf = result.optJSONObject("cnf");
-            if (cnf == null) {
-                cnf = new JSONObject();
-                result.put("cnf", cnf);
-            }
-
-            cnf.put("x5t#S256", grantOfIntrospectionToken.getX5ts256());
+        if (tokenToIntrospect != null && StringUtils.isNotBlank(tokenToIntrospect.getX5ts256())) {
+            final JSONObject cnf = new JSONObject();
+            cnf.put("x5t#S256", tokenToIntrospect.getX5ts256());
+            result.put("cnf", cnf);
         }
 
         return result;
@@ -279,7 +231,7 @@ public class IntrospectionWebService {
             return new Pair<>(grant, false);
         }
         if (tokenService.isBasicAuthToken(authorization)) {
-
+            
             String encodedCredentials = tokenService.getBasicToken(authorization);
 
             String token = new String(Base64.decodeBase64(encodedCredentials), StandardCharsets.UTF_8);
@@ -291,13 +243,13 @@ public class IntrospectionWebService {
                 String password = URLDecoder.decode(token.substring(delim + 1), Util.UTF8_STRING_ENCODING);
                 if (clientService.authenticate(clientId, password)) {
                     grant = authorizationGrantList.getAuthorizationGrantByAccessToken(accessToken);
-                    if (isTrue(appConfiguration.getIntrospectionRestrictBasicAuthnToOwnTokens()) && grant != null && !grant.getClientId().equals(clientId)) {
+                    if (grant != null && !grant.getClientId().equals(clientId)) {
                         log.trace("Failed to match grant object clientId and client id provided during authentication.");
                         return EMPTY;
                     }
                     return new Pair<>(grant, true);
                 } else {
-                    log.trace("Failed to perform basic authentication for client: {}", clientId);
+                    log.trace("Failed to perform basic authentication for client: " + clientId);
                 }
             }
         }

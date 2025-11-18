@@ -12,8 +12,9 @@ import org.oxauth.persistence.model.PairwiseIdentifier;
 import org.oxauth.persistence.model.SectorIdentifier;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.net.URI;
 import java.util.UUID;
 
@@ -21,7 +22,8 @@ import java.util.UUID;
  * @author Javier Rojas Blum
  * @version April 10, 2020
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class SectorIdentifierService {
 
     @Inject

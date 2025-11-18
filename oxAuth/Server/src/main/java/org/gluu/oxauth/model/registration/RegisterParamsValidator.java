@@ -20,13 +20,16 @@ import org.gluu.oxauth.model.util.Pair;
 import org.gluu.oxauth.model.util.URLPatternList;
 import org.gluu.oxauth.model.util.Util;
 import org.gluu.oxauth.util.ServerUtil;
+import org.jboss.resteasy.client.ClientRequest;
+import org.jboss.resteasy.client.ClientResponse;
 import org.json.JSONArray;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -43,7 +46,8 @@ import static org.apache.commons.lang.BooleanUtils.isTrue;
  * @author Javier Rojas Blum
  * @version October 22, 2019
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class RegisterParamsValidator {
 
     @Inject
@@ -282,7 +286,6 @@ public class RegisterParamsValidator {
         }
 
         // Validate Sector Identifier URL
-        boolean noRedirectUriInSectorIdentifierUri = false;
         if (valid && StringUtils.isNotBlank(sectorIdentifierUrl)) {
             try {
                 URI uri = new URI(sectorIdentifierUrl);
@@ -290,38 +293,27 @@ public class RegisterParamsValidator {
                     valid = false;
                 }
 
-                javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
-        		String entity = null;
-        		try {
-        			Response clientResponse = clientRequest.target(sectorIdentifierUrl).request().buildGet().invoke();
-	                int status = clientResponse.getStatus();
-	
-	                if (status == 200) {
-	                    entity = clientResponse.readEntity(String.class);
-	
-	                    JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
-	                    valid = Util.asList(sectorIdentifierJsonArray).containsAll(redirectUris);
-	                }
-        		} finally {
-        			clientRequest.close();
-        		}
+                ClientRequest clientRequest = new ClientRequest(sectorIdentifierUrl);
+                clientRequest.setHttpMethod(HttpMethod.GET);
+
+                ClientResponse<String> clientResponse = clientRequest.get(String.class);
+                int status = clientResponse.getStatus();
+
+                if (status == 200) {
+                    String entity = clientResponse.getEntity(String.class);
+
+                    JSONArray sectorIdentifierJsonArray = new JSONArray(entity);
+                    valid = Util.asList(sectorIdentifierJsonArray).containsAll(redirectUris);
+                }
             } catch (Exception e) {
                 log.debug(e.getMessage(), e);
                 valid = false;
-            } finally {
-                if (!valid) {
-                    noRedirectUriInSectorIdentifierUri = true;
-                }
             }
         }
 
         // Validate Redirect Uris checking the white list and black list
         if (valid || isTrue(appConfiguration.getAllowWildcardRedirectUri())) {
             valid = checkWhiteListRedirectUris(redirectUris) && checkBlackListRedirectUris(redirectUris);
-        }
-
-        if (noRedirectUriInSectorIdentifierUri) {
-            throw errorResponseFactory.createWebApplicationException(Response.Status.BAD_REQUEST, RegisterErrorResponseType.INVALID_CLIENT_METADATA, "Failed to validate redirect uris. No redirect_uri in sector_identifier_uri content.");
         }
 
         return valid;

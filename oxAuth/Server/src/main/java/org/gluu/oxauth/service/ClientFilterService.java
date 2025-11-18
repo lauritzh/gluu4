@@ -9,12 +9,13 @@ package org.gluu.oxauth.service;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.DependsOn;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
-import org.gluu.oxauth.model.registration.Client;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.exception.operation.SearchException;
 
@@ -24,6 +25,8 @@ import org.gluu.persist.exception.operation.SearchException;
  * @version March 4, 2016
  */
 @ApplicationScoped
+@DependsOn("appInitializer")
+@Named
 public class ClientFilterService extends BaseAuthFilterService {
 
     @Inject
@@ -42,7 +45,7 @@ public class ClientFilterService extends BaseAuthFilterService {
             return null;
         }
         final Map<String, String> normalizedAttributeValues = normalizeAttributeMap(attributeValues);
-        final String resultDn = loadEntryDN(ldapEntryManager, Client.class, authenticationFilterWithParameters, normalizedAttributeValues);
+        final String resultDn = loadEntryDN(ldapEntryManager, authenticationFilterWithParameters, normalizedAttributeValues);
         if (StringUtils.isBlank(resultDn)) {
             return null;
         }

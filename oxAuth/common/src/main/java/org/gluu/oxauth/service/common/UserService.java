@@ -22,7 +22,6 @@ import org.gluu.oxauth.model.util.Util;
 import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.persist.model.base.CustomObjectAttribute;
 import org.gluu.search.filter.Filter;
-import org.gluu.service.DataSourceTypeService;
 import org.gluu.util.ArrayHelper;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
@@ -43,9 +42,6 @@ public abstract class UserService {
 
     @Inject
     protected PersistenceEntryManager persistenceEntryManager;
-    
-    @Inject
-    protected DataSourceTypeService dataSourceTypeService;
 
     @Inject
     private InumService inumService;
@@ -84,15 +80,9 @@ public abstract class UserService {
 			return null;
 		}
 
-		String peopleBaseDn = getPeopleBaseDn();
-		Filter userUidFilter;
-		if (dataSourceTypeService.isSpanner(peopleBaseDn)) {
-			userUidFilter = Filter.createEqualityFilter("uid", StringHelper.toLowerCase(userId));
-		} else {
-			userUidFilter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(userId));
-		}
+		Filter userUidFilter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(userId));
 
-		List<User> entries = persistenceEntryManager.findEntries(peopleBaseDn, User.class, userUidFilter, returnAttributes);
+		List<User> entries = persistenceEntryManager.findEntries(getPeopleBaseDn(), User.class, userUidFilter, returnAttributes);
 		log.debug("Found {} entries for user id = {}", entries.size(), userId);
 
 		if (entries.size() > 0) {
@@ -150,40 +140,33 @@ public abstract class UserService {
 	}
 
     public User addUser(User user, boolean active) {
-        try {
-            String peopleBaseDN = getPeopleBaseDn();
+        String peopleBaseDN = getPeopleBaseDn();
 
-            String inum = inumService.generatePeopleInum();
+        String inum = inumService.generatePeopleInum();
 
-            user.setDn("inum=" + inum + "," + peopleBaseDN);
-            user.setAttribute("inum", inum, false);
+        user.setDn("inum=" + inum + "," + peopleBaseDN);
+        user.setAttribute("inum", inum);
 
-            GluuStatus status = active ? GluuStatus.ACTIVE : GluuStatus.REGISTER;
-            user.setAttribute("gluuStatus", status.getValue(), false);
+        GluuStatus status = active ? GluuStatus.ACTIVE : GluuStatus.REGISTER;
+        user.setAttribute("gluuStatus",  status.getValue());
 
-            List<String> personCustomObjectClassList = getPersonCustomObjectClassList();
-            if ((personCustomObjectClassList != null) && !personCustomObjectClassList.isEmpty()) {
-                Set<String> allObjectClasses = new HashSet<>();
-                allObjectClasses.addAll(personCustomObjectClassList);
+        List<String> personCustomObjectClassList = getPersonCustomObjectClassList();
+    	if ((personCustomObjectClassList != null) && !personCustomObjectClassList.isEmpty()) {
+    		Set<String> allObjectClasses = new HashSet<>();
+    		allObjectClasses.addAll(personCustomObjectClassList);
 
-                String currentObjectClasses[] = user.getCustomObjectClasses();
-                if (ArrayHelper.isNotEmpty(currentObjectClasses)) {
-                    allObjectClasses.addAll(Arrays.asList(currentObjectClasses));
-                }
+    		String currentObjectClasses[] = user.getCustomObjectClasses();
+    		if (ArrayHelper.isNotEmpty(currentObjectClasses)) {
+        		allObjectClasses.addAll(Arrays.asList(currentObjectClasses));
+    		}
 
-                user.setCustomObjectClasses(allObjectClasses.toArray(new String[allObjectClasses.size()]));
-            }
+    		user.setCustomObjectClasses(allObjectClasses.toArray(new String[allObjectClasses.size()]));
+    	}
 
-            user.setCreatedAt(new Date());
-            persistenceEntryManager.persist(user);
+    	user.setCreatedAt(new Date());
+    	persistenceEntryManager.persist(user);
 
-            return getUserByDn(user.getDn());
-        } catch (Exception e) {
-            if (log.isErrorEnabled())
-                log.error("Failed to add user entry. " + e.getMessage(), e);
-            throw e;
-        }
-
+		return getUserByDn(user.getDn());
 	}
 
     public User getUserByAttribute(String attributeName, Object attributeValue) {
@@ -263,17 +246,10 @@ public abstract class UserService {
 		}
 
 		log.debug("Getting user information from DB: {} = {}", ArrayHelper.toString(attributeNames), attributeValue);
-		
-		String peopleBaseDn = getPeopleBaseDn();
 
 		List<Filter> filters = new ArrayList<Filter>(); 
 		for (String attributeName : attributeNames) {
-			Filter filter;
-			if (dataSourceTypeService.isSpanner(peopleBaseDn)) {
-				filter = Filter.createEqualityFilter(attributeName, attributeValue);
-			} else {
-				filter = Filter.createEqualityFilter(Filter.createLowercaseFilter(attributeName), attributeValue);
-			}
+			Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter(attributeName), attributeValue);
 	        if (multiValued != null) {
 	        	filter.multiValued(multiValued);
 	        }

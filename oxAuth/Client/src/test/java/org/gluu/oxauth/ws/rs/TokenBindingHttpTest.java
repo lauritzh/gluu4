@@ -1,7 +1,18 @@
 package org.gluu.oxauth.ws.rs;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import org.gluu.oxauth.BaseTest;
+import org.gluu.oxauth.client.*;
+import org.gluu.oxauth.model.common.GrantType;
+import org.gluu.oxauth.model.common.Prompt;
+import org.gluu.oxauth.model.common.ResponseType;
+import org.gluu.oxauth.model.jwt.Jwt;
+import org.gluu.oxauth.model.jwt.JwtClaimName;
+import org.gluu.oxauth.model.register.ApplicationType;
+import org.gluu.oxauth.model.util.StringUtils;
+import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
+import org.testng.Assert;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
 
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -11,24 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.gluu.oxauth.BaseTest;
-import org.gluu.oxauth.client.AuthorizationRequest;
-import org.gluu.oxauth.client.AuthorizationResponse;
-import org.gluu.oxauth.client.AuthorizeClient;
-import org.gluu.oxauth.client.RegisterClient;
-import org.gluu.oxauth.client.RegisterRequest;
-import org.gluu.oxauth.client.RegisterResponse;
-import org.gluu.oxauth.model.common.GrantType;
-import org.gluu.oxauth.model.common.Prompt;
-import org.gluu.oxauth.model.common.ResponseType;
-import org.gluu.oxauth.model.jwt.Jwt;
-import org.gluu.oxauth.model.jwt.JwtClaimName;
-import org.gluu.oxauth.model.register.ApplicationType;
-import org.gluu.oxauth.model.util.StringUtils;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
-import org.testng.Assert;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -86,7 +81,7 @@ public class TokenBindingHttpTest extends BaseTest {
         authorizationRequest.getPrompts().add(Prompt.NONE);
 
         AuthorizeClient authorizeClient = new AuthorizeClient(authorizationEndpoint);
-        authorizeClient.setExecutor(new ApacheHttpClient43Engine(createHttpClientTrustAll()));
+        authorizeClient.setExecutor(new ApacheHttpClient4Executor(createHttpClientTrustAll()));
         authorizeClient.setRequest(authorizationRequest);
         authorizeClient.getHeaders().put("Sec-Token-Binding", ENCODED_TOKEN_BINDING_MESSAGE);
 
@@ -113,7 +108,7 @@ public class TokenBindingHttpTest extends BaseTest {
         registerRequest.setIdTokenTokenBindingCnf(JwtClaimName.TOKEN_BINDING_HASH); // token binding hash for cnf
 
         RegisterClient registerClient = new RegisterClient(registrationEndpoint);
-        registerClient.setExecutor(new ApacheHttpClient43Engine(createHttpClientTrustAll()));
+        registerClient.setExecutor(new ApacheHttpClient4Executor(createHttpClientTrustAll()));
         registerClient.setRequest(registerRequest);
         RegisterResponse registerResponse = registerClient.exec();
 

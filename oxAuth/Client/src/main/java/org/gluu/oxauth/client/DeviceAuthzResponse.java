@@ -6,12 +6,11 @@
 
 package org.gluu.oxauth.client;
 
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.authorize.DeviceAuthorizationResponseParam;
 import org.gluu.oxauth.model.authorize.DeviceAuthzErrorResponseType;
+import org.jboss.resteasy.client.ClientResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,7 +28,7 @@ public class DeviceAuthzResponse extends BaseResponseWithErrors<DeviceAuthzError
     private String verificationUriComplete;
     private Integer expiresIn;
 
-    public DeviceAuthzResponse(Response clientResponse) {
+    public DeviceAuthzResponse(ClientResponse<String> clientResponse) {
         super(clientResponse);
     }
 

@@ -30,7 +30,6 @@ public class OpenIdConfigurationResponse extends BaseResponse implements Seriali
     private String tokenEndpoint;
     private String revocationEndpoint;
     private String sessionRevocationEndpoint;
-    private String authorizationChallengeEndpoint;
     private String userInfoEndpoint;
     private String clientInfoEndpoint;
     private String checkSessionIFrame;
@@ -144,23 +143,6 @@ public class OpenIdConfigurationResponse extends BaseResponse implements Seriali
 
         }
         return map;
-    }
-
-    /**
-     * Returns the URL of the Authorization Challenge Endpoint.
-     *
-     * @return The URL of the Authorization Challenge Endpoint.
-     */
-    public String getAuthorizationChallengeEndpoint() {
-        return authorizationChallengeEndpoint;
-    }
-    /**
-     * Sets Authorization Challenge Endpoint.
-     *
-     * @param authorizationChallengeEndpoint Authorization Challenge Endpoint
-     */
-    public void setAuthorizationChallengeEndpoint(String authorizationChallengeEndpoint) {
-        this.authorizationChallengeEndpoint = authorizationChallengeEndpoint;
     }
 
     /**
@@ -1118,7 +1100,6 @@ public class OpenIdConfigurationResponse extends BaseResponse implements Seriali
                 ", revocationEndpoint='" + revocationEndpoint + '\'' +
                 ", userInfoEndpoint='" + userInfoEndpoint + '\'' +
                 ", clientInfoEndpoint='" + clientInfoEndpoint + '\'' +
-                ", authorizationChallengeEndpoint='" + authorizationChallengeEndpoint + '\'' +
                 ", checkSessionIFrame='" + checkSessionIFrame + '\'' +
                 ", endSessionEndpoint='" + endSessionEndpoint + '\'' +
                 ", jwksUri='" + jwksUri + '\'' +

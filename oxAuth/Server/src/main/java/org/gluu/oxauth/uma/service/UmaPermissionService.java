@@ -18,8 +18,9 @@ import org.gluu.search.filter.Filter;
 import org.gluu.util.INumGenerator;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.*;
 
 /**
@@ -27,7 +28,8 @@ import java.util.*;
  *
  * @author Yuriy Zabrovarnyy
  */
-@ApplicationScoped
+@Stateless
+@Named
 public class UmaPermissionService {
 
     private static final String ORGUNIT_OF_RESOURCE_PERMISSION = "uma_permission";
@@ -147,19 +149,13 @@ public class UmaPermissionService {
     }
 
     public void addBranch(String clientDn) {
-    	String branchDn = getBranchDn(clientDn);
-        if (!containsBranch(branchDn)) {
-        	final SimpleBranch branch = new SimpleBranch();
-	        branch.setOrganizationalUnitName(ORGUNIT_OF_RESOURCE_PERMISSION);
-	        branch.setDn(branchDn);
-	        ldapEntryManager.persist(branch);
-        }
+        final SimpleBranch branch = new SimpleBranch();
+        branch.setOrganizationalUnitName(ORGUNIT_OF_RESOURCE_PERMISSION);
+        branch.setDn(getBranchDn(clientDn));
+        ldapEntryManager.persist(branch);
     }
 
     public void addBranchIfNeeded(String clientDn) {
-        if (!ldapEntryManager.hasBranchesSupport(clientDn)) {
-            return;
-        }
         if (!containsBranch(clientDn)) {
             addBranch(clientDn);
         }

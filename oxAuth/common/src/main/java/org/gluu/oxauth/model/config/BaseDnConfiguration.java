@@ -8,10 +8,10 @@ package org.gluu.oxauth.model.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * @author Yuriy Zabrovarnyy
@@ -57,10 +57,6 @@ public class BaseDnConfiguration {
     private String ciba;
     @XmlElement(name = "stat")
     private String stat;
-	@XmlElement(name = "fido2Attestation")
-	private String fido2Attestation;
-	@XmlElement(name = "fido2Assertion")
-	private String fido2Assertion;
 
     public String getAuthorizations() {
         return authorizations;
@@ -197,21 +193,4 @@ public class BaseDnConfiguration {
     public void setStat(String stat) {
         this.stat = stat;
     }
-
-	public String getFido2Attestation() {
-		return fido2Attestation;
-	}
-
-	public void setFido2Attestation(String fido2Attestation) {
-		this.fido2Attestation = fido2Attestation;
-	}
-
-	public String getFido2Assertion() {
-		return fido2Assertion;
-	}
-
-	public void setFido2Assertion(String fido2Assertion) {
-		this.fido2Assertion = fido2Assertion;
-	}
-
 }

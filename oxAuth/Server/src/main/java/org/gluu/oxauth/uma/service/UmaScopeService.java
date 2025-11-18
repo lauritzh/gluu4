@@ -20,22 +20,22 @@ import org.gluu.search.filter.Filter;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static org.apache.commons.lang3.BooleanUtils.isFalse;
-
 /**
  * @author Yuriy Zabrovarnyy
  * @author Yuriy Movchan
  * @version 0.9, 22/04/2013
  */
-@ApplicationScoped
+@Stateless
+@Named("umaScopeService")
 public class UmaScopeService {
 
     @Inject
@@ -65,11 +65,7 @@ public class UmaScopeService {
             return fromLdap;
         }
 
-        if (isFalse(appConfiguration.getAllowSpontaneousScopes())) {
-            return null;
-        }
-
-        if (isFalse(client.getAttributes().getAllowSpontaneousScopes())) {
+        if (!client.getAttributes().getAllowSpontaneousScopes()) {
             return null;
         }
 

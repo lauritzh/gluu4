@@ -26,16 +26,15 @@ public class UmaRPT extends AbstractToken {
 
     @DN
     private String dn;
-
-    private String notHashedCode;
-
     @AttributeName(name = "usrId")
     private String userId;
     @AttributeName(name = "clnId")
     private String clientId;
     @AttributeName(name = "oxUmaPermission")
     private List<String> permissions;
-    
+
+    private String notHashedCode;
+
     public UmaRPT() {
         super(1);
     }
@@ -47,6 +46,10 @@ public class UmaRPT extends AbstractToken {
         this.clientId = clientId;
     }
 
+    public String getNotHashedCode() {
+        return notHashedCode;
+    }
+
     public String getDn() {
         return dn;
     }
@@ -55,15 +58,7 @@ public class UmaRPT extends AbstractToken {
         dn = p_dn;
     }
 
-	public void setNotHashedCode(String notHashedCode) {
-		this.notHashedCode = notHashedCode;
-	}
-
-    public String getNotHashedCode() {
-        return notHashedCode;
-    }
-
-	public String getUserId() {
+    public String getUserId() {
         return userId;
     }
 
