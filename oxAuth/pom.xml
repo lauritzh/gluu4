@@ -13,11 +13,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.min-version>3.3.9</maven.min-version>
 
-		<oxcore.version>4.2.3.sp2</oxcore.version>
-		<oxeleven.version>4.2.3.sp2</oxeleven.version>
-		<oxnotify.version>4.2.3.sp2</oxnotify.version>
-		<oxlicense.version>4.2.3.sp2</oxlicense.version>
-		<fido2.version>4.2.3.sp2</fido2.version>
+		<oxcore.version>4.2.3.sp3</oxcore.version>
+		<oxeleven.version>4.2.3.sp3</oxeleven.version>
+		<oxnotify.version>4.2.3.sp3</oxnotify.version>
+		<oxlicense.version>4.2.3.sp3</oxlicense.version>
+		<fido2.version>4.2.3.sp3</fido2.version>
 
 		<json.version>20180813</json.version>
 		<jackson.version>2.10.1</jackson.version>
@@ -103,7 +103,7 @@
             <dependency>
                 <groupId>org.gluu</groupId>
                 <artifactId>gluu-core-bom</artifactId>
-                <version>4.2.3.sp2</version>
+                <version>4.2.3.sp3</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -123,7 +123,7 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>oxauth-model</artifactId>
-				<version>4.2.3.sp2</version>
+				<version>4.2.3.sp3</version>
 			</dependency>
 			<dependency>
 				<groupId>org.gluu</groupId>
@@ -133,7 +133,7 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>oxauth-model</artifactId>
-				<version>4.2.3.sp2</version>
+				<version>4.2.3.sp3</version>
 				<type>test-jar</type>
 			</dependency>
 			<dependency>
@@ -159,7 +159,7 @@
 			<dependency>
 				<groupId>org.gluu</groupId>
 				<artifactId>oxauth-static</artifactId>
-				<version>4.2.3.sp2</version>
+				<version>4.2.3.sp3</version>
 			</dependency>
 
 			<!-- Gluu -->
