@@ -238,7 +238,7 @@
 				<dependency>
 					<groupId>org.gluu</groupId>
 					<artifactId>oxauth-model</artifactId>
-					<version>${project.version}</version>
+					<version>4.2.3.sp2</version>
 					<type>test-jar</type>
 					<scope>test</scope>
 				</dependency>
