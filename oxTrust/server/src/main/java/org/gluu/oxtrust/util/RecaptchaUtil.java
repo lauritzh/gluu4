@@ -14,7 +14,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.faces.context.ExternalContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * User: Dejan Maric
  */
-@Stateless
+@ApplicationScoped
 @Named
 public class RecaptchaUtil {
 

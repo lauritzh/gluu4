@@ -2,10 +2,12 @@ package org.gluu.oxtrust.service;
 
 import java.io.Serializable;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import org.slf4j.Logger;
 
+@ApplicationScoped
 public class CleanUpLogger implements Serializable {
 
 	/**

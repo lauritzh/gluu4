@@ -21,8 +21,6 @@
 
 		<jettison.version>1.5.4</jettison.version>
 
-		<omnifaces.version>2.6.9</omnifaces.version>
-
 		<shibboleth.jce.version>1.1.0</shibboleth.jce.version>
 		<shibboleth.idp.version>2.4.5</shibboleth.idp.version>
 
@@ -292,13 +290,6 @@
 				<groupId>org.gluu</groupId>
 				<artifactId>oxcore-radius</artifactId>
 				<version>${oxcore.version}</version>
-			</dependency>
-
-			<!-- Omnifaces -->
-			<dependency>
-				<groupId>org.omnifaces</groupId>
-				<artifactId>omnifaces</artifactId>
-				<version>${omnifaces.version}</version>
 			</dependency>
 
 			<!-- Primefaces -->

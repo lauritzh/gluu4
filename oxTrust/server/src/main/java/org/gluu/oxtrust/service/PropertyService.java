@@ -9,7 +9,7 @@ package org.gluu.oxtrust.service;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
 

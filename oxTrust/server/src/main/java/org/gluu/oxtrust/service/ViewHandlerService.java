@@ -9,7 +9,7 @@ package org.gluu.oxtrust.service;
 import java.util.HashMap;
 import java.util.List;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.faces.application.ViewHandler;
 import jakarta.faces.context.ExternalContext;
 import jakarta.faces.context.FacesContext;
@@ -23,7 +23,7 @@ import jakarta.inject.Named;
  * @version 0.1, 12/14/2012
  */
 @Named("viewHandlerService")
-@Stateless
+@ApplicationScoped
 public class ViewHandlerService {
 
 	@Inject

@@ -8,7 +8,7 @@ package org.gluu.oxtrust.action;
 
 import java.io.Serializable;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -20,7 +20,7 @@ import org.gluu.jsf2.service.FacesService;
  * 
  * @author Yuriy Movchan Date: 12/18/2012
  */
-@Stateless
+@ApplicationScoped
 @Named
 public class MenuAction implements Serializable {
 

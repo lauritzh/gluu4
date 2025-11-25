@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -24,7 +24,7 @@ import org.slf4j.Logger;
  * 
  * @author Yuriy Movchan Date: 11.02.2010
  */
-@Stateless
+@ApplicationScoped
 @Named("securityService")
 public class SecurityService implements Serializable {
 

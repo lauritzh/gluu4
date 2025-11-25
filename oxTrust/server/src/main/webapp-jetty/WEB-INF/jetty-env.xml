@@ -10,7 +10,7 @@
 		<Arg>BeanManager</Arg>
 
 		<Arg>
-			<New class="jakarta.naming.Reference">
+			<New class="javax.naming.Reference">
 				<Arg>jakarta.enterprise.inject.spi.BeanManager</Arg>
 				<Arg>org.jboss.weld.resources.ManagerObjectFactory</Arg>
 				<Arg />

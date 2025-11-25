@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -28,7 +28,7 @@ import org.slf4j.Logger;
  * 
  * @author Yuriy Movchan Date: 01/22/2014
  */
-@Stateless
+@ApplicationScoped
 @Named("pushApplicationService")
 public class PushApplicationService implements Serializable {
 

@@ -8,7 +8,7 @@ package org.gluu.oxtrust.service;
 
 import java.io.Serializable;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -21,7 +21,7 @@ import org.slf4j.Logger;
  * @author Dejan Maric
  * @author Yuriy Movchan
  */
-@Stateless
+@ApplicationScoped
 @Named("recaptchaService")
 public class RecaptchaService implements Serializable {
 

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -40,7 +40,7 @@ import com.unboundid.ldif.LDIFReader;
  * @author Shekhar L Date: 02.28.2017
  * @author Yuriy Movchan Date: 03/06/2017
  */
-@Stateless
+@ApplicationScoped
 @Named("ldifService")
 public class LdifService implements Serializable {
 

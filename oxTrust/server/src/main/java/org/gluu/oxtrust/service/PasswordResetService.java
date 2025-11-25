@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
  * 
  * @author Yuriy Movchan Date: 09/01/2018
  */
-@Stateless
+@ApplicationScoped
 @Named("passwordResetService")
 public class PasswordResetService implements Serializable {
 

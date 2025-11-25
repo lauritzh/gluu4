@@ -19,7 +19,7 @@ import org.gluu.service.metric.inject.ReportMetric;
 import org.gluu.service.net.NetworkService;
 import org.slf4j.Logger;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -32,7 +32,7 @@ import java.util.*;
  * @author Yuriy Movchan Date: 06/28/2015
  * @author Rahat Ali Date: 07/30/2015
  */
-@Stateless
+@ApplicationScoped
 @Named(MetricService.METRIC_SERVICE_COMPONENT_NAME)
 public class MetricService extends org.gluu.service.metric.MetricService {
 

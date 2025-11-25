@@ -9,7 +9,7 @@ package org.gluu.oxtrust.service.render;
 import java.io.IOException;
 import java.io.Serializable;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -21,7 +21,7 @@ import org.slf4j.Logger;
  * 
  * @author Yuriy Movchan Date: 11/19/2017
  */
-@Stateless
+@ApplicationScoped
 @Named("renderService")
 public class RenderService implements Serializable {
 
