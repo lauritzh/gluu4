@@ -9,9 +9,9 @@ import java.util.Map;
 
 import net.shibboleth.idp.authn.context.AuthenticationContext;
 import net.shibboleth.idp.authn.AuthenticationResult;
-import net.shibboleth.idp.profile.config.ProfileConfiguration;
-import net.shibboleth.idp.profile.context.RelyingPartyContext;
-import net.shibboleth.idp.saml.saml2.profile.config.BrowserSSOProfileConfiguration;
+import net.shibboleth.profile.config.ProfileConfiguration;
+import net.shibboleth.profile.context.RelyingPartyContext;
+import net.shibboleth.idp.saml.saml2.profile.config.impl.BrowserSSOProfileConfiguration;
 
 import org.gluu.idp.context.GluuScratchContext;
 import org.gluu.idp.script.service.IdpCustomScriptManager;

@@ -19,7 +19,6 @@ import org.gluu.service.cache.CacheProvider;
 import org.gluu.service.cache.StandaloneCacheProviderFactory;
 import org.gluu.util.security.StringEncrypter;
 import org.opensaml.storage.AbstractStorageService;
-import org.opensaml.storage.StorageCapabilitiesEx;
 import org.opensaml.storage.StorageRecord;
 import org.opensaml.storage.VersionMismatchException;
 import org.slf4j.Logger;
@@ -27,9 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import net.shibboleth.shared.annotation.constraint.NonNegative;
 import net.shibboleth.shared.collection.Pair;
-import net.shibboleth.utilities.java.support.component.ComponentSupport;
+import net.shibboleth.shared.component.ComponentSupport;
 import net.shibboleth.shared.logic.Constraint;
-import net.shibboleth.utilities.java.support.primitive.StringSupport;
+import net.shibboleth.shared.primitive.StringSupport;
 
 /**
  * Gluu Storage Service for IDP
@@ -37,7 +36,7 @@ import net.shibboleth.utilities.java.support.primitive.StringSupport;
  * @author Yuriy Movchan
  * @version 0.1, 01/21/2020
  */
-public class GluuStorageService extends AbstractStorageService implements StorageCapabilitiesEx {
+public class GluuStorageService extends AbstractStorageService {
 
 	@SuppressWarnings("unused")
 	private final Logger LOG = LoggerFactory.getLogger(GluuStorageService.class);
@@ -328,18 +327,6 @@ public class GluuStorageService extends AbstractStorageService implements Storag
         }
     }
 
-	@Override
-	public boolean isServerSide() {
-    	LOG.debug("GluuStorage: isServerSide");
-		return true;
-	}
-
-	@Override
-	public boolean isClustered() {
-    	LOG.debug("GluuStorage: isClustered");
-		return true;
-	}
-
 	/**
      * Looks up the namespace for the given context name in the cache.
      *
@@ -480,4 +467,22 @@ public class GluuStorageService extends AbstractStorageService implements Storag
         }
     }
 
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public  boolean isClustered() {
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public boolean isServerSide() {
+
+        return true;
+    }
 }

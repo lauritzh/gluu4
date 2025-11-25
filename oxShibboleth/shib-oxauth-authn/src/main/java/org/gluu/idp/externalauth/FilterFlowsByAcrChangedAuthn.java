@@ -18,9 +18,9 @@ import org.slf4j.LoggerFactory;
 import net.shibboleth.idp.authn.AbstractAuthenticationAction;
 import net.shibboleth.idp.authn.AuthenticationResult;
 import net.shibboleth.idp.authn.context.AuthenticationContext;
-import net.shibboleth.idp.profile.config.ProfileConfiguration;
-import net.shibboleth.idp.profile.context.RelyingPartyContext;
-import net.shibboleth.idp.saml.saml2.profile.config.BrowserSSOProfileConfiguration;
+import net.shibboleth.profile.config.ProfileConfiguration;
+import net.shibboleth.profile.context.RelyingPartyContext;
+import net.shibboleth.idp.saml.saml2.profile.config.impl.BrowserSSOProfileConfiguration;
 
 /**
  * @author Yuriy Movchan on 09/13/2021

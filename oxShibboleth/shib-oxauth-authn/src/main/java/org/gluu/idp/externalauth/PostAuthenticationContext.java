@@ -2,8 +2,8 @@ package org.gluu.idp.externalauth;
 
 import java.io.Serializable;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.gluu.oxauth.client.auth.user.UserProfile;
 import org.opensaml.profile.context.ProfileRequestContext;

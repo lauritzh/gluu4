@@ -3,7 +3,7 @@ package org.gluu.idp.service;
 import java.util.function.Function;
 import java.util.Iterator;
 
-import net.shibboleth.idp.profile.context.RelyingPartyContext;
+import net.shibboleth.profile.context.RelyingPartyContext;
 import org.gluu.idp.model.GluuVanillaTrustRelationship;
 import org.gluu.idp.service.GluuVanillaTrustRelationshipService;
 

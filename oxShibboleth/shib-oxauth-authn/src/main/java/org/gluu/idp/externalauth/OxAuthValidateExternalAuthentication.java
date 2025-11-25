@@ -11,7 +11,7 @@ import net.shibboleth.idp.authn.context.AuthenticationContext;
 import net.shibboleth.idp.attribute.filter.AttributeFilter;
 import net.shibboleth.idp.authn.impl.ValidateExternalAuthentication;
 
-import net.shibboleth.utilities.java.support.service.ReloadableService;
+import net.shibboleth.shared.service.ReloadableService;
 
 /**
  * @author Yuriy Movchan on 09/13/2021

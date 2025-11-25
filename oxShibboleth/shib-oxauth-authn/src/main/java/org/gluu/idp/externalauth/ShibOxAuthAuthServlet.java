@@ -14,15 +14,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import javax.security.auth.Subject;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.context.J2EContext;
@@ -59,15 +59,15 @@ import org.springframework.webflow.execution.repository.FlowExecutionRepository;
 import org.springframework.webflow.executor.FlowExecutionResult;
 import org.springframework.webflow.executor.FlowExecutorImpl;
 
-import net.shibboleth.attribute.IdPAttribute;
-import net.shibboleth.authn.AuthnEventIds;
-import net.shibboleth.authn.ExternalAuthentication;
-import net.shibboleth.authn.ExternalAuthenticationException;
-import net.shibboleth.authn.principal.UsernamePrincipal;
-import net.shibboleth.authn.context.AuthenticationContext;
+import net.shibboleth.idp.attribute.IdPAttribute;
+import net.shibboleth.idp.authn.AuthnEventIds;
+import net.shibboleth.idp.authn.ExternalAuthentication;
+import net.shibboleth.idp.authn.ExternalAuthenticationException;
+import net.shibboleth.idp.authn.principal.UsernamePrincipal;
+import net.shibboleth.idp.authn.context.AuthenticationContext;
 import net.shibboleth.profile.config.ProfileConfiguration;
 import net.shibboleth.profile.context.RelyingPartyContext;
-import net.shibboleth.saml.saml2.profile.config.BrowserSSOProfileConfiguration;
+import net.shibboleth.idp.saml.saml2.profile.config.impl.BrowserSSOProfileConfiguration;
 
 /**
  * A Servlet that validates the oxAuth code and then pushes the authenticated
