@@ -299,13 +299,6 @@
 				<classifier>jakarta</classifier>
 				<version>15.0.10</version>
 			</dependency>
-			<!-- bootsfaces -->
-			<dependency>
-				<groupId>net.bootsfaces</groupId>
-				<artifactId>bootsfaces</artifactId>
-				<version>1.5.0</version>
-				<scope>compile</scope>
-			</dependency>
 
 			<!-- Jettison -->
 			<dependency>

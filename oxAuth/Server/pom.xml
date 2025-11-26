@@ -405,12 +405,10 @@
             <artifactId>jakarta.validation-api</artifactId>
 		</dependency>
 
-        <dependency>
-            <groupId>net.bootsfaces</groupId>
-            <artifactId>bootsfaces</artifactId>
-            <version>1.5.0</version>
-            <scope>compile</scope>
-        </dependency>
+		<dependency>
+			<groupId>net.bootsfaces</groupId>
+			<artifactId>bootsfaces</artifactId>
+		</dependency>
 
 		<!-- Bouncycastle -->
 		<dependency>

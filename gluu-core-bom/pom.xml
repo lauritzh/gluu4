@@ -24,6 +24,7 @@
 		<weld.version>4.0.3.Final</weld.version>
 	
 		<org.omnifaces.omnifaces.version>4.7</org.omnifaces.omnifaces.version>
+		<bootsfaces.version>2.0.1</bootsfaces.version>
 		<org.glassfish.jakarta.json.version>2.0.1</org.glassfish.jakarta.json.version>
 		<org.hibernate.validator.version>7.0.5.Final</org.hibernate.validator.version>
 		<org.hibernate.validator.cdi.version>7.0.5.Final</org.hibernate.validator.cdi.version>
@@ -384,6 +385,12 @@
 			    <groupId>org.omnifaces</groupId>
 			    <artifactId>omnifaces</artifactId>
 			    <version>${org.omnifaces.omnifaces.version}</version>
+			</dependency>
+
+			<dependency>
+			    <groupId>net.bootsfaces</groupId>
+			    <artifactId>bootsfaces</artifactId>
+			    <version>${bootsfaces.version}</version>
 			</dependency>
 
 			<!-- Richfaces. Deprecated-->
