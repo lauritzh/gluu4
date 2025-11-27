@@ -9,9 +9,9 @@ package org.gluu.oxauth.cas.auth.handler;
 import java.security.GeneralSecurityException;
 
 import javax.security.auth.login.FailedLoginException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 
 import org.gluu.oxauth.cas.auth.principal.ClientCredential;
 import org.gluu.oxauth.client.Client;

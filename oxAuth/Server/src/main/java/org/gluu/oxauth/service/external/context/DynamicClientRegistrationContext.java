@@ -4,7 +4,7 @@ import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.oxauth.model.jwt.Jwt;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Yuriy Zabrovarnyy

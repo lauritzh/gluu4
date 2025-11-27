@@ -15,9 +15,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.oxtrust.ldap.cache.model.GluuInumMap;
 import org.gluu.oxtrust.ldap.cache.model.GluuSimplePerson;
@@ -39,7 +39,7 @@ import org.slf4j.Logger;
  * 
  * @author Yuriy Movchan Date: 07.04.2011
  */
-@Stateless
+@ApplicationScoped
 @Named("cacheRefreshService")
 public class CacheRefreshService implements Serializable {
 

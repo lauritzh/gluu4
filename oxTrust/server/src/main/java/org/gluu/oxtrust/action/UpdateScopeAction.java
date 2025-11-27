@@ -14,12 +14,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.enterprise.context.ConversationScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.ConversationScoped;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.gluu.jsf2.message.FacesMessages;
 import org.gluu.jsf2.service.ConversationService;
@@ -226,7 +226,9 @@ public class UpdateScopeAction implements Serializable {
 	public String save() throws Exception {
 		try {
 			this.scope.setDisplayName(this.scope.getDisplayName().trim());
-			this.scope.setId(this.scope.getDisplayName());
+			if (this.scope.getId() == null) {
+				this.scope.setId(this.scope.getDisplayName());
+			}
 			updateDynamicScripts();
 			updateAuthorizationPolicies();
 			updateClaims();

@@ -8,9 +8,9 @@ package org.gluu.oxtrust.action.uma;
 
 import java.io.Serializable;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.oxtrust.service.ImageService;
 import org.gluu.oxtrust.service.uma.UmaScopeService;

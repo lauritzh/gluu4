@@ -8,8 +8,8 @@ import org.gluu.oxauth.register.ws.rs.RegisterRestWebService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.oxauth.ws.rs.ClientTestUtil;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.core.Response;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.core.Response;
 import java.net.URI;
 
 import static org.testng.Assert.assertEquals;

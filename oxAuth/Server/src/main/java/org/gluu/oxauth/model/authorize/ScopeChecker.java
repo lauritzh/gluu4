@@ -8,7 +8,7 @@ package org.gluu.oxauth.model.authorize;
 
 import com.google.common.collect.Sets;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.registration.Client;
@@ -18,7 +18,7 @@ import org.gluu.oxauth.service.external.ExternalSpontaneousScopeService;
 import org.gluu.oxauth.service.external.context.SpontaneousScopeExternalContext;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;

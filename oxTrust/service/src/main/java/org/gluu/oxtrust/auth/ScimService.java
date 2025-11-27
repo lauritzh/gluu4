@@ -1,7 +1,7 @@
 package org.gluu.oxtrust.auth;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.config.oxtrust.ScimMode;
 import org.gluu.oxtrust.auth.none.NoProtectionService;

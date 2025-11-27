@@ -19,7 +19,7 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.token.JwtSigner;
 import org.gluu.oxauth.service.AttributeService;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Set;
 
 /**

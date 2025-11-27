@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.model.configuration.BaseFilter;
 import org.gluu.persist.PersistenceEntryManager;

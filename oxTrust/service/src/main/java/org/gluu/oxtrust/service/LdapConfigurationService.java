@@ -5,8 +5,8 @@ import static org.gluu.oxtrust.util.CollectionsUtil.trimToEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.model.ldap.GluuLdapConfiguration;
 import org.gluu.oxtrust.model.OxIDPAuthConf;

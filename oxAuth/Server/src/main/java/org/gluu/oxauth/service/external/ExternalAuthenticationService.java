@@ -25,10 +25,10 @@ import org.gluu.service.custom.script.ExternalScriptService;
 import org.gluu.util.OxConstants;
 import org.gluu.util.StringHelper;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.*;
 import java.util.Map.Entry;
 

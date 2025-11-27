@@ -22,9 +22,9 @@ import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.EXPIRES_IN;
 import static org.gluu.oxauth.model.ciba.BackchannelAuthenticationResponseParam.INTERVAL;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation.Builder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;

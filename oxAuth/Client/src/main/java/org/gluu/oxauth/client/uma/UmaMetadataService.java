@@ -6,8 +6,8 @@
 
 package org.gluu.oxauth.client.uma;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Produces;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Produces;
 
 import org.gluu.oxauth.model.uma.UmaConstants;
 import org.gluu.oxauth.model.uma.UmaMetadata;

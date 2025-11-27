@@ -12,9 +12,9 @@ import org.gluu.persist.exception.EntryPersistenceException;
 import org.gluu.persist.model.base.SimpleBranch;
 import org.slf4j.Logger;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;

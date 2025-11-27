@@ -8,8 +8,8 @@ package org.gluu.oxtrust.auth.uma;
 
 import java.io.Serializable;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.config.oxtrust.AppConfiguration;
 

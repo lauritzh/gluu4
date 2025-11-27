@@ -9,7 +9,7 @@ package org.gluu.oxtrust.action;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import org.testng.Assert;
 

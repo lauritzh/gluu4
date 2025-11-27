@@ -6,10 +6,10 @@
 
 package org.gluu.oxauth.service.common;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.SmtpConfiguration;

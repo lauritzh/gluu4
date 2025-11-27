@@ -15,7 +15,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.ws.rs.HttpMethod;
+import jakarta.ws.rs.HttpMethod;
 
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.RegisterClient;

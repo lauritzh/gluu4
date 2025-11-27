@@ -7,23 +7,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.AnnotatedMethod;
-import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.configurator.AnnotatedMethodConfigurator;
-import javax.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.spi.AnnotatedMethod;
+import jakarta.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.ProcessAnnotatedType;
+import jakarta.enterprise.inject.spi.configurator.AnnotatedMethodConfigurator;
+import jakarta.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
 
 /**
  * Exception handler extension
  * 
  * @author Yuriy Movchan Date: 05/22/2017
  */
+@ApplicationScoped
 public class ExceptionHandlerExtension implements Extension {
 
     private static final Logger log = LoggerFactory.getLogger(ExceptionHandlerExtension.class.getName());

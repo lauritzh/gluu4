@@ -12,9 +12,9 @@ import org.json.JSONObject;
 import org.msgpack.core.Preconditions;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;

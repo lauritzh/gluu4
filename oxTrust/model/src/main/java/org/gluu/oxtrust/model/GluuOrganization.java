@@ -8,8 +8,8 @@ package org.gluu.oxtrust.model;
 
 import java.io.Serializable;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.gluu.model.GluuStatus;
 import org.gluu.persist.model.base.Entry;

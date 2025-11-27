@@ -11,7 +11,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;

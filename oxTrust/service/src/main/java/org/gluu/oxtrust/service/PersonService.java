@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.time.Instant;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.model.GluuAttribute;
 import org.gluu.oxauth.model.common.IdType;

@@ -14,8 +14,8 @@ import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.external.session.SessionEvent;
 import org.gluu.service.custom.script.ExternalScriptService;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**

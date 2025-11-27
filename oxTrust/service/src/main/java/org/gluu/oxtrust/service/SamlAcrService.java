@@ -3,8 +3,8 @@ package org.gluu.oxtrust.service;
 import java.io.Serializable;
 import java.util.UUID;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.oxtrust.model.SamlAcr;
 import org.gluu.persist.PersistenceEntryManager;

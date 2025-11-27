@@ -8,11 +8,11 @@ package org.gluu.oxauth.service.custom;
 
 import java.io.UnsupportedEncodingException;
 
-import javax.annotation.Priority;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Alternative;
-import javax.interceptor.Interceptor;
-import javax.inject.Inject;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.interceptor.Interceptor;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.model.config.StaticConfiguration;
 import org.gluu.oxauth.model.util.Base64Util;

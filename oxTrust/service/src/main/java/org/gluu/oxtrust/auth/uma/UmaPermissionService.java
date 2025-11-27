@@ -7,12 +7,12 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.core.Response;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
@@ -137,8 +137,8 @@ public class UmaPermissionService implements Serializable {
  		for (int attempt = 1; attempt <= max_attempts; attempt++) {
 			try {
 				metadataConfiguration = metaDataConfigurationService.getMetadata();
-			} catch (javax.ws.rs.ServiceUnavailableException ex) {
-	            if ((attempt == max_attempts) || (ex.getResponse().getStatus() != javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE.getStatusCode())) {
+			} catch (jakarta.ws.rs.ServiceUnavailableException ex) {
+	            if ((attempt == max_attempts) || (ex.getResponse().getStatus() != jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE.getStatusCode())) {
 	            	throw ex;
 	            }
 

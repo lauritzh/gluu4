@@ -10,17 +10,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import org.apache.commons.io.FileUtils;
 import org.gluu.service.security.Secure;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
 @Named("fileViewerAction")
-@Stateless
+@ApplicationScoped
 @Secure("#{identity.loggedIn}")
 public class FileViewerAction implements Serializable {
 

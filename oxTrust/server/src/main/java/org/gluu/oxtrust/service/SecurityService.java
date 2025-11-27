@@ -10,9 +10,9 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.model.user.UserRole;
 import org.gluu.oxtrust.model.GluuOrganization;
@@ -24,7 +24,7 @@ import org.slf4j.Logger;
  * 
  * @author Yuriy Movchan Date: 11.02.2010
  */
-@Stateless
+@ApplicationScoped
 @Named("securityService")
 public class SecurityService implements Serializable {
 

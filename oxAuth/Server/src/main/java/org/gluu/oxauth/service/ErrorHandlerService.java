@@ -16,11 +16,11 @@ import org.gluu.oxauth.util.RedirectUri;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.application.FacesMessage.Severity;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.application.FacesMessage.Severity;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 /**
  * Helper service to generate either error response or local error based on application settings

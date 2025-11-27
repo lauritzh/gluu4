@@ -3,12 +3,12 @@ package org.gluu.oxtrust.security;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Priority;
-import javax.enterprise.context.SessionScoped;
-import javax.enterprise.inject.Alternative;
-import javax.inject.Named;
-import javax.interceptor.Interceptor;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.SessionScoped;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.inject.Named;
+import jakarta.interceptor.Interceptor;
 
 import org.gluu.oxtrust.model.GluuCustomPerson;
 

@@ -243,7 +243,7 @@ class JettyInstaller(BaseInstaller, SetupUtils):
             if jetty_env_fn:
                 xml_content = self.readFile(jetty_env_fn)
                 src_txt = 'org.eclipse.jetty.webapp.WebAppContext'
-                tgt_txt = 'org.eclipse.jetty.ee8.webapp.WebAppContext'
+                tgt_txt = 'org.eclipse.jetty.ee9.webapp.WebAppContext'
 
                 if src_txt in xml_content:
                     self.logIt(f"Updating {env_src_fn} in {war_fn}")
