@@ -11,7 +11,7 @@ from org.gluu.oxauth.service import AuthenticationService
 from org.gluu.persist import PersistenceEntryManager
 from org.gluu.oxauth.model.ldap import TokenLdap
 from org.gluu.util import StringHelper
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 from org.gluu.jsf2.message import FacesMessages
 from org.gluu.oxauth.model.config import StaticConfiguration
 

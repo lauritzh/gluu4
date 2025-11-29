@@ -30,9 +30,9 @@ from java.lang import String
 from java.util import UUID
 from java.net import URLDecoder, URLEncoder
 from java.util import Arrays, ArrayList, Collections, HashMap
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 from javax.servlet.http import Cookie
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 from org.apache.http.entity import ContentType
 import random
 

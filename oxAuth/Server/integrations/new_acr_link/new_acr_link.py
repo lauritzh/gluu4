@@ -11,7 +11,7 @@ from org.gluu.oxauth.service import AuthenticationService
 from org.gluu.util import StringHelper
 from urlparse import urlparse, parse_qsl, urlunparse
 from urllib import urlencode
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 
 import java
 

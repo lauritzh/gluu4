@@ -18,7 +18,7 @@ from java.util import Arrays
 from java.util.concurrent.locks import ReentrantLock
 from javax.ws.rs import ClientErrorException
 from javax.ws.rs.core import Response
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 
 import java
 import sys

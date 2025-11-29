@@ -13,7 +13,7 @@ from org.gluu.oxauth.service import UserService, AuthenticationService
 from org.gluu.oxauth.util import ServerUtil
 from org.gluu.util import StringHelper, ArrayHelper
 from java.util import Arrays
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 from org.gluu.jsf2.message import FacesMessages
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText

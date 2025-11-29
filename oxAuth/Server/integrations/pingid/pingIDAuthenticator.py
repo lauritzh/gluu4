@@ -1,7 +1,7 @@
 from java.util import Arrays, ArrayList, Optional, Base64
 
-from javax.faces.application import FacesMessage
-from javax.faces.context import FacesContext
+from jakarta.faces.application import FacesMessage
+from jakarta.faces.context import FacesContext
 
 from org.gluu.jsf2.message import FacesMessages
 from org.gluu.oxauth.ping import PPMRequestBroker, UserManagerBroker, ResponseTokenParser, HttpException, TokenProcessingException

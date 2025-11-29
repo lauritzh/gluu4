@@ -7,7 +7,7 @@
 from org.gluu.service.cdi.util import CdiUtil
 from org.gluu.oxauth.security import Identity
 from org.gluu.jsf2.message import FacesMessages
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 from org.gluu.util import StringHelper, ArrayHelper
 from java.util import Arrays, ArrayList, HashMap, IdentityHashMap
 from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
@@ -19,7 +19,7 @@ from org.gluu.jsf2.service import FacesService
 from org.gluu.oxauth.model.util import Base64Util
 from org.python.core.util import StringUtil
 from org.gluu.oxauth.service.net import HttpService
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 
 import java
 
