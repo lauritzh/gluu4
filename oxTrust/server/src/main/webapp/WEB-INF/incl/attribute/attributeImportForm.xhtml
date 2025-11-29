@@ -21,9 +21,9 @@
 							<p:fileUpload listener="#{_importAction.uploadFile}"
 								rendered="#{_importAction.uploadedFile == null}" required="true"
 								mode="advanced" dragDropSupport="false" multiple="false"
-								sizeLimit="1000000" fileLimit="1" label="Select a file"
-								validateContentType="true" update="@form"
-								allowTypes="/(\.|\/)(ldif)$/">
+								label="Select a file"
+								validateContentType="true" update="@form">
+								<p:validateFile fileLimit="1" sizeLimit="1000000" virusScan="true" allowTypes="/(\.|\/)(ldif)$/"/>
 							</p:fileUpload>
 						</h:panelGroup>
 					</ox:decorate>
