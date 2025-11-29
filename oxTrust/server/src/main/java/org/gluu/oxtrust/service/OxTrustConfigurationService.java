@@ -6,11 +6,11 @@
 
 package org.gluu.oxtrust.service;
 
-import javax.ejb.Stateless;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.ServletContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.ServletContext;
 
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.util.StringHelper;
@@ -20,7 +20,7 @@ import org.gluu.util.StringHelper;
  * 
  * @author Oleksiy Tataryn Date: 08.07.2014
  */
-@Stateless
+@ApplicationScoped
 @Named
 @Deprecated //TODO: We don't need this class
 public class OxTrustConfigurationService {

@@ -16,12 +16,12 @@ import static org.gluu.oxauth.model.discovery.WebFingerParam.SUBJECT;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.inject.Inject;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,7 +49,7 @@ public class WebFinger extends HttpServlet {
      *
      * @param request  servlet request
      * @param response servlet response
-     * @throws javax.servlet.ServletException if a servlet-specific error occurs
+     * @throws jakarta.servlet.ServletException if a servlet-specific error occurs
      * @throws java.io.IOException            if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -94,7 +94,7 @@ public class WebFinger extends HttpServlet {
      *
      * @param request  servlet request
      * @param response servlet response
-     * @throws javax.servlet.ServletException if a servlet-specific error occurs
+     * @throws jakarta.servlet.ServletException if a servlet-specific error occurs
      * @throws java.io.IOException            if an I/O error occurs
      */
     @Override

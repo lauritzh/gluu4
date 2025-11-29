@@ -4,12 +4,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.annotation.PostConstruct;
-import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
-import javax.faces.convert.Converter;
-import javax.faces.convert.FacesConverter;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.faces.component.UIComponent;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.convert.Converter;
+import jakarta.faces.convert.FacesConverter;
+import jakarta.inject.Inject;
 
 import org.gluu.oxtrust.service.PersonService;
 import org.gluu.persist.PersistenceEntryManager;

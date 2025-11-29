@@ -3,9 +3,9 @@ package org.gluu.oxauth.service.logger;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.util.ServerUtil;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 /**
  * Logger service

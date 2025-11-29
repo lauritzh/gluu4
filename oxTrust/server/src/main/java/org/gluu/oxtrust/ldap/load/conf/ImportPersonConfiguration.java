@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.config.oxtrust.ImportPerson;
 import org.gluu.model.GluuAttribute;

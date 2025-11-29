@@ -2,7 +2,7 @@ package org.gluu.oxauth.model.token;
 
 import com.google.common.base.Function;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.IAuthorizationGrant;
@@ -28,7 +28,7 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 

@@ -6,7 +6,7 @@
 
 package org.gluu.oxauth.client.uma;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.gluu.oxauth.client.service.ClientFactory;
 import org.gluu.oxauth.model.uma.UmaMetadata;

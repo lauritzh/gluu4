@@ -2,13 +2,13 @@ package org.gluu.oxtrust.service;
 
 import java.io.Serializable;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.gluu.oxtrust.model.GluuCustomPerson;
 import org.slf4j.Logger;
-@Stateless
+@ApplicationScoped
 public class OxTrustAuditService implements Serializable {
 
 	private static final long serialVersionUID = -3495894016120236517L;

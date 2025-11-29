@@ -4,7 +4,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.BaseComponentTest;
 import org.gluu.oxauth.model.fido.u2f.message.RawRegisterResponse;

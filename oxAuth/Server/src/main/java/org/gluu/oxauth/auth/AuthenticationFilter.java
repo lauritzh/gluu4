@@ -35,12 +35,12 @@ import org.gluu.oxauth.util.ServerUtil;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
-import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
+import jakarta.inject.Inject;
+import jakarta.servlet.*;
+import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.WebApplicationException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLDecoder;

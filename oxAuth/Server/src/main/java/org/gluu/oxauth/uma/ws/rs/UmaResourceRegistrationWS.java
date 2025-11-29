@@ -17,11 +17,11 @@ import org.gluu.oxauth.uma.service.UmaValidationService;
 import org.gluu.oxauth.util.ServerUtil;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
 import java.util.*;
 

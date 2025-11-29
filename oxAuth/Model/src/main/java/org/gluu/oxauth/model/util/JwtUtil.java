@@ -28,8 +28,8 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
 import org.bouncycastle.openssl.PEMParser;
@@ -194,7 +194,7 @@ public class JwtUtil {
         JSONObject jsonKey = null;
         try {
             if (StringHelper.isEmpty(jwks)) {
-                javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
+                jakarta.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
         		try {
         			Response clientResponse = clientRequest.target(jwksUri).request().buildGet().invoke();
 
@@ -248,7 +248,7 @@ public class JwtUtil {
             		((ResteasyClientBuilder) clientBuilder).httpEngine(engine);
             	}
 
-            	javax.ws.rs.client.Client clientRequest = clientBuilder.build();
+            	jakarta.ws.rs.client.Client clientRequest = clientBuilder.build();
         		try {
         			Response clientResponse = clientRequest.target(jwksUri).request().buildGet().invoke();
 

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.model.common.User;
 import org.gluu.oxauth.model.config.StaticConfiguration;

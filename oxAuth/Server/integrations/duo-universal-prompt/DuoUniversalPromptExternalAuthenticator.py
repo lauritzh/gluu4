@@ -6,7 +6,7 @@ from org.gluu.oxauth.service.common import UserService
 from org.gluu.util import ArrayHelper
 from org.gluu.util import StringHelper
 from java.util import Arrays
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 from org.gluu.oxauth.service.net import HttpService
 import os
 import java

@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 

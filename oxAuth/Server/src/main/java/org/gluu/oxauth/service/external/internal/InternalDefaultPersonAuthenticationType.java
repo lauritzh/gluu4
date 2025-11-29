@@ -2,14 +2,14 @@ package org.gluu.oxauth.service.external.internal;
 
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.type.auth.DummyPersonAuthenticationType;
 import org.gluu.model.security.Credentials;
 import org.gluu.oxauth.service.AuthenticationService;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * Wrapper to call internal authentication method

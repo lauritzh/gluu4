@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;

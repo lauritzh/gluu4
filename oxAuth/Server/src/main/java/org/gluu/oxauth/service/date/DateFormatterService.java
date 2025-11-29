@@ -4,9 +4,9 @@ import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.common.CallerType;
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;

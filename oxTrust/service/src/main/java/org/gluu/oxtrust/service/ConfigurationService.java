@@ -16,10 +16,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.model.ApplicationType;
 import org.gluu.model.AuthenticationScriptUsageType;

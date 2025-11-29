@@ -9,8 +9,8 @@ package org.gluu.oxauth.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.model.GluuAttribute;
 import org.gluu.oxauth.model.config.StaticConfiguration;

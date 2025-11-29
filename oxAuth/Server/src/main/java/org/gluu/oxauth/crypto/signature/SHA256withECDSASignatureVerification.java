@@ -14,7 +14,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;

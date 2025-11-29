@@ -25,8 +25,8 @@ import org.json.JSONArray;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.*;
 

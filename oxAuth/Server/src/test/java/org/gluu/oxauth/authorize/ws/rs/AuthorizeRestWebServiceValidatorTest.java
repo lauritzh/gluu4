@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertFalse;

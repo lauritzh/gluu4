@@ -25,9 +25,9 @@ import org.gluu.service.CacheService;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;

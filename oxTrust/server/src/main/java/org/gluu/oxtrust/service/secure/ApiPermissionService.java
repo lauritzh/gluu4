@@ -7,9 +7,9 @@ package org.gluu.oxtrust.service.secure;
 
 import java.io.Serializable;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.model.user.UserRole;
 import org.gluu.oxtrust.model.GluuConfiguration;

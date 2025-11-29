@@ -24,19 +24,19 @@ import org.gluu.oxauth.uma.service.UmaSessionService;
 import org.gluu.oxauth.uma.service.UmaValidationService;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.FOUND;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.FOUND;
 import static org.gluu.oxauth.model.uma.UmaErrorResponseType.INVALID_CLAIMS_GATHERING_SCRIPT_NAME;
 import static org.gluu.oxauth.model.uma.UmaErrorResponseType.INVALID_SESSION;
 

@@ -6,8 +6,8 @@ import org.gluu.oxauth.service.AttributeService;
 import org.gluu.oxauth.service.common.UserService;
 import org.gluu.oxauth.model.common.User;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * @author Yuriy Zabrovarnyy

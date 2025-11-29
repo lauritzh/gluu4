@@ -18,8 +18,8 @@ import org.gluu.oxauth.token.ws.rs.TokenRestWebServiceImpl;
 import org.gluu.oxauth.uma.ws.rs.*;
 import org.gluu.oxauth.userinfo.ws.rs.UserInfoRestWebServiceImpl;
 
-import javax.ws.rs.core.Application;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.ext.Provider;
 import java.util.HashSet;
 import java.util.Set;
 

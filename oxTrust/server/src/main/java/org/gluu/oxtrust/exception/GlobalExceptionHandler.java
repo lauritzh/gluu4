@@ -2,14 +2,14 @@ package org.gluu.oxtrust.exception;
 
 import java.util.Iterator;
 
-import javax.enterprise.context.NonexistentConversationException;
-import javax.faces.FacesException;
-import javax.faces.context.ExceptionHandler;
-import javax.faces.context.ExceptionHandlerWrapper;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ExceptionQueuedEvent;
-import javax.faces.event.ExceptionQueuedEventContext;
+import jakarta.enterprise.context.NonexistentConversationException;
+import jakarta.faces.FacesException;
+import jakarta.faces.context.ExceptionHandler;
+import jakarta.faces.context.ExceptionHandlerWrapper;
+import jakarta.faces.context.ExternalContext;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.event.ExceptionQueuedEvent;
+import jakarta.faces.event.ExceptionQueuedEventContext;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gluu.oxtrust.security.Identity;
@@ -82,7 +82,7 @@ public class GlobalExceptionHandler extends ExceptionHandlerWrapper {
 
     protected void storeRequestURI() {
         ExternalContext extContext = FacesContext.getCurrentInstance().getExternalContext();
-        String requestUri = ((javax.servlet.http.HttpServletRequest) extContext.getRequest()).getRequestURI();
+        String requestUri = ((jakarta.servlet.http.HttpServletRequest) extContext.getRequest()).getRequestURI();
 
         Identity identity = CdiUtil.bean(Identity.class);
         identity.setSavedRequestUri(requestUri);
@@ -97,7 +97,7 @@ public class GlobalExceptionHandler extends ExceptionHandlerWrapper {
     }
 
     private boolean isViewExpiredException(Throwable t) {
-        return t instanceof javax.faces.application.ViewExpiredException;
+        return t instanceof jakarta.faces.application.ViewExpiredException;
     }
 
     private void performRedirect(ExternalContext externalContext, String viewId) {

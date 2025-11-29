@@ -18,8 +18,8 @@ import org.gluu.search.filter.Filter;
 import org.gluu.util.INumGenerator;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.*;
 
 /**

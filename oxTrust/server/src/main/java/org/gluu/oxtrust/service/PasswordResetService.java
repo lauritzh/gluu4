@@ -10,9 +10,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.oxtrust.model.PasswordResetRequest;
 import org.gluu.persist.PersistenceEntryManager;
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
  * 
  * @author Yuriy Movchan Date: 09/01/2018
  */
-@Stateless
+@ApplicationScoped
 @Named("passwordResetService")
 public class PasswordResetService implements Serializable {
 

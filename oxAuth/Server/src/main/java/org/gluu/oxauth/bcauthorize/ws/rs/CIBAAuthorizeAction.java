@@ -10,9 +10,9 @@ import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.util.RedirectUri;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.UUID;
 
 import static org.gluu.oxauth.model.authorize.AuthorizeRequestParam.*;

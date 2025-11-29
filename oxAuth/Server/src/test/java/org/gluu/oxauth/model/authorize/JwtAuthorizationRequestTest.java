@@ -5,7 +5,7 @@ import org.gluu.oxauth.model.error.ErrorResponseFactory;
 import org.gluu.oxauth.model.registration.Client;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 import java.util.Arrays;
 import java.util.Collections;
 

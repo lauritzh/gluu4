@@ -13,9 +13,9 @@ import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * @author Javier Rojas Blum

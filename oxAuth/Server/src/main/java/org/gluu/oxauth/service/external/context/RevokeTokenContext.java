@@ -4,8 +4,8 @@ import org.gluu.model.custom.script.conf.CustomScriptConfiguration;
 import org.gluu.oxauth.model.common.AuthorizationGrant;
 import org.gluu.oxauth.model.registration.Client;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Response;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.Response;
 
 /**
  * @author Yuriy Zabrovarnyy

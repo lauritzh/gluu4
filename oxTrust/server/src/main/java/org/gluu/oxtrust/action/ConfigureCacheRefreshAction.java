@@ -17,13 +17,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.enterprise.context.ConversationScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ConversationScoped;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.component.UIComponent;
+import jakarta.faces.component.UIInput;
+import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.config.oxtrust.CacheRefreshAttributeMapping;

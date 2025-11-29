@@ -36,8 +36,8 @@ import org.json.JSONObject;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.io.Serializable;
 import java.util.*;
 

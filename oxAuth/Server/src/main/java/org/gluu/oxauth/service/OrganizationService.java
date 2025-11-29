@@ -9,8 +9,8 @@ import org.gluu.service.CacheService;
 import org.gluu.service.LocalCacheService;
 import org.gluu.util.OxConstants;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class OrganizationService extends org.gluu.service.OrganizationService {

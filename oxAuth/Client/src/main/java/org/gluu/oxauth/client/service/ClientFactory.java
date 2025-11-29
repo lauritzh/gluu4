@@ -6,7 +6,7 @@
 
 package org.gluu.oxauth.client.service;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;

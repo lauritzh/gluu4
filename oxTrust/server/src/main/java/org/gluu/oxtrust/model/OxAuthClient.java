@@ -16,9 +16,9 @@ import org.gluu.persist.annotation.ObjectClass;
 import org.gluu.persist.model.base.Entry;
 import org.oxauth.persistence.model.ClientAttributes;
 
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;

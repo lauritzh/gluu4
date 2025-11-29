@@ -52,13 +52,15 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.RequestScoped;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.faces.context.ExternalContext;
+import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Context;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -101,11 +103,8 @@ public class SessionIdService {
     @Inject
     private WebKeysConfiguration webKeysConfiguration;
 
-    @Inject
-    private FacesContext facesContext;
-
-    @Inject
-    private ExternalContext externalContext;
+    @Context
+    private HttpServletRequest servletRequest;
 
     @Inject
     private RequestParameterService requestParameterService;
@@ -314,14 +313,15 @@ public class SessionIdService {
     }
 
     private Map<String, String> getCurrentSessionAttributes(Map<String, String> sessionAttributes) {
-        if (facesContext == null) {
+        if (servletRequest == null) {
             return sessionAttributes;
         }
 
         // Update from request
         final Map<String, String> currentSessionAttributes = new HashMap<>(sessionAttributes);
 
-        Map<String, String> requestParameters = externalContext.getRequestParameterMap();
+//        System.out.println(externalContext);
+        Map<String, String[]> requestParameters = servletRequest.getParameterMap();
         Map<String, String> newRequestParameterMap = requestParameterService.getAllowedParameters(requestParameters);
         for (Entry<String, String> newRequestParameterMapEntry : newRequestParameterMap.entrySet()) {
             String name = newRequestParameterMapEntry.getKey();

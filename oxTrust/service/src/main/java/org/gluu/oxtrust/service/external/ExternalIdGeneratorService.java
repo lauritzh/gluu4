@@ -8,8 +8,8 @@ package org.gluu.oxtrust.service.external;
 
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 
 import org.gluu.model.SimpleCustomProperty;
 import org.gluu.model.custom.script.CustomScriptType;

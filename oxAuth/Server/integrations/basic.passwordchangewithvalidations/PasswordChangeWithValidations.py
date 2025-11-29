@@ -13,7 +13,7 @@ from org.gluu.service import CacheService
 from org.gluu.util import StringHelper, ArrayHelper
 from org.gluu.oxauth.util import ServerUtil
 
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 from org.gluu.jsf2.message import FacesMessages
 
 from zxcvbn import zxcvbn

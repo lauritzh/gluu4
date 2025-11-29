@@ -12,7 +12,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxtrust.action.BaseTest;
 import org.gluu.oxtrust.model.GluuCustomPerson;

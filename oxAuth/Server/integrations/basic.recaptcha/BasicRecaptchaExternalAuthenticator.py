@@ -10,7 +10,7 @@ from org.gluu.oxauth.security import Identity
 from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
 from org.gluu.oxauth.service import AuthenticationService
 from org.gluu.util import StringHelper
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 from org.gluu.oxauth.security import Identity
 from org.gluu.oxauth.service.common import UserService
 from org.gluu.oxauth.util import ServerUtil

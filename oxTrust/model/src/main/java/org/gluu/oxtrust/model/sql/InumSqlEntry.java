@@ -8,12 +8,12 @@ package org.gluu.oxtrust.model.sql;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 /**
  * InumSqlEntry sql Entry
@@ -36,7 +36,7 @@ public class InumSqlEntry implements Serializable {
 	}
 
 	@Id
-	@GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
+	@GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
 	@Column(name = "id", unique = true, nullable = false)
 	public Integer getId() {
 		return this.id;

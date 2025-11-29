@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.AuthorizationRequest;

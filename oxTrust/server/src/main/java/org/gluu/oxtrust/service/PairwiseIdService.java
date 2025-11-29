@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.oxtrust.model.GluuCustomPerson;
 import org.gluu.oxtrust.model.GluuUserPairwiseIdentifier;
@@ -13,7 +13,7 @@ import org.gluu.persist.PersistenceEntryManager;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-@Stateless
+@ApplicationScoped
 public class PairwiseIdService implements IPairwiseIdService, Serializable {
 
 	/**

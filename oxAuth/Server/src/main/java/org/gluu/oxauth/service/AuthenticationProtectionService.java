@@ -1,9 +1,9 @@
 package org.gluu.oxauth.service;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.oxauth.model.configuration.AppConfiguration;
 import org.gluu.oxauth.model.configuration.AuthenticationProtectionConfiguration;

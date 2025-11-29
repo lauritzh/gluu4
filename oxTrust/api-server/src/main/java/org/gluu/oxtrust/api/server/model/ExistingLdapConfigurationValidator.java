@@ -6,7 +6,7 @@ import org.apache.commons.codec.binary.StringUtils;
 import org.gluu.model.ldap.GluuLdapConfiguration;
 import org.gluu.oxtrust.service.LdapConfigurationService;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import static org.gluu.oxtrust.util.CollectionsUtil.equalsUnordered;
 

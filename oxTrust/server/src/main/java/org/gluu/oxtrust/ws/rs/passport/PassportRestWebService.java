@@ -3,13 +3,13 @@ package org.gluu.oxtrust.ws.rs.passport;
 import java.util.Collections;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import org.gluu.oxtrust.service.PassportService;
 import org.gluu.oxtrust.service.filter.ProtectedApi;
@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.gluu.config.oxtrust.LdapOxPassportConfiguration;
 import org.gluu.service.JsonService;
 
-import static javax.ws.rs.core.Response.Status;
+import static jakarta.ws.rs.core.Response.Status;
 
 /**
  * PassportConfigurationEndPoint Implementation

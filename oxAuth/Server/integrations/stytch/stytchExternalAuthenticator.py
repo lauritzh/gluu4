@@ -10,7 +10,7 @@ from org.gluu.oxauth.service import AuthenticationService
 from org.gluu.oxauth.service.common import UserService
 from org.gluu.oxauth.util import ServerUtil
 from org.gluu.util import StringHelper, ArrayHelper
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 from org.gluu.jsf2.message import FacesMessages
 import base64
 try:
