@@ -81,7 +81,7 @@ public class RequestParameterService {
         return allowedParameters;
     }
 
-    public Map<String, String> getAllowedParameters(@Nonnull final Map<String, String> requestParameterMap) {
+    public Map<String, String> getAllowedParameters(@Nonnull final Map requestParameterMap) {
         Set<String> authorizationRequestCustomAllowedParameters = appConfiguration.getAuthorizationRequestCustomAllowedParameters();
         if (authorizationRequestCustomAllowedParameters == null) {
         	authorizationRequestCustomAllowedParameters = new HashSet<String>(0);
@@ -93,11 +93,25 @@ public class RequestParameterService {
         }
 
         final List<String> allAllowed = getAllAllowedParameters();
-        final Set<Map.Entry<String, String>> set = requestParameterMap.entrySet();
-        for (Map.Entry<String, String> entry : set) {
+        final Set<Map.Entry<String, Object>> set = requestParameterMap.entrySet();
+        for (Map.Entry<String, Object> entry : set) {
             if (allAllowed.contains(entry.getKey()) || authorizationRequestCustomAllowedParameters.contains(entry.getKey())) {
-                result.put(entry.getKey(), entry.getValue());
-            }
+            	Object value = entry.getValue();
+            	
+            	if (value instanceof String) {
+					result.put(entry.getKey(), (String) value);
+					continue;
+				} else if (value instanceof String[]) {
+					String[] values = (String[]) value;
+					if (values.length == 1) {
+	            		result.put(entry.getKey(), values[0]);
+	            	} else {
+	            		result.put(entry.getKey(), Arrays.toString(values));
+	            	}
+					continue;
+				}
+				log.debug("Skipped parameter '{}' as it is not a String or String[] type", entry.getKey());
+			}
         }
         return result;
     }

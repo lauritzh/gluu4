@@ -1,25 +1,1778 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<faces-config xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
-        http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd" version="2.2">
+<faces-config xmlns="jakarta.faces.xml/ns/jakarta.faces" xmlns:xsi="www.w3.org"
+	xsi:schemaLocation="jakarta.faces.xml/ns/jakarta.faces jakarta.ee" version="4.0">
 
-    <application>
-        <locale-config>
-            <default-locale>en</default-locale>
-        </locale-config>
-        <resource-bundle>
-            <base-name>org.gluu.oxtrust.i18n.CustomResourceBundle</base-name>
-            <var>msgs</var>
-        </resource-bundle>
-        <message-bundle>
-           OxtrustCustomValidationMessage
-        </message-bundle>
-    </application>
+	<application>
+		<locale-config>
+			<default-locale>en</default-locale>
+		</locale-config>
+		<resource-bundle>
+			<base-name>org.gluu.oxtrust.i18n.CustomResourceBundle</base-name>
+			<var>msgs</var>
+		</resource-bundle>
+		<message-bundle>
+			OxtrustCustomValidationMessage
+		</message-bundle>
+		<resource-handler>org.gluu.service.ExternalResourceHandler</resource-handler>
+	</application>
 
-    <factory>
-        <exception-handler-factory>
-            org.gluu.oxtrust.exception.GlobalExceptionHandlerFactory
-        </exception-handler-factory>
-    </factory>
+	<factory>
+		<exception-handler-factory>
+			org.gluu.oxtrust.exception.GlobalExceptionHandlerFactory
+		</exception-handler-factory>
+	</factory>
+
+	<navigation-rule>
+		<from-view-id>/asimba/spRequestors.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/sectoridentifier/updateSectorIdentifier.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateSectorIdentifierAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/sectoridentifier/sectorIdentifierInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateSectorIdentifierAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/sectoridentifier/sectorIdentifierInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/sectoridentifier/sectorIdentifierInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/authcode.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{authenticator.oAuthGetAccessToken}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{authenticator.oAuthGetAccessToken}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/error.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{authenticator.oAuthGetAccessToken}</from-action>
+			<from-outcome>no_permissions</from-outcome>
+			<to-view-id>/error.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/uma/resource.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{umaInventoryAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{umaInventoryAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/trustedidp/trustedIdpInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{searchTrustedIdpAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{searchTrustedIdpAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/group/groupInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{searchGroupAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{searchGroupAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/attribute/attributeExport.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{attributeInventoryAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/organization/cacheRefresh.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{configureCacheRefreshAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/addSPstep1.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{asimbaAddSPAction.add}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spRequestors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{asimbaAddSPAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{asimbaAddSPAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spRequestors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{asimbaAddSPAction.cancel}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/uma/scope/addUmaScope.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateUmaScopeAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateUmaScopeAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateUmaScopeAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/scope/updateUmaScope.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateUmaScopeAction.scopeInum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/idps.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/client/addClient.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateClientAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/client/clientInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateClientAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/client/clientInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateClientAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/client/updateClient.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateClientAction.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/trustedidp/addTrustedIdp.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateTrustedIdpAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/trustedidp/trustedIdpInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateTrustedIdpAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustedidp/trustedIdpInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustedidp/trustedIdpInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{updateTrustedIdpAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustedidp/updateTrustedIdp.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateTrustedIdpAction.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/person/personImport.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{personImportAction.cancel}</from-action>
+			<from-outcome>cancel</from-outcome>
+			<to-view-id>/person/personInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{personImportAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/passport/basic_config.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{passportConfigurationAction.init}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{passportConfigurationAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{passportConfigurationAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/passport/basic_config.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/scope/updateScope.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateScopeAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/scope/scopeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateScopeAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/scope/scopeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/scope/scopeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/trustmanager/updateTrustRelationship.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateTrustRelationshipAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/trustmanager/trustRelationships.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateTrustRelationshipAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustmanager/trustRelationships.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateTrustRelationshipAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustmanager/trustRelationships.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustmanager/trustRelationships.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/radius/radiusServerConfiguration.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateGluuRadiusConfigAction.save}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/radius/radiusServerConfiguration.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateGluuRadiusConfigAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/radius/radiusServerConfiguration.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateGluuRadiusConfigAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/editIDP.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.add}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/idps.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.update}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/idps.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.delete}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/idps.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.delete}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/idps.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaIDPAction.cancel}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/trustmanager/trustRelationships.xhtml</from-view-id>
+		<navigation-case>
+			<from-action>#{trustRelationshipInventoryAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{trustRelationshipInventoryAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/attribute/updateAttribute.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAttributeAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/attribute/attributeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAttributeAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/attribute/attributeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/attribute/attributeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/uma/resource/modifyResource.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateResourceAction.modify}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/uma/resource.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateResourceAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/resource.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/resource.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateResourceAction.save}</from-action>
+			<from-outcome>update</from-outcome>
+			<to-view-id>/uma/resource/modifyResource.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>resource</name>
+					<value>#{updateResourceAction.oxId}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/passport/providers.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{passportProvidersAction.init}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/client/updateClient.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateClientAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/client/clientInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateClientAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/client/clientInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/client/clientInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/person/addPerson.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updatePersonAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/person/personInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updatePersonAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/person/personInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updatePersonAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/person/updatePerson.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updatePersonAction.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/person/personInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{searchPersonAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{searchPersonAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/client/clientInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{searchClientAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{searchClientAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/editSPRequestor.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.add}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spRequestors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.update}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spRequestors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.delete}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spRequestors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.delete}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spRequestors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPRequestorAction.cancel}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/super-gluu/deviceInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{pushDeviceInventoryAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{pushDeviceInventoryAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/group/addGroup.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateGroupAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/group/groupInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateGroupAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/group/groupInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateGroupAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/group/updateGroup.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateGroupAction.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/selectors.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/radius/addRadiusClient.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{addRadiusClientAction.save}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/radius/addRadiusClient.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{addRadiusClientAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/radius/updateRadiusClient.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{addRadiusClientAction.client.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{addRadiusClientAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/radius/radiusClientInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/scope/scopeInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{searchScopeAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{searchScopeAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/resetPassword.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{passwordResetAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/person/passwordReminder.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{passwordResetAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{passwordResetAction.update}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/whitePage/viewWhitePages.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{whitePagesAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/uma/scope.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{umaInventoryAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{umaInventoryAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/radius/updateRadiusClient.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateRadiusClientAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/radius/radiusClientInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateRadiusClientAction.save}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/radius/updateRadiusClient.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateRadiusClientAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/radius/updateRadiusClient.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateRadiusClientAction.client.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateRadiusClientAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/radius/radiusClientInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/configuration/updateConfiguration.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{jsonConfigAction.init}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{jsonConfigAction.saveOxAuthDynamicConfigJson}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{jsonConfigAction.saveOxTrustConfigJson}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{jsonConfigAction.saveOxMemCacheConfigJson}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{jsonConfigAction.saveOxTrustImportPersonConfigJson}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/attribute/addAttribute.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAttributeAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/attribute/attributeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAttributeAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/attribute/attributeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAttributeAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/attribute/updateAttribute.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateAttributeAction.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/uma/scope/updateUmaScope.xhtml</from-view-id>
+		<navigation-case>
+			<from-action>#{updateUmaScopeAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{updateUmaScopeAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateUmaScopeAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/scope/updateUmaScope.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateUmaScopeAction.scopeInum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/configuration/certificateManagement.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{certificateManagementAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{certificateManagementAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{certificateManagementAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/scope/addScope.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateScopeAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/scope/scopeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateScopeAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/scope/scopeInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateScopeAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/scope/updateScope.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateScopeAction.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/radius/radiusClientInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{searchRadiusClientAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{searchRadiusClientAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/sectoridentifier/addSectorIdentifier.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateSectorIdentifierAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/sectoridentifier/sectorIdentifierInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateSectorIdentifierAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/sectoridentifier/sectorIdentifierInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateSectorIdentifierAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/sectoridentifier/updateSectorIdentifier.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>id</name>
+					<value>#{updateSectorIdentifierAction.id}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/addIDPstep1.xhtml</from-view-id>
+		<navigation-case>
+			<from-action>#{asimbaAddIDPAction.add}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/idps.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{asimbaAddIDPAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{asimbaAddIDPAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/idps.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{asimbaAddIDPAction.cancel}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/trustedidp/updateTrustedIdp.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateTrustedIdpAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/trustedidp/trustedIdpInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateTrustedIdpAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustedidp/trustedIdpInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustedidp/trustedIdpInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/uma/inventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{umaInventoryAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{umaInventoryAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/script/manageAuthScript.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{manageAuthScriptAction.modify}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{manageAuthScriptAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/script/manageAuthScript.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{manageAuthScriptAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/uma/scope/modifyScopeDescription.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateScopeDescriptionAction.modify}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateScopeDescriptionAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{updateScopeDescriptionAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/uma/scope.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{updateScopeDescriptionAction.save}</from-action>
+			<from-outcome>update</from-outcome>
+			<to-view-id>/uma/scope/modifyScopeDescription.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>scope</name>
+					<value>#{updateScopeDescriptionAction.scopeInum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/profile/person/viewProfile.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{userProfileAction.show}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{userProfileAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/organization/updateOrganization.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateOrganizationAction.modify}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateOrganizationAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/attribute/attributeImport.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{attributeImportAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/editSPPool.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.add}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spPools.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.update}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spPools.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.delete}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spPools.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.delete}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/spPools.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.cancel}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/login.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{identity.login}</from-action>
+			<if>#{identity.loggedIn}</if>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{authenticator.preAuthenticate}</from-action>
+			<from-outcome>false</from-outcome>
+			<to-view-id>/error.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/attribute/attributeInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{attributeInventoryAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/authentication/manageCustomAuthentication.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{managePersonAuthenticationAction.modify}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{managePersonAuthenticationAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/authentication/manageCustomAuthentication.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{managePersonAuthenticationAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/register.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{registerPersonAction.initPerson}</from-action>
+			<from-outcome>no_permissions</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{registerPersonAction.initPerson}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{registerPersonAction.register}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/postRegister.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{registerPersonAction.register}</from-action>
+			<from-outcome>disabled</from-outcome>
+			<to-view-id>/postRegister.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{registerPersonAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/editSelector.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.add}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/selectors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.update}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/selectors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.delete}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/selectors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.delete}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/asimba/selectors.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSelectorAction.cancel}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/logviewer/configureLogViewer.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{configureLogViewerAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/passport/addProvider.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{passportProvidersAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/passport/providers.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{passportProvidersAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/passport/providers.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{passportProvidersAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/passport/editProvider.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>id</name>
+					<value>#{passportProvidersAction.id}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{passportProvidersAction.save}</from-action>
+			<from-outcome>confirm</from-outcome>
+			<to-view-id>/passport/providers.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/script/manageOtherScript.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{manageOtherScriptAction.modify}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{manageOtherScriptAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/script/manageOtherScript.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{manageOtherScriptAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/super-gluu/applicationInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{pushApplicationInventoryAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{pushApplicationInventoryAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/asimba/spPools.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateAsimbaSPPoolAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/person/updatePerson.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updatePersonAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/person/personInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updatePersonAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/person/personInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/person/personInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/organization/manageRegistration.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{registrationManagementAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/passport/editProvider.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{passportProvidersAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/passport/providers.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{passportProvidersAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/passport/providers.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{passportProvidersAction.deleteProvider}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/passport/providers.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{passportProvidersAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/passport/editProvider.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>id</name>
+					<value>#{passportProvidersAction.id}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{passportProvidersAction.save}</from-action>
+			<from-outcome>confirm</from-outcome>
+			<to-view-id>/passport/editProvider.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>id</name>
+					<value>#{passportProvidersAction.id}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/passport/providers.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/trustmanager/addTrustRelationship.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateTrustRelationshipAction.add}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/trustmanager/trustRelationships.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateTrustRelationshipAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustmanager/trustRelationships.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateTrustRelationshipAction.save}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/trustmanager/updateTrustRelationship.xhtml</to-view-id>
+			<redirect>
+				<view-param>
+					<name>inum</name>
+					<value>#{updateTrustRelationshipAction.inum}</value>
+				</view-param>
+			</redirect>
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/sectoridentifier/sectorIdentifierInventory.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{searchSectorIdentifierAction.start}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{searchSectorIdentifierAction.search}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/saml/configureNameId.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{attributeResolverAction.init}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{attributeResolverAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/home.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
+	<navigation-rule>
+		<from-view-id>/group/updateGroup.xhtml</from-view-id>
+
+		<navigation-case>
+			<from-action>#{updateGroupAction.update}</from-action>
+			<from-outcome>failure</from-outcome>
+			<to-view-id>/group/groupInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{updateGroupAction.cancel}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/group/groupInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+
+		<navigation-case>
+			<from-action>#{cc.attrs.deleteMethod}</from-action>
+			<from-outcome>success</from-outcome>
+			<to-view-id>/group/groupInventory.xhtml</to-view-id>
+			<redirect />
+		</navigation-case>
+	</navigation-rule>
 
 </faces-config>

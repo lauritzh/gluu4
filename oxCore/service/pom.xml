@@ -106,18 +106,12 @@
 		</dependency>
 
 		<!-- JSF, EL -->
-		<dependency>
-			<groupId>org.jboss.spec.javax.annotation</groupId>
-			<artifactId>jboss-annotations-api_1.3_spec</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- JSF, EL -->
         <dependency>
             <groupId>jakarta.faces</groupId>
             <artifactId>jakarta.faces-api</artifactId>
             <scope>provided</scope>
         </dependency>
+
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>jakarta.el</artifactId>

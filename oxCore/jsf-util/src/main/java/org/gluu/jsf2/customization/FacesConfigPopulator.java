@@ -1,14 +1,20 @@
 package org.gluu.jsf2.customization;
 
 import java.io.File;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.logging.Level;
 
-import jakarta.faces.application.ApplicationConfigurationPopulator;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
@@ -20,7 +26,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.sun.faces.util.FacesLogger;
+import jakarta.faces.application.ApplicationConfigurationPopulator;
 
 /**
  * Created by eugeniuparvan on 5/1/17.
@@ -39,20 +45,26 @@ public class FacesConfigPopulator extends ApplicationConfigurationPopulator {
 
 	@Override
 	public void populateApplicationConfiguration(Document toPopulate) {
-		populateNavigationRules(toPopulate);
+        try {
+			populateNavigationRules(toPopulate);
+
+		    dump(toPopulate);
+		} catch (TransformerFactoryConfigurationError | TransformerException e) {
+			log.error("Failed to build custom faces-config.xml", e);
+		}
 	}
 
 	// Navigation Rules
-	protected void populateNavigationRules(Document toPopulate) {
+	protected void populateNavigationRules(Document toPopulate) throws TransformerFactoryConfigurationError, TransformerException {
 		log.debug("Starting configuration populator");
 
 		if (Utils.isCustomPagesDirExists()) {
 			String customPath = Utils.getCustomPagesPath();
 			log.debug("Adding navigation rules from custom dir folder: {}", customPath);
 			try {
-				findAndUpdateNavigationRules(toPopulate, customPath);
+				findAndUpdateNavigationRules(toPopulate,  customPath);
 			} catch (Exception ex) {
-				FacesLogger.CONFIG.getLogger().log(Level.SEVERE, "Can't add customized navigation rules");
+				log.error("Can't add customized navigation rules", ex);
 			}
 		}
 
@@ -76,18 +88,30 @@ public class FacesConfigPopulator extends ApplicationConfigurationPopulator {
 	 * @throws Exception
 	 */
 	private void findAndUpdateNavigationRules(Document toPopulate, String path) throws Exception {
-		File file = new File(path);
+        var namespace = toPopulate.getDocumentElement().getNamespaceURI();
+        var rootElement = toPopulate.getDocumentElement();
+
+        File file = new File(path);
 		RegexFileFilter regexFileFilter = new RegexFileFilter(FACES_CONFIG_PATTERN);
 		Collection<File> facesConfigFiles = FileUtils.listFiles(file, regexFileFilter, DirectoryFileFilter.DIRECTORY);
 		log.debug("Found '{}' navigation rules files", facesConfigFiles.size());
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(true);
+		
+		factory.setNamespaceAware(false);
+
+        // Fix XXE vulnerability
+		factory.setXIncludeAware(false);
+		factory.setExpandEntityReferences(false);
+		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+
 		DocumentBuilder builder = factory.newDocumentBuilder();
 
 		for (File files : facesConfigFiles) {
 			String faceConfig = files.getAbsolutePath();
-			updateDocument(toPopulate, builder, faceConfig);
+			updateDocument(toPopulate, namespace, rootElement, builder, faceConfig);
 			log.debug("Added navigation rules from {}", faceConfig);
 		}
 	}
@@ -95,27 +119,36 @@ public class FacesConfigPopulator extends ApplicationConfigurationPopulator {
 	/**
 	 * Validates *.faces-config.xml file and creates DocumentInfo class
 	 *
-	 * @param docBuilder
+	 * @param toPopulateBuilder
 	 * @param faceConfig
 	 * @return
 	 */
-	private void updateDocument(Document toPopulate, DocumentBuilder docBuilder, String faceConfig) {
+	private void updateDocument(Document toPopulate, String namespace, Element rootElement, DocumentBuilder toPopulateBuilder, String faceConfig) {
 		try {
-			Document document = docBuilder.parse(new File(faceConfig));
-			Element root = toPopulate.getDocumentElement();
-			NodeList navigationRules = getNavigationRules(document);
-			for (int i = 0; i < navigationRules.getLength(); ++i) {
-				Node importedNode = toPopulate.importNode(navigationRules.item(i), true);
-				root.appendChild(importedNode);
+			Document navDoc = toPopulateBuilder.parse(new File(faceConfig));
+
+			Element navDocRoot = navDoc.getDocumentElement();
+			NodeList navDocRootChilds = navDocRoot.getChildNodes(); 
+			for (int i = 0; i < navDocRootChilds.getLength(); ++i) {
+				Node child = navDocRootChilds.item(i);
+				if ((child.getNodeType() == Node.ELEMENT_NODE) &&
+					(NAVIGATION_RULE.equals(child.getNodeName()))){
+					Element importedNode = (Element) toPopulate.importNode(child, true);
+					rootElement.appendChild(importedNode);
+				}
 			}
 		} catch (Exception ex) {
 			log.error("Failed to update navigation rules", ex);
 		}
 	}
 
-	private NodeList getNavigationRules(Document document) {
-		String namespace = document.getDocumentElement().getNamespaceURI();
-		return document.getDocumentElement().getElementsByTagNameNS(namespace, NAVIGATION_RULE);
+	private void dump(Node toPopulate) throws TransformerFactoryConfigurationError, TransformerException {
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+        StringWriter writer = new StringWriter();
+        transformer.transform(new DOMSource(toPopulate), new StreamResult(writer));
+        String output = writer.getBuffer().toString();
+        System.out.println(output);
 	}
 
 }

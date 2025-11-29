@@ -19,15 +19,18 @@
 		<httpcore.version>4.4.16</httpcore.version>
 		<httpclient.version>4.5.14</httpclient.version>
 
-		<resteasy.version>6.2.12.Final</resteasy.version>
-		<richfaces.version>4.5.19-gluu.Final</richfaces.version>
-		<weld.version>4.0.3.Final</weld.version>
+		<resteasy.version>7.0.0.Final</resteasy.version>
+		<weld.version>6.0.3.Final</weld.version>
+
+        <servlet.api.version>6.1.0</servlet.api.version>
+        <jsf.api.version>4.1.2</jsf.api.version>
+        <uel.version>6.0.1</uel.version>
+
+        <hibernate-validator.version>9.1.0.Final</hibernate-validator.version>
 	
 		<org.omnifaces.omnifaces.version>4.7</org.omnifaces.omnifaces.version>
 		<bootsfaces.version>2.0.1</bootsfaces.version>
 		<org.glassfish.jakarta.json.version>2.0.1</org.glassfish.jakarta.json.version>
-		<org.hibernate.validator.version>7.0.5.Final</org.hibernate.validator.version>
-		<org.hibernate.validator.cdi.version>7.0.5.Final</org.hibernate.validator.cdi.version>
 		<org.jboss.annotations.api.version>2.0.1.Final</org.jboss.annotations.api.version>
 		
 		<jakarta.ejb.api.version>4.0.1</jakarta.ejb.api.version>
@@ -39,7 +42,6 @@
 		<org.glassfish.jakarta.el.api.version>5.0.0-M1</org.glassfish.jakarta.el.api.version>
 		<jakarta.el.api.version>6.0.1</jakarta.el.api.version>
 		<jakarta.servlet.jsp-api.version>4.0.0</jakarta.servlet.jsp-api.version>
-		
 
 		<jackson.bom.version>2.20.0</jackson.bom.version>
 		<jackson.version>2.20.0</jackson.version>
@@ -341,43 +343,34 @@
 			</dependency>
 
 			<!-- glassfish -->	
-			<dependency>
-    			<groupId>org.glassfish</groupId>
-			    <artifactId>jakarta.el</artifactId>
-				<version>${org.glassfish.jakarta.el.api.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>jakarta.el</groupId>
-				<artifactId>jakarta.el-api</artifactId>
-				<version>${jakarta.el.api.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>jakarta.servlet.jsp</groupId>
-				<artifactId>jakarta.servlet.jsp-api</artifactId>
-				<version>${jakarta.servlet.jsp-api.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>jakarta.faces</groupId>
+                <artifactId>jakarta.faces-api</artifactId>
+                <version>${jsf.api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${servlet.api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>jakarta.el-api</artifactId>
+                <version>${uel.version}</version>
+            </dependency>
 			<dependency>
 		    	<groupId>org.glassfish</groupId>
     			<artifactId>jakarta.json</artifactId>
     			<version>${org.glassfish.jakarta.json.version}</version>
 			</dependency>
-			<dependency>
-			    <groupId>org.jboss.spec.javax.annotation</groupId>
-			    <artifactId>jboss-annotations-api_1.3_spec</artifactId>
-			    <version>${org.jboss.annotations.api.version}</version>
-				<scope>provided</scope>
-			</dependency>
 
-			<!-- hibernate -->
+			<!-- Hibernate -->
 			<dependency>
-			    <groupId>org.hibernate</groupId>
+			    <groupId>org.hibernate.validator</groupId>
 			    <artifactId>hibernate-validator</artifactId>
-			    <version>${org.hibernate.validator.version}</version>
-			</dependency>
-			<dependency>
-			    <groupId>org.hibernate</groupId>
-			    <artifactId>hibernate-validator-cdi</artifactId>
-			    <version>${org.hibernate.validator.cdi.version}</version>
+			    <version>${hibernate-validator.version}</version>
 			</dependency>
 
 			<!-- omnifaces -->
@@ -391,23 +384,6 @@
 			    <groupId>net.bootsfaces</groupId>
 			    <artifactId>bootsfaces</artifactId>
 			    <version>${bootsfaces.version}</version>
-			</dependency>
-
-			<!-- Richfaces. Deprecated-->
-			<dependency>
-				<groupId>org.richfaces</groupId>
-				<artifactId>richfaces</artifactId>
-				<version>${richfaces.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.richfaces</groupId>
-				<artifactId>richfaces-core</artifactId>
-				<version>${richfaces.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.richfaces</groupId>
-				<artifactId>richfaces-a4j</artifactId>
-				<version>${richfaces.version}</version>
 			</dependency>
 
 			<!-- Commons libs -->
@@ -870,7 +846,7 @@
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-deploy</artifactId>
-				<version>12.0.24</version>
+				<version>12.0.29</version>
 				<scope>provided</scope>
 			</dependency>
 

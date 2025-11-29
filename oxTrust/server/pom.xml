@@ -564,10 +564,6 @@
 			<artifactId>antlr4-runtime</artifactId>
 			<version>${antlr4.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>net.sourceforge.jexcelapi</groupId>
@@ -794,25 +790,15 @@
 
 				<dependency>
 					<groupId>org.jboss.weld.servlet</groupId>
-					<artifactId>weld-servlet-core</artifactId>
+					<artifactId>weld-servlet-shaded</artifactId>
 				</dependency>
 				<dependency>
-					<groupId>org.jboss.weld</groupId>
-					<artifactId>weld-core-impl</artifactId>
-				</dependency>
-				<dependency>
-					<groupId>org.jboss.weld.module</groupId>
-					<artifactId>weld-jsf</artifactId>
-				</dependency>
-			    <dependency>
     		        <groupId>jakarta.ejb</groupId>
                     <artifactId>jakarta.ejb-api</artifactId>
                 </dependency>
-
-
 				<dependency>
-					<groupId>org.hibernate</groupId>
-					<artifactId>hibernate-validator-cdi</artifactId>
+					<groupId>org.hibernate.validator</groupId>
+					<artifactId>hibernate-validator</artifactId>
 				</dependency>
 
 				<!-- Test: Embedded Jetty -->
@@ -820,10 +806,11 @@
 					<groupId>org.jboss.arquillian.container</groupId>
 					<artifactId>arquillian-jetty-embedded-11</artifactId>
 					<version>${arquillian.jetty.embedded.11.version}</version>
+					<scope>test</scope>
 				</dependency>
 				<dependency>
-					<groupId>org.eclipse.jetty.ee9</groupId>
-					<artifactId>jetty-ee9-webapp</artifactId>
+					<groupId>org.eclipse.jetty.ee10</groupId>
+					<artifactId>jetty-ee10-webapp</artifactId>
 					<scope>test</scope>
 				</dependency>
 				<dependency>
@@ -832,13 +819,13 @@
 					<scope>test</scope>
 				</dependency>
 				<dependency>
-					<groupId>org.eclipse.jetty.ee9</groupId>
-					<artifactId>jetty-ee9-annotations</artifactId>
+					<groupId>org.eclipse.jetty.ee10</groupId>
+					<artifactId>jetty-ee10-annotations</artifactId>
 					<scope>test</scope>
 				</dependency>
 				<dependency>
-					<groupId>org.eclipse.jetty.ee9</groupId>
-					<artifactId>jetty-ee9-plus</artifactId>
+					<groupId>org.eclipse.jetty.ee10</groupId>
+					<artifactId>jetty-ee10-plus</artifactId>
 					<scope>test</scope>
 				</dependency>
 

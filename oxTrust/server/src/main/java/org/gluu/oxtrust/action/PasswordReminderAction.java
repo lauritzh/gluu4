@@ -19,6 +19,9 @@ import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.gluu.config.oxtrust.AppConfiguration;
@@ -39,9 +42,6 @@ import org.gluu.oxtrust.service.PersonService;
 import org.gluu.oxtrust.service.RecaptchaService;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.service.MailService;
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  * User: Dejan Maric

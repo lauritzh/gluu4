@@ -23,8 +23,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.sun.faces.util.FacesLogger;
-
 /**
  * @author Yuriy Movchan
  * @version 06/11/2020
@@ -49,7 +47,7 @@ public abstract class FacesLocalizationConfigPopulator extends ApplicationConfig
 			try {
 				findAndAddLocalizations(toPopulate, customLocalizationPath);
 			} catch (Exception ex) {
-				FacesLogger.CONFIG.getLogger().log(Level.SEVERE, "Can't add localizations from custom dir");
+				log.error("Can't add localizations from custom dir");
 			}
 		}
 

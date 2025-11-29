@@ -26,10 +26,6 @@
 		<param-name>jakarta.faces.DEFAULT_SUFFIX</param-name>
 		<param-value>.xhtml</param-value>
 	</context-param>
-	<context-param>
-		<param-name>jakarta.faces.FACELETS_RESOURCE_RESOLVER</param-name>
-		<param-value>org.gluu.service.ExternalResourceHandler</param-value>
-	</context-param>
 
 	<!-- primefaces -->
 	<context-param>
@@ -53,11 +49,6 @@
 	<!-- Weld -->
 	<listener>
 		<listener-class>org.jboss.weld.environment.servlet.Listener</listener-class>
-	</listener>
-
-	<!-- JSF -->
-	<listener>
-		<listener-class>com.sun.faces.config.ConfigureListener</listener-class>
 	</listener>
 
 	<servlet>

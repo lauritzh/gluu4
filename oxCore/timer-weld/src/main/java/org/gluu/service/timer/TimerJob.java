@@ -1,14 +1,14 @@
 package org.gluu.service.timer;
 
-import jakarta.enterprise.context.Dependent;
-import jakarta.enterprise.inject.spi.BeanManager;
-import jakarta.inject.Inject;
-
 import org.gluu.service.timer.event.TimerEvent;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
+
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
 
 /**
  * @author Yuriy Movchan Date: 04/13/2017
@@ -21,9 +21,9 @@ public class TimerJob implements Job {
 
     @Inject
     private Logger log;
-
+    
     @Inject
-    private BeanManager beanManager;
+   private Event<Object> event;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -32,9 +32,9 @@ public class TimerJob implements Job {
             if (timerEvent == null) {
                 return;
             }
-            log.trace("Fire timer event [{}] with qualifiers {} from instance {}", timerEvent.getTargetEvent().getClass().getName(),
+            log.trace("Fire tsimer event [{}] with qualifiers {} from instance {}", timerEvent.getTargetEvent().getClass().getName(),
                     timerEvent.getQualifiers(), System.identityHashCode(this));
-            beanManager.fireEvent(timerEvent.getTargetEvent(), timerEvent.getQualifiers());
+            event.select(timerEvent.getQualifiers()).fireAsync(timerEvent.getTargetEvent());
         } catch (Exception ex) {
             throw new JobExecutionException(ex);
         }
