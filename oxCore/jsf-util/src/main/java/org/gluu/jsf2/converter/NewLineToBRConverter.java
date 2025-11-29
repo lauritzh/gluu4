@@ -24,6 +24,10 @@ public class NewLineToBRConverter implements Converter {
     }
 
     public String getAsString(FacesContext arg0, UIComponent converter, Object obj) {
+    	if (obj == null) {
+			return "";
+		}
+
         return StringEscapeUtils.escapeHtml((String) obj).replace("\r\n", "<br/>").replace("\n", "<br/>");
     }
 
