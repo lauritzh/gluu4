@@ -7,8 +7,8 @@ import org.gluu.oxauth.service.external.context.RevokeTokenContext;
 import org.gluu.service.custom.script.ExternalScriptService;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 /**
  * @author Yuriy Zabrovarnyy

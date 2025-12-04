@@ -10,9 +10,9 @@ import org.gluu.oxauth.model.registration.Client;
 import org.gluu.oxauth.model.session.SessionId;
 import org.gluu.oxauth.service.AttributeService;
 
-import javax.faces.context.ExternalContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.faces.context.ExternalContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**

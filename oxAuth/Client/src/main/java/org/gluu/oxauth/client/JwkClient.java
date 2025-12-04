@@ -8,9 +8,9 @@ package org.gluu.oxauth.client;
 
 import static org.gluu.oxauth.model.jwk.JWKParameter.JSON_WEB_KEY_SET;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.crypto.PublicKey;

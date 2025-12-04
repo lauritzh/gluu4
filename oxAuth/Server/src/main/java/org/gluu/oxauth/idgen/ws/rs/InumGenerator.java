@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.model.GluuAttribute;
@@ -22,7 +22,7 @@ import org.gluu.search.filter.Filter;
 import org.gluu.util.INumGenerator;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import org.gluu.oxauth.model.config.BaseDnConfiguration;
 import org.gluu.oxauth.model.config.StaticConfiguration;

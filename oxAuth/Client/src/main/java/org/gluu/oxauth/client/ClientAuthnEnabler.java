@@ -1,7 +1,7 @@
 package org.gluu.oxauth.client;
 
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Form;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.Form;
 
 import org.apache.log4j.Logger;
 import org.gluu.oxauth.model.common.AuthenticationMethod;

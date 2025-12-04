@@ -1,7 +1,7 @@
 package org.gluu.oxtrust.exception;
 
-import javax.faces.context.ExceptionHandler;
-import javax.faces.context.ExceptionHandlerFactory;
+import jakarta.faces.context.ExceptionHandler;
+import jakarta.faces.context.ExceptionHandlerFactory;
 
 /**
  * Created by eugeniuparvan on 5/25/17.

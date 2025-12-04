@@ -17,6 +17,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.inject.Inject;
+
 import org.gluu.orm.util.ArrayHelper;
 import org.gluu.orm.util.StringHelper;
 import org.gluu.persist.PersistenceEntryManager;
@@ -51,8 +53,6 @@ import org.slf4j.LoggerFactory;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.Expressions;
-
-import javax.inject.Inject;
 
 /**
  * SQL Entry Manager

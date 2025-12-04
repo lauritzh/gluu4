@@ -6,7 +6,7 @@ import org.gluu.oxtrust.util.CASProtocolConfiguration;
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.config.oxtrust.ShibbolethCASProtocolConfiguration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class CASProtocolConfigurationProvider {
 

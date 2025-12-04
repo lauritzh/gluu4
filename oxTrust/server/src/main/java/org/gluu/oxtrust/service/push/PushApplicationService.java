@@ -10,9 +10,9 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.oxtrust.model.push.PushApplication;
 import org.gluu.oxtrust.service.OrganizationService;
@@ -28,7 +28,7 @@ import org.slf4j.Logger;
  * 
  * @author Yuriy Movchan Date: 01/22/2014
  */
-@Stateless
+@ApplicationScoped
 @Named("pushApplicationService")
 public class PushApplicationService implements Serializable {
 

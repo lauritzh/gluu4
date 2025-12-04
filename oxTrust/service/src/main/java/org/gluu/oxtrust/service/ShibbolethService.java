@@ -8,8 +8,8 @@ import org.gluu.oxtrust.service.Shibboleth3ConfService;
 import org.gluu.oxtrust.service.TrustService;
 import org.gluu.oxtrust.util.CASProtocolConfiguration;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.List;
 
 @ApplicationScoped

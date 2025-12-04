@@ -8,8 +8,8 @@ package org.gluu.oxtrust.service;
 import java.io.Serializable;
 import java.util.Properties;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.util.StringHelper;
 import org.gluu.util.security.PropertiesDecrypter;

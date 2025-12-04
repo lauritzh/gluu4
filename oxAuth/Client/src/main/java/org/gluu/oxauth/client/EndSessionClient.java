@@ -8,9 +8,9 @@ package org.gluu.oxauth.client;
 
 import java.util.Map;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.model.session.EndSessionErrorResponseType;

@@ -8,8 +8,8 @@ package org.gluu.oxauth.service.fido.u2f;
 
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.model.fido.u2f.DeviceRegistrationResult;
 import org.gluu.oxauth.model.session.SessionId;

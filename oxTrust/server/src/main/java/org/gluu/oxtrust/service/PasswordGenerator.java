@@ -2,8 +2,8 @@ package org.gluu.oxtrust.service;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import java.security.SecureRandom;
 
 @ApplicationScoped

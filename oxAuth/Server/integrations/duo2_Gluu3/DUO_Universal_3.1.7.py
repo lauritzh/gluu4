@@ -4,7 +4,7 @@ from org.xdi.model.custom.script.type.auth  import PersonAuthenticationType
 from org.xdi.oxauth.service import AuthenticationService
 from org.xdi.util import StringHelper
 from java.util import Arrays
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 from org.gluu.jsf2.service import FacesService
 from org.xdi.oxauth.service.net import HttpService
 import os

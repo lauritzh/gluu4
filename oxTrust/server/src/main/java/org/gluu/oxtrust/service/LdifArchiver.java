@@ -12,9 +12,9 @@ import java.io.PrintWriter;
 import java.util.Calendar;
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.persist.PersistenceEntryManager;
@@ -22,7 +22,7 @@ import org.gluu.persist.event.DeleteNotifier;
 import org.gluu.persist.model.AttributeData;
 import org.slf4j.Logger;
 
-@Stateless
+@ApplicationScoped
 @Named
 public class LdifArchiver implements DeleteNotifier {
 

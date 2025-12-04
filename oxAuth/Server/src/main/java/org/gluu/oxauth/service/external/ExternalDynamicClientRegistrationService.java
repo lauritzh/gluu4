@@ -17,8 +17,8 @@ import org.gluu.oxauth.service.external.context.DynamicClientRegistrationContext
 import org.gluu.service.custom.script.ExternalScriptService;
 import org.json.JSONObject;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**

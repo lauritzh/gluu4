@@ -9,7 +9,7 @@ package org.gluu.oxtrust.service;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxtrust.action.BaseTest;
 import org.testng.annotations.Parameters;

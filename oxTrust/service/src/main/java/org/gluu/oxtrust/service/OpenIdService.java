@@ -9,9 +9,9 @@ package org.gluu.oxtrust.service;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.util.StringHelper;

@@ -53,7 +53,7 @@ FacesContext.getCurrentInstance().getExternalContext().getExternalContext().getF
 
 use:
 from org.gluu.jsf2.message import FacesMessages
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 ...
 facesMessages = CdiUtil.bean(FacesMessages)
 facesMessages.add(FacesMessage.SEVERITY_ERROR, "Error message")

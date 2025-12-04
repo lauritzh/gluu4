@@ -5,8 +5,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import java.util.List;
 import java.util.Properties;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.service.config.ConfigurationFactory;
 import org.gluu.persist.ldap.impl.LdapEntryManagerFactory;

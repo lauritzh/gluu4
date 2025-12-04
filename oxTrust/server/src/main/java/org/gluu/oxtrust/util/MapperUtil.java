@@ -6,7 +6,7 @@
 
 package org.gluu.oxtrust.util;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.gluu.oxtrust.model.GluuCustomPerson;
 import org.gluu.oxtrust.model.OxAuthClient;

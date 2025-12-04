@@ -8,7 +8,7 @@ package org.gluu.oxtrust.security;
 
 import java.io.Serializable;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 /**
  * @author Dejan Maric
  * @author Yuriy Movchan

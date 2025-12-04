@@ -16,8 +16,8 @@ from java.io import BufferedReader, InputStreamReader
 from java.lang import String
 from java.net import URI
 from java.util import Arrays, Collections
-from javax.faces.application import FacesMessage
-from javax.faces.context import FacesContext
+from jakarta.faces.application import FacesMessage
+from jakarta.faces.context import FacesContext
 from org.apache.commons.io import IOUtils
 from org.apache.http import HttpStatus
 from org.apache.http.client.methods import HttpDelete, HttpGet, HttpPost

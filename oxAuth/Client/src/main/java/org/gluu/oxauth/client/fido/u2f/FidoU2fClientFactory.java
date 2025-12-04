@@ -6,7 +6,7 @@
 
 package org.gluu.oxauth.client.fido.u2f;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.gluu.oxauth.client.service.ClientFactory;
 import org.gluu.oxauth.model.fido.u2f.U2fConfiguration;

@@ -8,9 +8,9 @@ package org.gluu.oxtrust.util;
 
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
@@ -24,7 +24,7 @@ import org.gluu.util.security.StringEncrypter.EncryptionException;
  * 
  * @author Yuriy Movchan Date: 08.02.2011
  */
-@Stateless
+@ApplicationScoped
 @Named
 public class PropertyUtil {
 

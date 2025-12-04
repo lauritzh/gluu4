@@ -3,8 +3,8 @@ package org.gluu.oxtrust.service;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.oxtrust.model.OxAuthClient;
 import org.gluu.oxtrust.model.OxTrustedIdp;

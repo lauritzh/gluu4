@@ -12,8 +12,8 @@ import org.oxauth.persistence.model.PairwiseIdentifier;
 import org.oxauth.persistence.model.SectorIdentifier;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.net.URI;
 import java.util.UUID;
 

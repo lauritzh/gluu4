@@ -7,7 +7,7 @@ import org.gluu.model.ldap.GluuLdapConfiguration;
 import org.gluu.oxtrust.api.server.model.LdapConfigurationDTO;
 import org.gluu.oxtrust.service.LdapConfigurationService;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import static org.gluu.oxtrust.util.CollectionsUtil.equalsUnordered;
 

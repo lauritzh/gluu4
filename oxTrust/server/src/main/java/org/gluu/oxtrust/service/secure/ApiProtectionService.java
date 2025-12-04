@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.apache.commons.lang.StringUtils;
 import org.gluu.conf.service.ConfigurationFactory;
 import org.gluu.oxauth.model.common.ScopeType;

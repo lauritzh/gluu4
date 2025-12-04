@@ -8,7 +8,7 @@ from org.gluu.util import StringHelper
 from org.gluu.service import MailService
 from org.gluu.oxauth.model.configuration import AppConfiguration
 
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 
 from com.google.common.io import BaseEncoding
 

@@ -3,9 +3,9 @@ package org.gluu.oxtrust.service.logger;
 import org.gluu.config.oxtrust.AppConfiguration;
 import org.gluu.oxtrust.service.ConfigurationService;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 /**
  * Logger service

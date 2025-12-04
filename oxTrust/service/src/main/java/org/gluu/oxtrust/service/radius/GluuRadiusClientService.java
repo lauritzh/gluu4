@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.oxtrust.service.OrganizationService;
 import org.gluu.persist.PersistenceEntryManager;

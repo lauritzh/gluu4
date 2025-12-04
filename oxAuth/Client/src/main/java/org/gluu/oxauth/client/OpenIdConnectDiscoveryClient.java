@@ -16,11 +16,11 @@ import static org.gluu.oxauth.model.discovery.WebFingerParam.SUBJECT;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;

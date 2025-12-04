@@ -35,11 +35,11 @@ import org.gluu.service.timer.schedule.TimerSchedule;
 import org.oxauth.persistence.model.Scope;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;

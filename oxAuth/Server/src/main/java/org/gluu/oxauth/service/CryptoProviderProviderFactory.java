@@ -1,9 +1,9 @@
 package org.gluu.oxauth.service;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.oxauth.model.common.WebKeyStorage;
 import org.gluu.oxauth.model.configuration.AppConfiguration;

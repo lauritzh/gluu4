@@ -12,13 +12,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import javax.enterprise.context.ConversationScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.ConversationScoped;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.context.ExternalContext;
+import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.gluu.config.oxtrust.AppConfiguration;
@@ -39,9 +42,6 @@ import org.gluu.oxtrust.service.PersonService;
 import org.gluu.oxtrust.service.RecaptchaService;
 import org.gluu.oxtrust.util.OxTrustConstants;
 import org.gluu.service.MailService;
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  * User: Dejan Maric

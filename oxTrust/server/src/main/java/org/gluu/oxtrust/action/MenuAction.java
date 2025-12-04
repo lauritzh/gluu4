@@ -8,9 +8,9 @@ package org.gluu.oxtrust.action;
 
 import java.io.Serializable;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.gluu.jsf2.service.ConversationService;
 import org.gluu.jsf2.service.FacesService;
@@ -20,7 +20,7 @@ import org.gluu.jsf2.service.FacesService;
  * 
  * @author Yuriy Movchan Date: 12/18/2012
  */
-@Stateless
+@ApplicationScoped
 @Named
 public class MenuAction implements Serializable {
 

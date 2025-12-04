@@ -24,10 +24,10 @@ import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
 
 import static org.apache.commons.lang.BooleanUtils.isTrue;
@@ -72,7 +72,7 @@ public class RedirectionUriService {
             return sectorRedirectUris;
         }
 
-        javax.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
+        jakarta.ws.rs.client.Client clientRequest = ClientBuilder.newClient();
 		String entity = null;
 		try {
 			Response clientResponse = clientRequest.target(sectorIdentiferUri).request().buildGet().invoke();

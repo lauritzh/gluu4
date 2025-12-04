@@ -9,7 +9,7 @@ package org.gluu.oxauth.comp;
 import java.io.File;
 import java.io.FileInputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;

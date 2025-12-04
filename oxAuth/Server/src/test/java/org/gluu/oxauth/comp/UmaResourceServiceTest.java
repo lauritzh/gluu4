@@ -12,7 +12,7 @@ import org.gluu.util.security.StringEncrypter;
 import org.testng.annotations.Test;
 import org.testng.collections.Lists;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;

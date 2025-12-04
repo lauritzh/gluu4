@@ -6,7 +6,7 @@
 
 package org.gluu.oxauth.idgen.ws.rs;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxauth.model.common.IdType;
 import org.gluu.oxauth.service.common.api.IdGenerator;
@@ -14,7 +14,7 @@ import org.gluu.oxauth.service.external.ExternalIdGeneratorService;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * @author Yuriy Zabrovarnyy

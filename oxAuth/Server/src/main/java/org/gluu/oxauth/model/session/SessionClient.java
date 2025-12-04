@@ -9,7 +9,7 @@ package org.gluu.oxauth.model.session;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.gluu.oxauth.model.registration.Client;
 

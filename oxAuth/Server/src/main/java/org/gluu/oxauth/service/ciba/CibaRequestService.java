@@ -19,8 +19,8 @@ import org.gluu.search.filter.Filter;
 import org.gluu.service.CacheService;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.Date;
 import java.util.List;
 

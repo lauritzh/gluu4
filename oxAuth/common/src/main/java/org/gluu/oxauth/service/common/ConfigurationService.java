@@ -6,8 +6,8 @@
 
 package org.gluu.oxauth.service.common;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.gluu.model.SmtpConfiguration;
 import org.gluu.oxauth.model.config.StaticConfiguration;

@@ -7,9 +7,9 @@ from java.util import Arrays, ArrayList, Collections, HashMap
 from org.gluu.oxauth.service import  ClientService
 from org.gluu.service.net import NetworkService
 from org.gluu.oxauth.service.net import HttpService
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 from javax.servlet.http import Cookie
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 from org.oxauth.persistence.model.configuration import GluuConfiguration
 from org.gluu.oxauth.security import Identity
 from org.gluu.oxauth.util import ServerUtil

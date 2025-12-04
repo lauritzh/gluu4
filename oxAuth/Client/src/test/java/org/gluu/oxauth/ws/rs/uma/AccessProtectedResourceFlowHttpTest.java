@@ -12,8 +12,8 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.UnsupportedEncodingException;
 
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;

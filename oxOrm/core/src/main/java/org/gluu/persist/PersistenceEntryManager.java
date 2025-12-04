@@ -11,12 +11,29 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.FlushModeType;
-import javax.persistence.LockModeType;
-import javax.persistence.Query;
-
+import jakarta.persistence.CacheRetrieveMode;
+import jakarta.persistence.CacheStoreMode;
+import jakarta.persistence.ConnectionConsumer;
+import jakarta.persistence.ConnectionFunction;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.FindOption;
+import jakarta.persistence.FlushModeType;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.LockOption;
+import jakarta.persistence.Query;
+import jakarta.persistence.RefreshOption;
+import jakarta.persistence.StoredProcedureQuery;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.TypedQueryReference;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaDelete;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaSelect;
+import jakarta.persistence.criteria.CriteriaUpdate;
+import jakarta.persistence.metamodel.Metamodel;
 import org.gluu.persist.annotation.AttributesList;
 import org.gluu.persist.event.DeleteNotifier;
 import org.gluu.persist.extension.PersistenceExtension;
@@ -153,6 +170,10 @@ public interface PersistenceEntryManager extends EntityManager {
     default Query createNamedQuery(String name) {
         throw new UnsupportedOperationException("Method not implemented.");
     }
+    
+    default <T> TypedQuery<T> createNamedQuery(String name, Class<T> resultClass) {
+        throw new UnsupportedOperationException("Method not implemented.");        
+    }
 
     default Query createNativeQuery(String sqlString) {
         throw new UnsupportedOperationException("Method not implemented.");
@@ -169,6 +190,22 @@ public interface PersistenceEntryManager extends EntityManager {
     default Query createQuery(String qlString) {
         throw new UnsupportedOperationException("Method not implemented.");
     }
+    
+    default <T> TypedQuery<T> createQuery(CriteriaQuery<T> criteriaQuery) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default Query createQuery(CriteriaUpdate updateQuery) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default Query createQuery(CriteriaDelete deleteQuery) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default <T> TypedQuery<T> createQuery(String qlString, Class<T> resultClass) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }    
 
     default void flush() {
         throw new UnsupportedOperationException("Method not implemented.");
@@ -201,13 +238,181 @@ public interface PersistenceEntryManager extends EntityManager {
     default void lock(Object entry, LockModeType lockMode) {
         throw new UnsupportedOperationException("Method not implemented.");
     }
+    
+    default void lock(Object entity, LockModeType lockMode,
+            Map<String, Object> properties)  {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
 
     default void refresh(Object entry) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default void refresh(Object entity, Map<String, Object> properties) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    } 
+    
+    default void refresh(Object entity, LockModeType lockMode)  {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default void refresh(Object entity, LockModeType lockMode,
+            Map<String, Object> properties) {
         throw new UnsupportedOperationException("Method not implemented.");
     }
 
     default void setFlushMode(FlushModeType flushMode) {
         throw new UnsupportedOperationException("Method not implemented.");
     }
+    
+    default StoredProcedureQuery createNamedStoredProcedureQuery(String name) {
+        throw new UnsupportedOperationException("Method not implemented.");        
+    }
+    
+    default StoredProcedureQuery createStoredProcedureQuery(String procedureName) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default StoredProcedureQuery createStoredProcedureQuery(
+            String procedureName, Class... resultClasses) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default StoredProcedureQuery createStoredProcedureQuery(
+            String procedureName, String... resultSetMappings) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default boolean isJoinedToTransaction() {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default <T> T unwrap(Class<T> cls) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default EntityManagerFactory getEntityManagerFactory() {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default CriteriaBuilder getCriteriaBuilder() {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default Metamodel getMetamodel() {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default <T> EntityGraph<T> createEntityGraph(Class<T> rootType) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default EntityGraph<?> createEntityGraph(String graphName) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default  EntityGraph<?> getEntityGraph(String graphName) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default <T> List<EntityGraph<? super T>> getEntityGraphs(Class<T> entityClass) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default Map<String, Object> getProperties() {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
 
+    default void setProperty(String propertyName, Object value) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+
+    default LockModeType getLockMode(Object entity) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default void detach(Object entity) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default <T> T find(Class<T> entityClass, Object primaryKey,
+            LockModeType lockMode) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default <T> T find(Class<T> entityClass, Object primaryKey, 
+            Map<String, Object> properties) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+    
+    default <T> T find(Class<T> entityClass, Object primaryKey,
+            LockModeType lockMode, 
+            Map<String, Object> properties) {
+        throw new UnsupportedOperationException("Method not implemented.");
+    }
+
+	@Override
+	default <T> T find(Class<T> entityClass, Object primaryKey, FindOption... options) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default <T> T find(EntityGraph<T> entityGraph, Object primaryKey, FindOption... options) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default <T> T getReference(T entity) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default void lock(Object entity, LockModeType lockMode, LockOption... options) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default void refresh(Object entity, RefreshOption... options) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default void setCacheRetrieveMode(CacheRetrieveMode cacheRetrieveMode) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default void setCacheStoreMode(CacheStoreMode cacheStoreMode) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default CacheRetrieveMode getCacheRetrieveMode() {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default CacheStoreMode getCacheStoreMode() {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default <T> TypedQuery<T> createQuery(CriteriaSelect<T> selectQuery) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default <T> TypedQuery<T> createQuery(TypedQueryReference<T> reference) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default <C> void runWithConnection(ConnectionConsumer<C> action) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
+	@Override
+	default <C, T> T callWithConnection(ConnectionFunction<C, T> function) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
 }

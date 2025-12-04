@@ -15,7 +15,7 @@ from org.xdi.util import StringHelper
 from org.xdi.oxauth.util import ServerUtil
 from org.gluu.oxauth.service.common import ConfigurationService, EncryptionService
 from org.gluu.jsf2.message import FacesMessages
-from javax.faces.application import FacesMessage
+from jakarta.faces.application import FacesMessage
 from org.gluu.persist.exception import AuthenticationException
 
 #dealing with smtp server

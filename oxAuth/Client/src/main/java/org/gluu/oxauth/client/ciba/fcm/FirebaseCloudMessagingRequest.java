@@ -12,7 +12,7 @@ import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.NOTI
 import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.TITLE;
 import static org.gluu.oxauth.model.ciba.FirebaseCloudMessagingRequestParam.TO;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.lang.StringUtils;
 import org.gluu.oxauth.client.BaseRequest;

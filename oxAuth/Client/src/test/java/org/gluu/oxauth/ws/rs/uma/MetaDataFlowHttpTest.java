@@ -6,7 +6,7 @@
 
 package org.gluu.oxauth.ws.rs.uma;
 
-import javax.ws.rs.ClientErrorException;
+import jakarta.ws.rs.ClientErrorException;
 
 import org.gluu.oxauth.BaseTest;
 import org.gluu.oxauth.client.uma.UmaClientFactory;

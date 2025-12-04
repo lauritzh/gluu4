@@ -11,7 +11,7 @@ import static org.testng.Assert.assertNotNull;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.oxtrust.action.BaseTest;
 import org.gluu.oxtrust.model.GluuCustomPerson;

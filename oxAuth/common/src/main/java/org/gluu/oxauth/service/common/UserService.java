@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.gluu.model.GluuStatus;
 import org.gluu.oxauth.model.common.User;

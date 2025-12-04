@@ -7,7 +7,7 @@
 import sys
 from java.util import Arrays
 from java.util import HashMap
-from javax.faces.context import FacesContext
+from jakarta.faces.context import FacesContext
 from org.apache.http.params import CoreConnectionPNames
 from org.gluu.model.custom.script.type.auth import PersonAuthenticationType
 from org.gluu.oxauth.security import Identity

@@ -28,8 +28,8 @@ from org.gluu.service.cdi.util import CdiUtil
 from org.gluu.util import StringHelper
 from java.util import ArrayList, Arrays, Collections
 
-from javax.faces.application import FacesMessage
-from javax.faces.context import FacesContext
+from jakarta.faces.application import FacesMessage
+from jakarta.faces.context import FacesContext
 
 import json
 import sys

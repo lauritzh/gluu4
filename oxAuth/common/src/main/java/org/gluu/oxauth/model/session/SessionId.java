@@ -14,8 +14,8 @@ import org.gluu.persist.annotation.*;
 import org.gluu.persist.model.base.Deletable;
 
 import javax.annotation.Nonnull;
-import javax.inject.Named;
-import javax.persistence.Transient;
+import jakarta.inject.Named;
+import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
