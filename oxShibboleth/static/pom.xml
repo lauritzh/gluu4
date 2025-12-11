@@ -14,7 +14,33 @@
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<shib.extract-directory>${project.build.directory}/classes/shibboleth-identity-provider-${shibboleth.version}</shib.extract-directory>
+		<shib.tmp-install-directory>${project.build.directory}/classes/shibboleth-idp-inst</shib.tmp-install-directory>
 	</properties>
+
+	<profiles>
+		<profile>
+			<id>windows-profile</id>
+			<activation>
+				<os><family>windows</family></os>
+			</activation>
+			<properties>
+				<shib-install-script.name>install.bat</shib-install-script.name>
+				<shell-cmd.name>cmd.exe</shell-cmd.name>
+			</properties>
+		</profile>
+		<profile>
+			<id>unix-profile</id>
+			<activation>
+				<os><family>unix</family></os>
+			</activation>
+			<properties>
+				<shib-install-script.name>install.sh</shib-install-script.name>
+				<shell-cmd.name>/bin/bash</shell-cmd.name>
+			</properties>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -35,10 +61,67 @@
 							<goal>wget</goal>
 						</goals>
 						<configuration>
-							<url>https://shibboleth.net/downloads/identity-provider/latest4/shibboleth-identity-provider-${shibboleth.version}.tar.gz</url>
+							<url>https://shibboleth.net/downloads/identity-provider/latest5/shibboleth-identity-provider-${shibboleth.version}.tar.gz</url>
 							<unpack>true</unpack>
 							<outputDirectory>${project.build.directory}/classes</outputDirectory>
 							<sha256>${shibboleth.dist.sha256}</sha256>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>delete-shib-tmp-install-dir</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+						<configuration>
+							<excludeDefaultDirectories>true</excludeDefaultDirectories>
+							<filesets>
+								<fileset>
+									<directory>${shib.tmp-install-directory}</directory>
+									<includes>
+										<include>**</include>
+									</includes>
+								</fileset>
+							</filesets>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.6.2</version>
+				<executions>
+					<execution>
+						<id>run-idp-install-script</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${shell-cmd.name}</executable>
+							<arguments>
+								<argument>${shib.extract-directory}/bin/${shib-install-script.name}</argument>
+								<argument>--noPrompt</argument>
+								<argument>true</argument>
+								<argument>--targetDir</argument>
+								<argument>${shib.tmp-install-directory}</argument>
+								<argument>--scope</argument>
+								<argument>gluu</argument>
+								<argument>--entityID</argument>
+								<argument>gluu-entity-id</argument>
+								<argument>--hostName</argument>
+								<argument>gluu-host</argument>
+							</arguments>
+
 						</configuration>
 					</execution>
 				</executions>
@@ -53,7 +136,7 @@
 						<id>gluu-patch</id>
 						<phase>process-resources</phase>
 						<configuration>
-							<targetDirectory>${project.build.directory}/classes/shibboleth-identity-provider-${shibboleth.version}</targetDirectory>
+							<targetDirectory>${shib.tmp-install-directory}</targetDirectory>
 							<patchDirectory>src/main/patches</patchDirectory>
 							<naturalOrderProcessing>true</naturalOrderProcessing>
 							<optimizations>false</optimizations>
