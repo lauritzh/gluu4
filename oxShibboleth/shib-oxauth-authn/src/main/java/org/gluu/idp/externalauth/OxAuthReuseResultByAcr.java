@@ -122,7 +122,7 @@ public class OxAuthReuseResultByAcr implements Predicate<ProfileRequestContext> 
         }else {
         
             acrs = requestedAuthnContext.getAuthnContextClassRefs().stream()
-                               .map(AuthnContextClassRef::getAuthnContextClassRef).collect(Collectors.toList());
+                               .map(AuthnContextClassRef::getURI).collect(Collectors.toList());
         }
 
         return acrs;

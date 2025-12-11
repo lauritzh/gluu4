@@ -95,7 +95,7 @@ public class FilterFlowsByAcrChangedAuthn extends AbstractAuthenticationAction {
             }
         } else {
             acrs = authnContext.getAuthnContextClassRefs().stream()
-                .map(AuthnContextClassRef::getAuthnContextClassRef).collect(Collectors.toList());
+                .map(AuthnContextClassRef::getURI).collect(Collectors.toList());
         }
         
         return acrs;

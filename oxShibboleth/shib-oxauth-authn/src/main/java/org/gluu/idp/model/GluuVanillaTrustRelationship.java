@@ -9,7 +9,6 @@ import org.gluu.persist.annotation.AttributeName;
 import org.gluu.persist.annotation.DataEntry;
 import org.gluu.persist.annotation.DN;
 import org.gluu.persist.annotation.ObjectClass;
-import org.gluu.persist.model.base.InumEntry;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

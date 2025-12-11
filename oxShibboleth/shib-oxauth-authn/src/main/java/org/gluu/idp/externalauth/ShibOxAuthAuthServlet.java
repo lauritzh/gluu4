@@ -361,7 +361,7 @@ public class ShibOxAuthAuthServlet extends HttpServlet {
                         }
                     } else {
                         acrs = authnContext.getAuthnContextClassRefs().stream()
-                                .map(AuthnContextClassRef::getAuthnContextClassRef).collect(Collectors.joining(" "));
+                                .map(AuthnContextClassRef::getURI).collect(Collectors.joining(" "));
                     }
                     
                     if (StringHelper.isNotEmpty(acrs)) {
