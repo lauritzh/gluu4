@@ -163,7 +163,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
 			replaceWithSystemValues(propertiesConfiguration, ADDIONAL_ENV_DB_PROPERTIES);
 
 			// Allow to override values via upper cased environment variables
-			replaceWithUpperCasedSystemValues(propertiesConfiguration);
+			replaceWithUpperCasedSystemValues(propertiesConfiguration, ADDIONAL_ENV_DB_PROPERTIES);
 
 			// Allow to override values via java variables
 			replaceWithJavaVariablesValues(propertiesConfiguration);
