@@ -199,7 +199,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
         }
 	}
 
-	private void replaceWithUpperCasedSystemValues(PropertiesConfiguration propertiesConfiguration) {
+	private void replaceWithUpperCasedSystemValues(PropertiesConfiguration propertiesConfiguration, List<String> additionalKeys) {
 		Iterator<?> keys = propertiesConfiguration.getKeys();
         while (keys.hasNext()) {
             String key = (String) keys.next();
@@ -207,6 +207,16 @@ public class PersistanceFactoryService implements BaseFactoryService {
 			if (System.getenv(envKey) != null) {
 				propertiesConfiguration.setProperty(key, System.getenv(envKey));
 			}
+        }
+
+        if (additionalKeys != null) {
+        	for (String key : additionalKeys) {
+                String envKey = key.toUpperCase().replaceAll("\\.", "\\_").replaceAll("\\-", "\\_");
+    			if (System.getenv(envKey) != null) {
+    				propertiesConfiguration.setProperty(key, System.getenv(envKey));
+    			}
+
+        	}
         }
 	}
 
