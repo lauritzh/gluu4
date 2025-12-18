@@ -166,7 +166,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
 			replaceWithUpperCasedSystemValues(propertiesConfiguration, ADDIONAL_ENV_DB_PROPERTIES);
 
 			// Allow to override values via java variables
-			replaceWithJavaVariablesValues(propertiesConfiguration);
+			replaceWithJavaVariablesValues(propertiesConfiguration, ADDIONAL_ENV_DB_PROPERTIES);
 			
 			// Merge all configuration into one with prefix
 			appendPropertiesWithPrefix(mergedPropertiesConfiguration, propertiesConfiguration, prefix);
@@ -188,7 +188,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
 				propertiesConfiguration.setProperty(key, System.getenv(key));
 			}
         }
-        
+
         if (additionalKeys != null) {
         	for (String key : additionalKeys) {
     			if (System.getenv(key) != null) {
@@ -220,13 +220,22 @@ public class PersistanceFactoryService implements BaseFactoryService {
         }
 	}
 
-	private void replaceWithJavaVariablesValues(PropertiesConfiguration propertiesConfiguration) {
+	private void replaceWithJavaVariablesValues(PropertiesConfiguration propertiesConfiguration, List<String> additionalKeys) {
 		Iterator<?> keys = propertiesConfiguration.getKeys();
         while (keys.hasNext()) {
             String key = (String) keys.next();
 			if (System.getProperty(key) != null) {
 				propertiesConfiguration.setProperty(key, System.getProperty(key));
 			}
+        }
+
+        if (additionalKeys != null) {
+        	for (String key : additionalKeys) {
+    			if (System.getProperty(key) != null) {
+    				propertiesConfiguration.setProperty(key, System.getenv(key));
+    			}
+
+        	}
         }
 	}
 
