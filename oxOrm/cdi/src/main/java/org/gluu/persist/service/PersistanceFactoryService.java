@@ -49,7 +49,9 @@ public class PersistanceFactoryService implements BaseFactoryService {
 	}
 
 	public static String DB_PROPERTY_MYSQL_SIMPLE_JSON = "mysql.simple-json";
-	public static List<String> ADDIONAL_ENV_DB_PROPERTIES = Arrays.asList(DB_PROPERTY_MYSQL_SIMPLE_JSON);
+	public static String DB_PROPERTY_ORM_VALIDATE_AFTER_UPDATE = "orm.validate-after-update";
+	
+	public static List<String> ADDIONAL_ENV_DB_PROPERTIES = Arrays.asList(DB_PROPERTY_MYSQL_SIMPLE_JSON, DB_PROPERTY_ORM_VALIDATE_AFTER_UPDATE);
 
 	public static final String BASE_DIR;
 	public static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
