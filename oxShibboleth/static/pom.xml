@@ -101,7 +101,7 @@
 				<version>3.6.2</version>
 				<executions>
 					<execution>
-						<id>run-idp-install-script</id>
+						<id>run-shib-idp-install-script</id>
 						<phase>generate-sources</phase>
 						<goals>
 							<goal>exec</goal>
@@ -159,14 +159,18 @@
 						<phase>process-resources</phase>
 						<configuration>
 							<target>
-								<property name="shib.basedir" value="${project.build.directory}/classes/shibboleth-identity-provider-${shibboleth.version}"/>
+								<property name="shib.extractdir" value="${shib.extract-directory}"/>
+								<property name="shib.basedir" value="${shib.tmp-install-directory}"/>
 								<property name="shib.dest.basedir" value="${project.build.directory}/classes/shibboleth-idp"/>
 								<!-- Delete not required webapp folder -->
 								<delete dir="${shib.basedir}/webapp"/>
+								<delete dir="${shib.basedir}/war"/>
+								<delete dir="${shib.basedir}/dist"/>
 								<!-- Delete .orig files in all folders -->
 								<delete dir="${shib.basedir}" includes="**/*.orig"/>
 								<!-- Delete destination shibboleth-idp folder -->
 								<delete dir="${shib.dest.basedir}"/>
+								<delete dir="${shib.extractdir}"/>
 								<!-- Move to shibboleth-idp folder -->
 								<move todir="${shib.dest.basedir}">
 									<fileset dir="${shib.basedir}"/>

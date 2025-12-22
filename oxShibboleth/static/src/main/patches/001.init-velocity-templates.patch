@@ -67,22 +67,4 @@ diff -aurN shibboleth-idp.orig/views/logout.vm shibboleth-idp/views/logout.vm
 -</html>
 \ No newline at end of file
 +</html>
-diff -aurN shibboleth-idp.orig/views/user-prefs.vm shibboleth-idp/views/user-prefs.vm
---- shibboleth-idp.orig/views/user-prefs.vm	2022-04-18 14:41:18.000000000 +0100
-+++ shibboleth-idp/views/user-prefs.vm	2022-04-22 05:17:01.782227203 +0100
-@@ -25,7 +25,7 @@
-    <body onLoad="document.getElementById('content').style.display='block'; load('spnego')">
-         <main class="main">
-             <header>
--                <img class="main-logo" src="$request.getContextPath()#springMessageText("idp.logo", "/images/placeholder-logo.png")" alt="#springMessageText("idp.logo.alt-text", "logo")">
-+                <img class="main-logo" src="$request.getContextPath()/servlet/logo" alt="#springMessageText("idp.logo.alt-text", "logo")">
-             </header>
-             
-             
-@@ -53,4 +53,4 @@
-             </div>
-         </footer>
-     </body>
--</html>
-\ No newline at end of file
-+</html>
+

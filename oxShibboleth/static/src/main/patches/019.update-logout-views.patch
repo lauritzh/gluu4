@@ -1,37 +1,29 @@
 diff -aurN shibboleth-idp.orig/views/logout-complete.vm shibboleth-idp/views/logout-complete.vm
---- shibboleth-idp.orig/views/logout-complete.vm	2024-09-02 11:49:25.962679000 +0100
-+++ shibboleth-idp/views/logout-complete.vm	2024-09-02 12:02:41.192840882 +0100
-@@ -16,6 +16,10 @@
+--- shibboleth-idp.orig/views/logout-complete.vm	2025-12-17 11:00:32.625458730 +0100
++++ shibboleth-idp/views/logout-complete.vm	2025-12-18 05:56:15.640707871 +0100
+@@ -18,6 +18,10 @@
  ##
  #set ($activeIdPSessions = $logoutContext and !$logoutContext.getIdPSessions().isEmpty())
  #set ($activeSPSessions = $logoutContext and !$logoutContext.getSessionMap().isEmpty())
 +
-+## Gluu specific variables 
++## Gluu specific variables
 +#set ($gluuLogoutRedirectUrl = $custom.getRelyingPartyLogoutRedirectUrl($profileRequestContext,$multiRPContext,$logoutContext))
 +
+ $response.addHeader("Content-Security-Policy", "script-src 'none'; base-uri 'none'")
  <!DOCTYPE html>
  <html>
-     <head>
-@@ -23,13 +27,16 @@
+@@ -26,6 +30,9 @@
          <meta charset="UTF-8" />
          <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-+    #if ($gluuLogoutRedirectUrl)
++#if ($gluuLogoutRedirectUrl)
 +        <meta http-equiv="refresh" content="15;url=$gluuLogoutRedirectUrl">
-+    #end
++#end
          <link rel="stylesheet" type="text/css" href="$request.getContextPath()#springMessageText("idp.css", "/css/placeholder.css")">
      </head>
  
-     <body>
-         <main class="main">
-             <header>
--                <img class="main-logo" src="$request.getContextPath()/servlet/logo" alt="#springMessageText("idp.logo.alt-text", "logo")" />
-+               <img class="main-logo" src="$request.getContextPath()/servlet/logo" alt="#springMessageText("idp.logo.alt-text", "logo")" />
-             </header>
-             
-             <section>
-@@ -50,6 +57,10 @@
-               #if ( $profileRequestContext.getProfileId().contains("saml2/logout") )
+@@ -53,6 +60,10 @@
+               #if (!$logoutContext.flowComplete)
                    <iframe style="display:none" src="$flowExecutionUrl&_eventId=proceed"></iframe>
                #end
 +
@@ -41,17 +33,10 @@ diff -aurN shibboleth-idp.orig/views/logout-complete.vm shibboleth-idp/views/log
              </section>
          </main>
          <footer class="footer">
-@@ -58,4 +69,4 @@
-             </div>
-         </footer>
-  	</body>
--</html>
-+</html>
-\ No newline at end of file
 diff -aurN shibboleth-idp.orig/views/logout-propagate.vm shibboleth-idp/views/logout-propagate.vm
---- shibboleth-idp.orig/views/logout-propagate.vm	2024-09-02 11:49:25.962679000 +0100
-+++ shibboleth-idp/views/logout-propagate.vm	2024-09-02 12:06:35.848396418 +0100
-@@ -17,6 +17,10 @@
+--- shibboleth-idp.orig/views/logout-propagate.vm	2025-12-17 11:00:32.625534863 +0100
++++ shibboleth-idp/views/logout-propagate.vm	2025-12-18 11:16:54.201416225 +0100
+@@ -19,6 +19,11 @@
  ## custom - arbitrary object injected by deployer
  ##
  #set ($hidden = $environment.getProperty("idp.logout.propagationHidden", "false"))
@@ -59,16 +44,17 @@ diff -aurN shibboleth-idp.orig/views/logout-propagate.vm shibboleth-idp/views/lo
 +## Gluu specific variables 
 +#set ($gluuLogoutRedirectUrl = $custom.getRelyingPartyLogoutRedirectUrl($profileRequestContext,$multiRPContext,$logoutContext))
 +
++
+ $response.addHeader("Content-Security-Policy", "base-uri 'none'; script-src 'unsafe-inline' 'self'")
  <!DOCTYPE html>
  <html>
-     <head>
-@@ -26,17 +30,23 @@
+@@ -29,17 +34,23 @@
          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
          <link rel="stylesheet" type="text/css" href="$request.getContextPath()#springMessageText("idp.css", "/css/placeholder.css")">
          <link rel="stylesheet" type="text/css" href="$request.getContextPath()/css/logout.css">
-+    #if ($gluuLogoutRedirectUrl)
-+        <meta http-equiv="refresh" content="15;url=$gluuLogoutRedirectUrl">
-+    #end
++        #if ($gluuLogoutRedirectUrl)
++          <meta http-equiv="refresh" content="15;url=$gluuLogoutRedirectUrl">
++        #end
      </head>
  
      <body>
@@ -87,17 +73,10 @@ diff -aurN shibboleth-idp.orig/views/logout-propagate.vm shibboleth-idp/views/lo
                  #else
                  <h1>#springMessageText("idp.logout.attempt", "Attempting to log out of the following services:")</h1>
                  #end
-@@ -54,4 +64,4 @@
-             </div>
-         </footer>
-  	</body>
--</html>
-+</html>
-\ No newline at end of file
 diff -aurN shibboleth-idp.orig/views/logout.vm shibboleth-idp/views/logout.vm
---- shibboleth-idp.orig/views/logout.vm	2024-09-02 11:49:25.962679000 +0100
-+++ shibboleth-idp/views/logout.vm	2024-09-02 11:58:36.593723650 +0100
-@@ -20,6 +20,10 @@
+--- shibboleth-idp.orig/views/logout.vm	2025-12-17 11:00:32.625614584 +0100
++++ shibboleth-idp/views/logout.vm	2025-12-18 12:01:36.011442783 +0100
+@@ -22,6 +22,10 @@
  #end
  #set ($promptForIdP = $logoutContext and !$logoutContext.getIdPSessions().isEmpty())
  #set ($promptForSP = $logoutContext and !$logoutContext.getSessionMap().isEmpty())
@@ -105,10 +84,10 @@ diff -aurN shibboleth-idp.orig/views/logout.vm shibboleth-idp/views/logout.vm
 +## Gluu specific variables 
 +#set ($gluuLogoutRedirectUrl = $custom.getRelyingPartyLogoutRedirectUrl($profileRequestContext,$multiRPContext,$logoutContext))
 +
+ $response.addHeader("Content-Security-Policy", "script-src 'none'; base-uri 'none'")
  <!DOCTYPE html>
  <html>
-     <head>
-@@ -100,6 +104,19 @@
+@@ -103,6 +107,19 @@
                  <p><strong>#springMessageText("idp.logout.complete", "The logout operation is complete, and no other services appear to have been accessed during this session.")</strong></p>
                  <!-- Complete the flow by adding a hidden iframe. -->
                  <iframe style="display:none" src="$flowExecutionUrl&_eventId=proceed"></iframe>
@@ -128,7 +107,7 @@ diff -aurN shibboleth-idp.orig/views/logout.vm shibboleth-idp/views/logout.vm
              #end
  
                  <ul>
-@@ -108,6 +125,17 @@
+@@ -111,6 +128,17 @@
                  </ul>
              </section>
              
@@ -146,10 +125,3 @@ diff -aurN shibboleth-idp.orig/views/logout.vm shibboleth-idp/views/logout.vm
          </main>
          <footer class="footer">
              <div class="cc">
-@@ -115,4 +143,4 @@
-             </div>
-         </footer>
-     </body>
--</html>
-+</html>
-\ No newline at end of file
