@@ -31,8 +31,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import static org.apache.commons.lang.BooleanUtils.isTrue;
@@ -59,6 +62,9 @@ public class RegisterParamsValidator {
     private static final String HTTPS = "https";
     private static final String LOCALHOST = "localhost";
     private static final String LOOPBACK = "127.0.0.1";
+    private static final Set<String> FORBIDDEN_REDIRECT_URI_SCHEMES = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("javascript", "data", "vbscript"))
+    );
 
     /**
      * Validates the parameters for a register request.
@@ -230,9 +236,21 @@ public class RegisterParamsValidator {
                         valid = false;
                         continue;
                     }
+                    if (!isAllowedRedirectUriScheme(uri.getScheme())) {
+                        log.debug("Invalid or unsafe redirect_uri scheme: {}", redirectUri);
+                        valid = false;
+                        continue;
+                    }
                     redirectUriHosts.add(uri.getHost());
                     switch (applicationType) {
                         case WEB:
+                            if (HTTPS.equalsIgnoreCase(uri.getScheme())) {
+                                if (uri.getHost() == null) {
+                                    log.debug("Invalid redirect_uri host: {}", redirectUri);
+                                    valid = false;
+                                }
+                                break;
+                            }
                             if (HTTP.equalsIgnoreCase(uri.getScheme())) {
                                 if (!LOCALHOST.equalsIgnoreCase(uri.getHost()) && !LOOPBACK.equalsIgnoreCase(uri.getHost())) {
                                     log.debug("Invalid protocol for redirect_uri: " +
@@ -240,7 +258,12 @@ public class RegisterParamsValidator {
                                             " (only https protocol is allowed for application_type=web or localhost/127.0.0.1 for http)");
                                     valid = false;
                                 }
+                                break;
                             }
+                            log.debug("Invalid protocol for redirect_uri: " +
+                                    redirectUri +
+                                    " (only https protocol is allowed for application_type=web or localhost/127.0.0.1 for http)");
+                            valid = false;
                             break;
                         case NATIVE:
                             // to conform "OAuth 2.0 for Native Apps" https://tools.ietf.org/html/draft-wdenniss-oauth-native-apps-00
@@ -446,6 +469,14 @@ public class RegisterParamsValidator {
         if (grantTypes != null)
             return grantTypes.stream().anyMatch(grantType -> grantType == GrantType.RESOURCE_OWNER_PASSWORD_CREDENTIALS);
         return false;
+    }
+
+    private boolean isAllowedRedirectUriScheme(String scheme) {
+        if (StringUtils.isBlank(scheme)) {
+            return false;
+        }
+        String normalizedScheme = scheme.toLowerCase(Locale.ROOT);
+        return !FORBIDDEN_REDIRECT_URI_SCHEMES.contains(normalizedScheme);
     }
 
 }

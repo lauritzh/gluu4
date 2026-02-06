@@ -18,6 +18,8 @@ import org.testng.annotations.Test;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -40,6 +42,7 @@ public class RegisterParamsValidatorTest {
     @Test
     public void validateRedirectUris_whenSectorIdentifierDoesNotHostValidRedirectUri_shouldThrowInvalidClientMetadataError() {
         try {
+            allowAllRedirectUris();
             when(errorResponseFactory.createWebApplicationException(any(), any(), any())).thenCallRealMethod();
             registerParamsValidator.validateRedirectUris(
                     Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
@@ -51,5 +54,59 @@ public class RegisterParamsValidatorTest {
         } catch (WebApplicationException e) {
             verify(errorResponseFactory, times(1)).createWebApplicationException(eq(Response.Status.BAD_REQUEST), eq(RegisterErrorResponseType.INVALID_CLIENT_METADATA), any());
         }
+    }
+
+    @Test
+    public void validateRedirectUris_whenJavascriptSchemeForWeb_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.WEB,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("javascript://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenJavascriptSchemeForNative_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.NATIVE,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("javascript://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenHttpsForWeb_shouldReturnTrue() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.WEB,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("https://client.example.com/callback"),
+                null
+        );
+
+        assertTrue(result);
+    }
+
+    private void allowAllRedirectUris() {
+        when(appConfiguration.getAllowWildcardRedirectUri()).thenReturn(false);
+        when(appConfiguration.getClientWhiteList()).thenReturn(Lists.newArrayList("*"));
+        when(appConfiguration.getClientBlackList()).thenReturn(Lists.newArrayList());
     }
 }
