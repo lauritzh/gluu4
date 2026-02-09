@@ -63,7 +63,7 @@ public class RegisterParamsValidator {
     private static final String LOCALHOST = "localhost";
     private static final String LOOPBACK = "127.0.0.1";
     private static final Set<String> FORBIDDEN_REDIRECT_URI_SCHEMES = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList("javascript", "data", "vbscript"))
+            new HashSet<>(Arrays.asList("javascript", "data", "vbscript", "blob", "file"))
     );
 
     /**
@@ -241,7 +241,6 @@ public class RegisterParamsValidator {
                         valid = false;
                         continue;
                     }
-                    redirectUriHosts.add(uri.getHost());
                     switch (applicationType) {
                         case WEB:
                             if (HTTPS.equalsIgnoreCase(uri.getScheme())) {
@@ -274,6 +273,13 @@ public class RegisterParamsValidator {
 //                                    valid = false;
 //                                }
                             break;
+                    }
+                    if (ApplicationType.WEB == applicationType && uri.getHost() != null) {
+                        redirectUriHosts.add(uri.getHost());
+                    } else if (ApplicationType.NATIVE == applicationType
+                            && uri.getHost() != null
+                            && (HTTP.equalsIgnoreCase(uri.getScheme()) || HTTPS.equalsIgnoreCase(uri.getScheme()))) {
+                        redirectUriHosts.add(uri.getHost());
                     }
                 }
             }
