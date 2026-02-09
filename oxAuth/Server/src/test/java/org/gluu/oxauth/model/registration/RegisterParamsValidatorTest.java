@@ -217,6 +217,166 @@ public class RegisterParamsValidatorTest {
     }
 
     @Test
+    public void validateRedirectUris_whenBlobSchemeForWeb_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.WEB,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("blob://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenBlobSchemeForNative_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.NATIVE,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("blob://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenFileSchemeForWeb_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.WEB,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("file://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenFileSchemeForNative_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.NATIVE,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("file://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenMixedCaseBlobSchemeForWeb_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.WEB,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("Blob://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenMixedCaseBlobSchemeForNative_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.NATIVE,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("Blob://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenMixedCaseFileSchemeForWeb_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.WEB,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("FiLe://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenMixedCaseFileSchemeForNative_shouldReturnFalse() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.NATIVE,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("FiLe://lhq.at/%0aconfirm(location)"),
+                null
+        );
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenHttpLocalhostForWeb_shouldReturnTrue() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.WEB,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("http://localhost/callback"),
+                null
+        );
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void validateRedirectUris_whenCustomSchemeForNative_shouldReturnTrue() {
+        allowAllRedirectUris();
+
+        boolean result = registerParamsValidator.validateRedirectUris(
+                Lists.newArrayList(GrantType.AUTHORIZATION_CODE),
+                Lists.newArrayList(ResponseType.CODE),
+                ApplicationType.NATIVE,
+                SubjectType.PUBLIC,
+                Lists.newArrayList("myapp://callback"),
+                null
+        );
+
+        assertTrue(result);
+    }
+
+    @Test
     public void validateRedirectUris_whenHttpsForWeb_shouldReturnTrue() {
         allowAllRedirectUris();
 
